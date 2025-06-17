@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <!-- <script th:href="@{/static/plugin/antv/x6.js}"></script> -->
+        <title th:utext="${name}"></title>
+        <style type="text/css">
+            #container {
+                width: 100%;
+                height: calc(100vh);
+            }
+            @keyframes ant-line {
+                        to {
+                            stroke-dashoffset: -1000;
+                        }
+                    }
+        </style>
+    </head>
+    <body>
+        <div id="container" style="position: fixed;"></div>
+    </body>
+    <script src="https://cdn.bootcdn.net/ajax/libs/babel-polyfill/7.12.1/polyfill.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@antv/x6/dist/x6.js"></script>
+<script th:src="@{/web/x6/shape.js}"></script>
+    <script type="text/javascript"> 
+    
+X6.Graph.registerNode("start",start,true);
+X6.Graph.registerNode("end", endNode,true);
+X6.Graph.registerNode("normal", normalNode,true);
+X6.Graph.registerNode("orgnode", orgNode,true);
+X6.Graph.registerNode("gateway", gateway,true);
+
+        const graph = new X6.Graph({
+            container: document.getElementById('container'),
+            panning: {
+                enabled: true,
+                modifiers: 'shift',
+            },
+            grid: {
+                size: 20, //网格大小
+                visible: true, //是否开启网格画布
+                type: 'dot', // 'dot' | 'fixedDot' | 'mesh'|     //网格样式
+                args: {
+                    color: '#75664D', // 网格线/点颜色  
+                    thickness: 1, // 网格线宽度/网格点大小
+                },
+            },
+            //对齐线是移动节点排版的辅助工具
+            snapline: true,
+            connecting: {
+                snap: true,
+                highlight: true,
+            },
+        })
+
+       var dataBpm =  '[(${data})]';
+        //console.log(dataBpm)
+       // dataBpm=  dataBpm.replaceAll("\"","");
+        dataBpm=  dataBpm.replaceAll('"---',"'");
+        dataBpm=  dataBpm.replaceAll('---"',"'");
+      //  console.log(dataBpm)
+var graphData = JSON.parse(dataBpm);
+        //console.log(graphData.cells)
+       //graphData= {"cells":[{"position":{"x":301,"y":5},"size":{"width":80,"height":36},"shape":"circle","zIndex":100,"data":{"id":"","vid":-10000,"cid":"fff2ec90-7e8b-43d0-a4d0-3f74ce4915b1"},"ports":{"items":[{"id":"port_left","group":"groupLeft"},{"id":"port_bottom","group":"groupBottom"},{"id":"port_right","group":"groupRight"}],"groups":{"groupLeft":{"position":"left","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupBottom":{"position":"bottom","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupRight":{"position":"right","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupTop":{"position":"top","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}}}},"id":"fff2ec90-7e8b-43d0-a4d0-3f74ce4915b1"},{"position":{"x":320,"y":425},"size":{"width":80,"height":36},"shape":"circle","zIndex":100,"data":{"id":"","vid":-9999,"cid":"1f0c8436-2489-4dab-9ddf-ace59470da44"},"ports":{"items":[{"id":"port_left","group":"groupLeft"},{"id":"port_right","group":"groupRight"},{"id":"port_top","group":"groupTop"}],"groups":{"groupLeft":{"position":"left","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupBottom":{"position":"bottom","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupRight":{"position":"right","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupTop":{"position":"top","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}}}},"id":"1f0c8436-2489-4dab-9ddf-ace59470da44"},{"position":{"x":335,"y":105},"size":{"width":80,"height":40},"attrs":{"text":{"text":"项目经理审批"}},"shape":"rect","data":{"id":"","vid":-9998,"cid":"4e75342a-3f91-4442-9b3a-f3b3c1a97cd8"},"ports":{"items":[{"id":"port_left","group":"groupLeft"},{"id":"port_bottom","group":"groupBottom"},{"id":"port_right","group":"groupRight"},{"id":"port_top","group":"groupTop"}],"groups":{"groupLeft":{"position":"left","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupBottom":{"position":"bottom","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupRight":{"position":"right","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupTop":{"position":"top","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}}}},"id":"4e75342a-3f91-4442-9b3a-f3b3c1a97cd8","zIndex":101},{"shape":"edge","id":"70d5e526-6f20-453a-9ddc-3bc5c1ef5cb4","source":{"cell":"fff2ec90-7e8b-43d0-a4d0-3f74ce4915b1","port":"port_bottom"},"target":{"cell":"4e75342a-3f91-4442-9b3a-f3b3c1a97cd8","port":"port_top"},"zIndex":102,"data":{"vid":-9997}},{"position":{"x":161,"y":145},"size":{"width":80,"height":40},"attrs":{"text":{"text":"部门主任审批"}},"shape":"rect","data":{"id":"","vid":-9996,"cid":"ed5ca71a-ffe9-464b-aa4c-622870f290b5"},"ports":{"items":[{"id":"port_left","group":"groupLeft"},{"id":"port_bottom","group":"groupBottom"},{"id":"port_right","group":"groupRight"},{"id":"port_top","group":"groupTop"}],"groups":{"groupLeft":{"position":"left","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupBottom":{"position":"bottom","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupRight":{"position":"right","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupTop":{"position":"top","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}}}},"id":"ed5ca71a-ffe9-464b-aa4c-622870f290b5","zIndex":103},{"position":{"x":221,"y":271},"size":{"width":40,"height":30},"shape":"gateway","data":{"id":"","vid":-9995,"cid":"f7ec9c6c-c0b0-48c7-bec3-84f7ff2ab45e"},"ports":{"items":[{"id":"port_left","group":"groupLeft"},{"id":"port_bottom","group":"groupBottom"},{"id":"port_right","group":"groupRight"},{"id":"port_top","group":"groupTop"}],"groups":{"groupLeft":{"position":"left","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupBottom":{"position":"bottom","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupRight":{"position":"right","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupTop":{"position":"top","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}}}},"id":"f7ec9c6c-c0b0-48c7-bec3-84f7ff2ab45e","zIndex":104},{"shape":"edge","id":"34343337-14f2-4c9a-afa5-250b73d35384","source":{"cell":"4e75342a-3f91-4442-9b3a-f3b3c1a97cd8","port":"port_bottom"},"target":{"cell":"ed5ca71a-ffe9-464b-aa4c-622870f290b5","port":"port_top"},"zIndex":105,"data":{"vid":-9994}},{"shape":"edge","id":"935e6b3a-4e2d-4b2c-b949-495801706c0c","source":{"cell":"ed5ca71a-ffe9-464b-aa4c-622870f290b5","port":"port_bottom"},"target":{"cell":"f7ec9c6c-c0b0-48c7-bec3-84f7ff2ab45e","port":"port_top"},"zIndex":106,"data":{"vid":-9993}},{"position":{"x":201,"y":320},"size":{"width":80,"height":40},"attrs":{"text":{"text":"分管领导审批"}},"shape":"rect","data":{"id":"","vid":-9992,"cid":"d5a39026-db94-466e-8463-46d3a4591c10"},"ports":{"items":[{"id":"port_left","group":"groupLeft"},{"id":"port_bottom","group":"groupBottom"},{"id":"port_right","group":"groupRight"},{"id":"port_top","group":"groupTop"}],"groups":{"groupLeft":{"position":"left","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupBottom":{"position":"bottom","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupRight":{"position":"right","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupTop":{"position":"top","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}}}},"id":"d5a39026-db94-466e-8463-46d3a4591c10","zIndex":107},{"shape":"edge","id":"fede1630-6eb0-4c9a-8241-23c54d817670","source":{"cell":"f7ec9c6c-c0b0-48c7-bec3-84f7ff2ab45e","port":"port_bottom"},"target":{"cell":"d5a39026-db94-466e-8463-46d3a4591c10","port":"port_top"},"zIndex":108,"data":{"vid":-9991}},{"position":{"x":335,"y":271},"size":{"width":80,"height":40},"attrs":{"text":{"text":"人资备案"}},"shape":"rect","data":{"id":"","vid":-9989,"cid":"f39a6e1b-feb1-4d61-b4fe-66291d82fee1"},"ports":{"items":[{"id":"port_left","group":"groupLeft"},{"id":"port_bottom","group":"groupBottom"},{"id":"port_right","group":"groupRight"},{"id":"port_top","group":"groupTop"}],"groups":{"groupLeft":{"position":"left","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupBottom":{"position":"bottom","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupRight":{"position":"right","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}},"groupTop":{"position":"top","attrs":{"circle":{"r":4,"magnet":true,"stroke":"#5b8ffa","strokeWidth":1,"fill":"#fff"}}}}},"id":"f39a6e1b-feb1-4d61-b4fe-66291d82fee1","zIndex":110},{"shape":"edge","id":"ba2ced6d-2d6e-465f-8dbc-c17cb9c51858","source":{"cell":"d5a39026-db94-466e-8463-46d3a4591c10","port":"port_right"},"target":{"cell":"f39a6e1b-feb1-4d61-b4fe-66291d82fee1","port":"port_left"},"zIndex":111,"data":{"vid":-9988}},{"shape":"edge","id":"f484e114-9779-4e56-82a7-e511c805eed9","source":{"cell":"f7ec9c6c-c0b0-48c7-bec3-84f7ff2ab45e","port":"port_right"},"target":{"cell":"f39a6e1b-feb1-4d61-b4fe-66291d82fee1","port":"port_top"},"zIndex":112,"data":{"vid":-9987}},{"shape":"edge","id":"f08e3e8c-e15d-47db-b31a-24a910935940","source":{"cell":"f39a6e1b-feb1-4d61-b4fe-66291d82fee1","port":"port_bottom"},"target":{"cell":"1f0c8436-2489-4dab-9ddf-ace59470da44","port":"port_top"},"zIndex":113,"data":{"vid":-9986}}]}
+graph.fromJSON(graphData.cells)
+
+
+    </script>
+</html>

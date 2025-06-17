@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>灵境空间</title>
+  <meta name="keywords" content="desktop">
+  <meta name="description" content="desktop">
+  <meta name="renderer" content="webkit|ie-comp|ie-stand">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+  <link th:href="@{/static/layui/mouseRightMenu/mouseRightMenu.css}" rel="stylesheet" />
+  <link rel="stylesheet"  th:href="@{/static/desktop/style/swiper-3.4.0.min.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/static/desktop/style/desktop.css}">
+  <link th:href="@{/static/layui/notice/notice.css}" rel="stylesheet"/>
+</head>
+<body class="desktop-bg2">
+	<div class="" id="loading" style="position: absolute; top: 49%; left: 50%; margin-left: -73px; display:block;"><i class="layui-icon layui-anim layui-anim-rotate layui-anim-loop">ဂ</i></div>
+	<!--桌面app配置参数-->
+	
+    
+    <!--主桌面-->
+    <div class="swiper-container desktop-container small-click" data-type="hidemenu">
+    	<div class="swiper-pagination"></div>
+        <div class="swiper-wrapper">
+        </div>        
+     </div>
+    <!--任务栏-->
+    <div class="desktop-taskbar">
+        <!--div class="desktop-taskbar-pr"></div-->
+        <div id="opening-menu" class="opening-menu">
+            <div class="opening-menu-app-list"></div>
+            <div class="opening-menu-user">
+                <div class="desktop-opening-icon"></div>
+                <div class="opening-menu-user-list">
+                    <a title="主题设置" data-type="theme" class="dock_tool_theme small-click" href="javascript:void(0)">主题设置</a>
+                    <a title="个人资料" data-type="ziliao" class="dock_tool_ziliao small-click" href="javascript:void(0)">个人资料</a>
+                    <a title="注销登录" data-type="loginout" class="dock_tool_loginout small-click" href="javascript:void(0)">注销登录</a>
+                </div>
+            </div>
+        </div>
+        <!--开始菜单-->
+        <div class="layui-inline taskbar-win small-click" data-type="openingmenu"><i class="iconfont icon-windows"></i></div>
+        <!---->
+        <div class="layui-inline desktop-taskbar-app-list">
+        
+        </div>
+        <div class="layui-inline taskbar-showdesktop small-click" data-type="showIm" title="消息管理"></div>
+        <!--时间显示-->
+        <div class="layui-inline taskbar-time">
+            <label id="laydate-hs"></label>
+            <label id="laydate-ymd"></label>
+        </div>
+        <div class="layui-inline taskbar-showdesktop small-click" data-type="showdesktop" title="显示桌面"></div>
+    </div>
+    <!--右键菜单 th:utext="[(${contextMenu})]" -->
+    <div class="desktop-menu">  
+            <ul  >
+            <li><a href="javascript:;" id="mobileQrCode" class="small-click" data-type="mobileQrCode">手机扫码</a></li>  
+             <li><a href="javascript:;" id="mapp" class="small-click" data-type="mapp">移动应用</a></li> 
+             <hr id="myRight"/>
+        <hr id="menuMiddle"/>
+                <hr id="menuBottom"/>
+                <li><a href="javascript:;" id="themesettings" class="small-click" data-type="theme">主题设置</a></li>
+                <hr/>
+                <li><a href="javascript:;" id="closeall"  class="small-click" data-type="closeall">关闭所有</a></li>  
+                <li><a href="javascript:;" id="showdesktop" class="small-click" data-type="showdesktop">显示桌面</a></li>  
+                <li><a href="javascript:;" id="cancellation" class="small-click" data-type="loginout">注销</a></li>  
+            </ul>  
+        </div>  
+</body>
+
+<script th:src="@{/static/desktop/js/jquery.min.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+<script th:src="@{/static/layui/layui.js}"></script>
+<script th:src="@{/static/desktop/js/swiper.js}"></script>
+<script th:src="@{/static/desktop/js/jquery-ui.min.js}"></script>
+	<script type="text/javascript">
+	let onlyPhoneUser=false;
+	let myName='[(${myName})]';
+	let userId='[(${userId})]';
+	let mySetting = '[(${MySetting})]';
+	if(mySetting.length>1){
+		mySetting = [(${MySetting})];
+		for(var i in mySetting){
+			var durl = mySetting[i].value;
+			if('BackGroundImg'==mySetting[i].code&&mySetting[i].value){
+				changeBg(durl);
+			}
+		}
+	}
+	
+	var showMessages;
+	layui.config({ dir: '/static/layui/',version: false ,debug: false,
+		base: '/static/layui/lay/modules/'})
+	.use(['mouseRightMenu','form','layer','jquery','notice'], function(){
+		var mouseRightMenu = layui.mouseRightMenu,
+		$lay=layui.jquery,
+	    layer = layui.layer,
+		notice = layui.notice;
+		// 初始化配置，同一样式只需要配置一次，非必须初始化，有默认配置
+        notice.options = {
+            closeButton:true,//显示关闭按钮
+            debug:false,//启用debug
+            positionClass:"toast-bottom-right",//弹出的位置,
+            showDuration:"300",//显示的时间
+            hideDuration:"1000",//消失的时间
+            timeOut:"2000",//停留的时间
+            extendedTimeOut:"1000",//控制时间
+            showEasing:"swing",//显示时的动画缓冲方式
+            hideEasing:"linear",//消失时的动画缓冲方式
+            iconClass: 'toast-info', // 自定义图标，有内置，如不需要则传空 支持layui内置图标/自定义iconfont类名
+            onclick: null, // 点击关闭回调
+        };
+
+        
+       // notice.warning("成功");
+        //notice.info("提示信息：毛都没有...");
+        //notice.error("大佬，我咋知道怎么肥四！");
+        notice.success("欢迎！[(${myName})]");
+ 		//右键监听
+ 		$lay('.desktop-app').bind("contextmenu",function(e){
+			var data = {content:$(this).html()}
+			var appi=e.currentTarget.dataset;
+			var di=this.parentElement.attributes['data-menuid'];
+			var aurl=appi.url.split('/');
+			var modurl = aurl.join('-');
+			var module = aurl[aurl.length-1];
+			/**
+			{'data':data,'appi':appi,url:'[(${MODULE_NAME})]/graph/contextMenu/monitor/'+modurl,'title':'监视'},
+				{'data':data,'appi':appi,url:'[(${MODULE_NAME})]/graph/contextMenu/stylesheet/'+module,'title':'架构'},
+				[(${MODULE_NAME})]/
+	graph/contextMenu/codec/
+				*/
+ 			var menu_data=[
+				{'data':data,'appi':appi,url:'[(${MODULE_NAME})]/graph/contextMenu/dynamicloading/'+modurl,'title':'关系图'},
+				{'data':data,'appi':appi,url:'[(${MODULE_NAME})]/manage/MetaData/moduleMeta/module/'+module,'title':'添加元数据'},
+				{'data':data,'appi':appi,url:'[(${MODULE_NAME})]/manage/Vo/moduleView/module/'+module,'title':'添加视图'},
+				{'data':data,'appi':appi,url:'[(${MODULE_NAME})]/desktop/removeApp/'+di.value+'/'+appi.id,'title':'删除'},
+				{'data':data,'appi':appi,url:'[(${MODULE_NAME})]/html/appFlow/'+appi.id,'title':'流程'},
+			]
+ 			mouseRightMenu.open(menu_data,true,function(d){
+ 				if(d.title=='删除'){
+ 					postDo(d.url,{})
+ 					window.location.reload()
+ 				}else{
+ 	 				openUrl(d);
+ 				}
+ 			})
+			return false;
+		});
+		
+ 		//右键菜单激活逻辑
+ 		  $lay('body').on('click', '.rm-click',
+ 				    function() {
+ 				        var a = $(this),
+ 				        type = a.data('type');
+ 				        f[type] ? f[type].call(this, a) : ''
+ 				    })
+ 		var f = {
+ 		  // 右键菜单函数
+ 		  [(${contextMenuFunction})]
+ 		  }
+	});
+	  
+ var desktpData=[(${desktpData})]
+   if(desktpData==null||desktpData==undefined){
+	   desktpData={
+			   menu:[
+		   		{menuid:"m001",name:"1",app:"m101 m102 m103 m104 m105 m106 m107 m108".split(" ")},
+	    		{menuid:"m002",name:"2",app:["m201","m202"]},
+	    		{menuid:"m003",name:"3",app:["m301"]},
+	    		{menuid:"m004",name:"opening",app:"m401 m402 m403 m404 m405 m406".split(" ")}
+	    		],
+	    		apps:{
+	    			m101:{appid:"101",isicon:1,icon:"&#xe638;",iconbg:"#51555e",name:"管理平台",url:"[(${MODULE_NAME})]/",height:"",width:""},
+	    			m102:{appid:"102",isicon:1,icon:"&#xe63a;",iconbg:"#60b979",name:"爬虫管理",url:"[(${MODULE_NAME})]/module/SpiderManager",height:"",width:""},
+				    m105:{appid:"105",icon:"&#xe628;",iconbg:"#e6db74",name:"代码管理",url:"[(${MODULE_NAME})]/module/CodeManage",isicon:1,height:"",width:""},
+					m107:{appid:"107",icon:"&#xe62f;",iconbg:"#e6db74",name:"\u6587\u4ef6\u4e0a\u4f20",url:"http://www.layui.com/doc/modules/upload.html",isicon:1,height:"",width:""},
+					m108:{appid:"108",icon:"&#xe62f;",iconbg:"#e6db74",name:"业务设计",url:"[(${MODULE_NAME})]/module/bussinessDesign",isicon:1,height:"",width:""},
+					m201:{appid:"107",icon:"&#xe62f;",iconbg:"#e6db74",name:"\u5e38\u7528\u5143\u7d20\u64cd\u4f5c",url:"http://www.layui.com/doc/modules/element.html",isicon:1,height:"",width:""},
+					m202:{appid:"107",icon:"&#xe62f;",iconbg:"#e6db74",name:"\u6587\u4ef6\u4e0a\u4f20",url:"http://www.layui.com/doc/modules/upload.html",isicon:1,height:"",width:""},
+					m301:{appid:"301",icon:"&#xe635;",iconbg:"#e6db74",name:"\u4ee3\u7801\u4fee\u9970\u5668",url:"http://www.layui.com/doc/modules/code.html",isicon:1,height:"",width:""},
+					m401:{appid:"101",isicon:1,icon:"&#xe638;",iconbg:"#51555e",name:"开发管理",url:"[(${MODULE_NAME})]/module/devManage",height:"",width:""},
+					m402:{appid:"102", isicon:1,icon:"&#xe63a;",iconbg:"#60b979",name:"工具",url:"http://layim.layui.com/",height:"",width:""},
+					m403:{appid:"103",isicon:1,icon:"&#xe637;",iconbg:"#d3b59d",name:"授权",url:"[(${MODULE_NAME})]/module/audit",height:"",width:""},
+					m404:{appid:"104",isicon:1,icon:"&#xe633;",iconbg:"#109b8e",name:"\u5206\u9875",url:"http://laypage.layui.com/",height:"",width:""},
+					m406:{appid:"106",icon:"&#xe639;",iconbg:"#e6db74",name:"\u8868\u5355",url:"customer.html",isicon:1,height:"",width:""}
+						}
+	   };
+   }
+    </script> 
+    <script th:src="@{/static/desktop/desktop.js}"></script>
+</body>
+</html>

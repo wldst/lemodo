@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}接口信息|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<h3>
+		<label th:text="|${name}的CRUD接口列表|"></label>
+	</h3>
+	
+	<table class="layui-table">
+	<thead>
+	<th>接口名</th>
+	<th>接口地址</th>
+	<th>接口参数</th>
+	<th>返回参数示例</th>
+	</thead>
+	  <tr>
+	  	<td>查询</td>
+	  	<td><label th:text="|${MODULE_NAME}/cruder/${label}/query|"></label></td>
+	  	<td>
+		{
+		<div th:each="ci,ciStat : ${cols}">
+				<label th:utext='|"${ci.field}":"${ci.name}"|'></label>
+		</div>
+		}</td>
+		<td>{"msg":"查询成功!","status":true,"page":<br>{"pageSize":10,"pageNum":1,"total":12},"data":"[]"}</td>
+	  </tr>
+	  <tr>
+	  	<td>list查询</td>
+	  	<td><label th:text="|${MODULE_NAME}/cruder/${label}/list|"></label></td>
+	  	<td>
+			同上</td>
+		<td>{"msg":"查询成功!","status":true,"page":<br>{"pageSize":10,"pageNum":1,"total":12},"data":"[]"}</td>
+	  </tr>
+	  <tr>
+	  	<td>新增</td>
+	  	<td><label th:text="|${MODULE_NAME}/cruder/${label}/save|"></label></td>
+	  	<td>
+			同上</td>
+		<td>{"msg":"查询成功!","status":true,"page":<br>{"pageSize":10,"pageNum":1,"total":12},"data":"[]"}</td>
+	  </tr>
+	  <tr>
+	  	<td>删除</td>
+	  	<td><label th:text="|${MODULE_NAME}/cruder/${label}/del|"></label></td>
+	  	<td>
+			同上
+		</td>
+		<td>{"msg":"删除成功!","status":true}</td>
+	  </tr>
+	  <tr>
+	  	<td>更新</td>
+	  	<td><label th:text="|${MODULE_NAME}/cruder/${label}/update|"></label></td>
+	  	<td>
+			同上</td>
+		<td>{"msg":"查询成功!","status":true,"page":<br>{"pageSize":10,"pageNum":1,"total":12},"data":"[]"}</td>
+	  </tr>
+		<tr>
+			<td>选择</td>
+			<td><label th:text="|${MODULE_NAME}/cruder/${label}/select|"></label></td>
+			<td>
+				同上</td>
+			<td>{"msg":"查询成功!","status":true,"page":<br>{"pageSize":10,"pageNum":1,"total":12},"data":"[]"}</td>
+		</tr>
+	</table>
+	
+	
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+</body>
+</html>

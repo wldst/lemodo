@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+<style>
+/*.container{position:relative;width:100%;min-height:620px;} .body{padding-bottom:143px;} 
+.footer{height:143px;position:fixed;bottom:0px;right:0px;} */
+
+ .inputx{
+ width:100px;
+ }
+</style>
+<!-- <div th:insert="~{voice::voiceHTML}"></div>
+<div th:insert="~{voice::voiceJS}"></div> -->
+<div>
+<div class="container">
+	<div class="layui-row">
+		<div class="layui-col-md2">
+			<ul   class="ztree layui-tab-more">
+				<li class="list-group-item ">
+					<label for="">关键词:</label>
+					<input id="searchKey"  class="inputx" type="text"/></br>
+					<button onclick="search()" class="btn">搜索</button>
+				</li>
+				<li>
+					<label for="">智能体</label>
+					<ul class="sub list-group" >
+					</ul>
+				</li>
+			</ul>
+		</div>
+		<div class="layui-col-md10">
+			 <div class="form-group">
+				<div style="width:100%;overflow:auto;overflow-y:auto">
+					<div id="message_content" style="overflow:hidden;width:98%;white-space: pre-wrap;"></div>
+					<div><a id="msg_end" name="1" href="#1">&nbsp</a></div>
+				</div>
+			</div>
+		</div>
+    </div>
+	<div class="layui-row">
+		<div class="layui-col-md2">
+
+		</div>
+		<div class="layui-col-md10">
+				<div class="form-group footer">
+					<div style="width:100%;"><label id="tips">输入操作指令 &nbsp;</label>
+				    <textarea id="talkContent"  style="rows: 5;" onkeydown="render()" class="form-control" onscroll="this.rows++;"></textarea></br>
+				    <button onclick="sendInfo()" class="btn btn-info">执行</button>
+				    </div>
+				</div>
+		</div>
+	</div>
+		</div>
+	
+</div>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+<script th:src="@{/static/layui/layui.js}"></script>
+<script>
+Date.prototype.pattern= function(fmt) {         
+    var o = {
+   "M+" :  this.getMonth()+1,  // 月份       
+   "d+" :  this.getDate(),  // 日         
+   "h+" :  this.getHours()%12 == 0 ? 12 :  this.getHours()%12,  // 小时         
+   "H+" :  this.getHours(),  // 小时         
+   "m+" :  this.getMinutes(),  // 分         
+   "s+" :  this.getSeconds(),  // 秒         
+   "q+" : Math.floor(( this.getMonth()+3)/3), //季度         
+   "S" :  this.getMilliseconds()  // 毫秒         
+   };         
+    var week = {         
+   "0" : "/u65e5",         
+   "1" : "/u4e00",         
+   "2" : "/u4e8c",         
+   "3" : "/u4e09",         
+   "4" : "/u56db",         
+   "5" : "/u4e94",         
+   "6" : "/u516d"        
+   };         
+    if(/(y+)/.test(fmt)){         
+       fmt=fmt.replace(RegExp.$1, ( this.getFullYear()+"").substr(4 - RegExp.$1.length));         
+   }         
+    if(/(E+)/.test(fmt)){         
+       fmt=fmt.replace(RegExp.$1, ((RegExp.$1.length>1) ? (RegExp.$1.length>2 ? "/u661f/u671f" : "/u5468") : "")+week[ this.getDay()+""]);         
+   }         
+    for( var k  in o){         
+        if( new RegExp("("+ k +")").test(fmt)){         
+           fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));         
+       }         
+   }         
+    return fmt;         
+}     
+
+
+var sockets={};
+var contextSocketUrl = 'wss://'+window.location.host+'/context/';//websocketi连接地址
+var myName='[(${myName})]';
+var myId='[(${myId})]';
+var chatContextId=myId+'qwen';
+var sessions='[(${session})]';
+var agentList=[];
+    //创建websocket连接
+
+function createContextConnect(userId) {
+        if (!sockets[userId]||sockets[userId].readyState != sockets[userId].OPEN) {//避免重复连接
+            console.log(userId);
+            var contextWs = new WebSocket(contextSocketUrl + userId);
+            contextWs.onopen = function () {
+                contextWs.send("连接正常"+userId);
+            };
+            contextWs.onmessage = function (e) {
+                //服务端发送的消息
+				if(e.data=='.'){
+					$("#message_content").append(e.data);
+				}else{
+					$("#message_content").append(e.data + '\n');
+				}
+
+            };
+            contextWs.onclose = function () {
+            	console.log(myName + "下线");
+            }
+            sockets[userId]=contextWs;
+        }
+}
+    
+    function mySelect(index){
+    	if(!sockets[chatContextId]||sockets[chatContextId].readyState!='1'){
+    		createContextConnect(chatContextId);
+    	}
+    	sockets[chatContextId].send("userSelected:"+index);
+    }
+function insertText(content){
+	var now = new Date();
+	var div = $("#message_content");
+	div.scrollTop = div.scrollHeight;
+	var xx = now.pattern("yyyy-MM-dd hh:mm:ss");
+	$("#message_content").append(xx +":"+content+ '<br />');
+	let element = document.getElementById("msg_end");
+    if (element) {
+      element.scrollIntoView();
+    }
+}
+ 
+function render(ev) {
+	var ev = ev || window.event
+	if(ev.keyCode == "13") {
+		sendInfo()
+	}
+}
+
+function search() {
+    let msg = $('#searchKey').val(); 
+	var formData={'KeyWord':msg,"pageSize":10,"pageNum":1};
+	$.ajax({
+		     type: "post",
+		     url: "[(${MODULE_NAME})]/cruder/Agent/search",
+		     dataType : "json",
+		     contentType : "application/json;charset=UTF-8",      //
+		     data: JSON.stringify(formData),
+		     success: function (d) {
+		    	 var data = d.data;
+		    	 if(data){
+		    		 var list = data;
+		    		 agentList=list;
+		    		 $(".chatSession").remove();
+		    		 if(list.length>0){
+		    			 var xx="";
+		    			 for(var i in list){
+	   		    			if(list[i]['name']!=null){
+	   		    				xx+="<li class='list-group-item chatSession' onclick=\"clickType('"+i+"')\">"+
+	   		    					list[i]['name']+"</li>";
+							}
+	   		    		 }
+		    			 $(".list-group").append(xx);
+		    		 }
+		    	 }
+		     }
+		});
+}
+search();
+
+//消息
+function sendInfo() {
+        let msg = $('#talkContent').val();
+    	var genurl = "[(${MODULE_NAME})]/qwen/talk";
+    	if(!sockets[chatContextId]){
+    		createContextConnect(chatContextId);
+    	}
+    	var formData={};
+    	formData['msg']=msg;
+    	formData['myId']=myId;
+	formData['chatContextId']=chatContextId;
+
+    	$.ajax({
+   		     type: "post",
+   		     url: genurl,
+   		     dataType : "json",
+   		     contentType : "application/json;charset=UTF-8",      //
+   		     data: JSON.stringify(formData),
+   		     success: function (d) {
+   		    	$("#message_content").append("\n");
+   		    	 var data = d.data;
+   		    	 if(data.data){
+   		    		 var list = data.data;
+   		    		 if(list.length>1){
+   		    			 
+   		    		 }
+   		    		
+   		    		 if(list.length==1){
+   		    			var ret = list;
+     		    			if(ret[0]['url']!=null){
+     	   	   		    		$(".desktop-menu").hide()
+     	   	   	   		      //  openLayer(ret[0])
+     	   	   	   		 openManage(ret[0].name,ret[0].url);
+     	   	   		    	 }else if(ret[0]['msg']!=null&&ret[0]['msg'].indexOf('href=')>0){
+ 	   	   	   		    		$(".desktop-menu").hide()
+   	   	   	   	   		        insertText(ret[0].msg)
+   	   	   	   		    	 }else{
+     	   	   		    		$("#message_content").append(ret[0].msg+"<br/>");
+     	   	   		    	 }
+   		    		 }
+   		    		 if(list.length==0){
+   		    				$("#message_content").append("<br/>"+msg+"<br/>");
+    		    	  }
+   		    	 }
+   		    	 else{
+   		    		 if(data.value){
+   		    			$("#message_content").append("<br/>");
+   		    			$("#message_content").append("<br/>"+data.value+"<br/>");
+   		    		 }else if (data.msg){
+    		    			$("#message_content").append("<br/>");
+       		    			$("#message_content").append("<br/>"+data.msg+"<br/>");
+       		    		 }else{
+   		    			$("#message_content").append("<br/>"+msg+"执行成功<br/>");
+   		    		 }
+   		    	 }
+   		     }
+   		});
+}
+
+    
+    function openNode(name,url){
+    	var h = '600px';
+	    var w = '800px';
+	layer.open({
+	      type: 2,
+	      anim: 0,
+	      shade: 0,
+	      title: name,
+	      maxmin: true,
+	      area: [w, h],
+	      yes:function(index,layero)
+	      {
+	      	var body = layer.getChildFrame('body', index);
+			close()
+	          //index为当前层索引
+	        layer.close(index)
+	      },
+	      cancel:function(){//右上角关闭毁回调
+	     	 //var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+	  		//parent.layer.close(index); //再执行关闭
+	      },
+	      zIndex: layer.zIndex //重点1
+	      ,success: function(layero, index){
+	      },
+	      content: url
+	  });
+    }
+    function openLayer(data){
+    	 var h = '600px';
+    	    var w = '800px';
+    	layer.open({
+  	      type: 2,
+  	      anim: 0,
+  	      shade: 0,
+  	      title: data.name,
+  	      maxmin: true,
+  	      area: [w, h],
+  	      yes:function(index,layero)
+  	      {
+  	      	var body = layer.getChildFrame('body', index);
+  	          //index为当前层索引
+  	        layer.close(index)
+  	      },
+  	      cancel:function(){//右上角关闭毁回调
+  	     	 //var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+  	  		//parent.layer.close(index); //再执行关闭
+  	      },
+  	      zIndex: layer.zIndex //重点1
+  	      ,success: function(layero, index){
+  	      },
+  	      content: data.url
+  	  });
+    } 
+    
+    function clickType(index){
+    	var agent = agentList[index];
+		var tips ='';
+		if(agent&&agent.propmpt){
+			tips += agent.propmpt;
+		}
+		if(agent&&agent.duty){
+			tips+=agent.duty;
+		}
+    	$('#tips').text(tips);
+		//code,prompt,duty
+    	$('#talkContent').val("Agent:"+agent.code+":问题内容");
+		//读取历史记录。并展现出来。
+		chatHistory(agent.id);
+    }
+function chatHistory(agentId) {
+	// let msg = $('#searchKey').val();
+	var formData={'pageSize':10,"pageNum":1};
+	$.ajax({
+		type: "post",
+		url: "[(${MODULE_NAME})]/relation/Agent/query/chatHistory/ChatItem/"+agentId,
+		dataType : "json",
+		contentType : "application/json;charset=UTF-8",      //
+		data: JSON.stringify(formData),
+		success: function (d) {
+			var data = d.data;
+			if(data){
+				var list = data;
+				$("#message_content").empty();
+				if(list.length>0){
+					var xx="";
+					for(var i in list){
+						let e = list[i];
+						if(e['role']!=null){
+							$("#message_content").append(e.role+"：\n"+e.content+"\n");
+						}
+					}
+				}
+			}
+		}
+	});
+}
+     
+</script>
+</body>
+</html>

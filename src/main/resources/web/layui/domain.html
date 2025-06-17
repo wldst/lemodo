@@ -1,0 +1,308 @@
+	<h3>��ǰ������Ϣ</h3>
+	<form class="layui-form" lay-filter="example">
+		<div class="layui-form-item">
+			<label class="layui-form-label">���ƣ�</label>
+			<div class="layui-input-inline">
+				<input name="name" class="layui-input" id="name"
+					placeholder="�����������������" autocomplete="off" lay-verify="name">
+			</div>
+			<label class="layui-form-label">Label��</label>
+			<div class="layui-input-inline">
+				<input name="label" class="layui-input" id="label"
+					autocomplete="off">
+			</div>
+			<label class="layui-form-label">������</label>
+			<div class="layui-input-inline">
+				<input name="primaryKey" class="layui-input" id="primaryKey"
+					autocomplete="off" required>
+			</div>
+			<label class="layui-form-label">���ݿ��</label>
+			<div class="layui-input-inline">
+				<input name="tableName" class="layui-input" id="tableName"
+					autocomplete="off">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">�����У�</label>
+			<div class="layui-input-block">
+				<input name="columns" class="layui-input" id="columns"
+					autocomplete="off">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">��Head���ƣ�</label>
+			<div class="layui-input-block">
+				<input name="header" class="layui-input" id="header"
+					autocomplete="off">
+			</div>
+
+		</div>
+	</form>
+	<input type="button" class="layui-btn"  onclick="saveDomain();"
+		value="����" />
+	<h3>��������б�</h3>
+	<!-- <input type="button" class="u-btn save-btn" onclick="queryDomain();"
+		value="��ѯ�������" /> -->
+	<div class="row m-sm no-padding">
+		<div class="demoTable">
+			<form class="layui-form" action="">
+				<div class="layui-form-item">
+					<label class="layui-form-label">���ƣ�</label>
+					<div class="layui-input-inline">
+						<input name="name" class="layui-input" id="nameReload"
+							placeholder="�����������������" autocomplete="off" lay-verify="name">
+					</div>
+					<label class="layui-form-label">Label��</label>
+					<div class="layui-input-inline">
+						<input name="label" class="layui-input" id="labelReload"
+							autocomplete="off">
+					</div>
+					<!-- <button class="layui-btn" data-type="reload">����</button> -->
+					<button class="layui-btn" lay-submit lay-filter="search">����</button>
+				    <button type="reset" class="layui-btn layui-btn-primary">����</button>
+				    
+				</div>
+				<!-- <div class="layui-form-item">
+				    <div class="layui-input-block">
+				      <button class="layui-btn" lay-submit lay-filter="search">����</button>
+				      <button type="reset" class="layui-btn layui-btn-primary">����</button>
+				    </div>
+				  </div> -->
+			</form>
+		</div>
+		<table class="layui-table" lay-filter="demo"
+			lay-data="{ height:530,url: '[(${MODULE_NAME})]/metadata/query'
+	    ,method: 'post'
+	    ,parseData: parseTableData
+	    ,dataType: 'json'
+	    ,contentType:'application/json;charset=UTF-8', page:true, id:'lable'}">
+			<thead>
+				<tr>
+					<th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+					<th lay-data="{field:'label', width:200, sort: true,fixed: true}">Label</th>
+					<th lay-data="{field:'name'}">����</th>
+					<th lay-data="{field:'primaryKey'}">����</th>
+					<th lay-data="{field:'columns'}">������</th>
+					<th lay-data="{field:'header'}">������Header</th>
+					<th lay-data="{field:'tableName', sort: true}">���ݿ����</th>
+					<th lay-data="{fixed: 'right', align:'center', toolbar: '#barDemo'}"></th>
+				</tr>
+			</thead>
+		</table>
+
+		<div id="demo"></div>
+
+		<div id="pageDiv"></div>
+
+	</div>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+<script id="barDemo" type="text/html">
+  <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">�鿴</a>
+  <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">�༭</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">ɾ��</a>
+</script>
+<script>
+function addAddEdit(){
+	layer.open({
+        type: 1,
+        anim: 0,
+        shade: 0,
+        offset: [ //Ϊ����ʾ���������
+       	    Math.random()*($(window).height()-300)
+       	    ,Math.random()*($(window).width()-300)
+       	  ],
+        title: $("#logList").val(),
+        area: ['80%', '80%'],
+        btn:['�ر�'],
+        yes:function(index,layero)
+        {
+            //indexΪ��ǰ������
+            layer.close(index)
+        },
+        cancel:function(){//���Ͻǹرջٻص�
+       	 	var index = parent.layer.getFrameIndex(window.name); //�ȵõ���ǰiframe�������
+    		parent.layer.close(index); //��ִ�йر�
+        },
+        zIndex: layer.zIndex //�ص�1
+        ,success: function(layero){
+          layer.setTop(layero); //�ص�2
+        },
+        content: result
+    });
+}
+
+</script>
+<script type="text/javascript">
+	var form,layer,laypage;
+	layui.config({
+		dir: '/static/layui/',
+        base: '/static/layui/lay/modules/'
+    }).use(['form','layer','laypage', 'layedit', 'laydate'], function(){
+		  form = layui.form
+		  ,laypage = layui.laypage
+		  ,layer = layui.layer;
+		  
+		  //�����ύ
+		  form.on('submit(search)', function(data){
+		   table.reload('demo', { //����id
+                        url:'[(${MODULE_NAME})]/metadata/query',
+                        where: data.field
+                    });
+		    return true;
+		  });
+		  //��ȡֵ
+		  layui.$('#LAY-component-form-getval').on('click', function(){
+		    var data = form.val('example');
+		    alert(JSON.stringify(data));
+		  });
+		  
+		});
+</script>
+<script>
+var table
+layui.use('table', function(){
+  table = layui.table;
+  //�������ѡ��ѡ��
+/*   table.on('checkbox(demo)', function(obj){
+	  form.val('example', obj.data);
+  }); */
+  table.on('row(demo)', function(obj){
+	    //obj ͬ��
+		  form.val('example', obj.data);
+  });
+//������˫���¼�
+  table.on('rowDouble(demo)', function(obj){
+    //obj ͬ��
+	  objectManage(obj.data)
+  });
+  //����������
+  table.on('tool(demo)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'del'){
+      layer.confirm('���ɾ����ô', function(index){
+        obj.del();
+        delDomain(obj)
+        layer.close(index);
+      });
+    }else if(obj.event === 'edit'){
+    	 form.val('example', data);
+    }
+  });
+  
+  function objectManage(data){
+	  layer.open({
+          type: 2,
+          anim: 0,
+          shade: 0,
+          maxmin: true,
+          title: data.name,
+          area: ['70%', '80%'],
+          btn:['�ر�'],
+          full: function(a, b) {
+            	$(a).find('.layui-layer-content').css('height','100%');
+            	$(a).find('iframe').css('height','100%');
+            },
+            restore: function(a, b) {
+            	$(a).find('iframe').css('height','90%');
+            	$(a).find('.layui-layer-content').css('height','90%');
+            },
+          yes:function(index,layero)
+          {
+				 close()
+              //indexΪ��ǰ������
+              layer.close(index)
+          },
+          cancel:function(){//���Ͻǹرջٻص�
+         	 close()
+         	 var index = parent.layer.getFrameIndex(data.name); //�ȵõ���ǰiframe�������
+      		parent.layer.close(index); //��ִ�йر�
+          },
+          zIndex: layer.zIndex //�ص�1
+          ,success: function(layero){
+            layer.setTop(layero); //�ص�2
+          },
+          content: "[(${MODULE_NAME})]/manage/"+data.label
+      });
+  }
+  var $ = layui.$, active = {
+    getCheckData: function(){ //��ȡѡ������
+      var checkStatus = table.checkStatus('idTest')
+      ,data = checkStatus.data;
+      layer.alert(JSON.stringify(data));
+    }
+    ,getCheckLength: function(){ //��ȡѡ����Ŀ
+      var checkStatus = table.checkStatus('idTest')
+      ,data = checkStatus.data;
+      layer.msg('ѡ���ˣ�'+ data.length + ' ��');
+    }
+    ,isAll: function(){ //��֤�Ƿ�ȫѡ
+      var checkStatus = table.checkStatus('idTest');
+      layer.msg(checkStatus.isAll ? 'ȫѡ': 'δȫѡ')
+    }
+  };
+  
+  $('.demoTable .layui-btn').on('click', function(){
+    var type = $(this).data('type');
+    active[type] ? active[type].call(this) : '';
+  });
+});
+function saveDomain(){
+	 var genurl = "[(${MODULE_NAME})]/
+	metadata/save";
+	 var formData={};
+	 formData["tableName"]=$("#tableName").val();
+	 formData["name"]=$("#name").val();
+	 formData["label"]=$("#label").val();
+	 formData["primaryKey"]=$("#primaryKey").val();
+	 formData["columns"]=$("#columns").val();
+	 formData["primaryKey"]=$("#primaryKey").val();
+	 formData["header"]=$("#header").val();
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //���Ϻܶ���ܼ��ϴ˲����ģ������ҷ��ֲ�������������Ż�����ɹ���
+	        data: JSON.stringify(formData),
+	      success: function (d) {
+	    	  console.log(d);
+	    	  if(!d.status){
+	  			   layer.alert(d.msg, {icon: 5})
+	  		   }else{
+	  			   layer.alert(d.msg, {icon: 6})
+	  		   }
+	      }
+	    });
+}
+function refresh(){
+	table.reload('demo', { //����id
+       url:'[(${MODULE_NAME})]/metadata/query'
+       
+   });
+	
+}
+
+function delDomain(po){
+	 var genurl = "[(${MODULE_NAME})]/metadata/del";
+	 
+	 var formData=po.data;
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //���Ϻܶ���ܼ��ϴ˲����ģ������ҷ��ֲ�������������Ż�����ɹ���
+	        data: JSON.stringify(formData),
+	      success: function (d) {
+	    	  refresh()
+	        console.log(d);
+	      }
+	    });
+}
+</script>

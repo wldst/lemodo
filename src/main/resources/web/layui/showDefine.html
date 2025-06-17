@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}可视化|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<h3>
+		<label th:text="|单字段可视化|"></label>
+	</h3>
+	<form class="layui-form" th:id="|edit${label}ShowView|"
+		th:lay-filter="|edit${label}ShowView|" th:utext="${showForm}"></form>
+	<h3>
+		<label th:text="|简化列表|"></label>
+	</h3>
+	<form class="layui-form" th:id="|edit${label}ShortView|"
+		th:lay-filter="|edit${label}ShortView|" th:utext="${shortShowForm}"></form>
+		
+		<h3>
+		<label th:text="|角色-可视化|"></label>
+	</h3>
+	<form class="layui-form" th:id="|edit${label}RoleShow|"
+		th:lay-filter="|edit${label}RoleShow|" th:utext="${roleShowForm}"></form>
+		
+			<h3>
+		<label th:text="|用户-可视化|"></label>
+	</h3>
+	<form class="layui-form" th:id="|edit${label}UserShow|"
+		th:lay-filter="|edit${label}UserShow|" th:utext="${userShowForm}"></form>
+	
+	<!-- <input type="button" class="layui-btn" th:id="|save${label}|"
+		value="保存" /> -->
+	<br />
+	<script id="barDemo" type="text/html">
+[(${opt})]
+		
+</script>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+	var currentNode;
+[(${layUse})]
+	 
+	  //监听提交
+	form.on('submit(edit[(${label})]ShowView)', function(data){
+		formSubmit(data,'show');
+	 return false;
+	});
+	  
+	form.on('submit(edit[(${label})]ShortView)', function(data){
+		formSubmit(data,'shortShow');
+	 return false;
+	});
+	
+	form.on('submit(edit[(${label})]RoleShow)', function(data){
+		formSubmit(data,'role');
+	 return false;
+	});
+	
+	form.on('submit(edit[(${label})]UserShow)', function(data){
+		formSubmit(data,'user');
+	 return false;
+	});
+	
+	
+  
+  function formSubmit(data,type){
+	 var formData={};
+	 formData['type']=type;
+	 var inputs=data.elem;
+	 for(var key in inputs){
+		 if(inputs[key]!=null){
+			 if(inputs[key].checked){
+				  formData[inputs[key].name]=inputs[key].checked
+			 }
+			 if(inputs[key].id&&inputs[key].value){
+				 formData[inputs[key].id]=inputs[key].value
+			 }
+		 }
+	  
+	 }
+	 var genurl = "[(${MODULE_NAME})]/md/[(${label})]/saveShow";
+	 
+	 $.ajax({
+	    type: "post",
+	    url: genurl,
+		dataType : "json",
+		contentType : "application/json;charset=UTF-8",      
+		data: JSON.stringify(formData),
+		success: function (d) {
+			if(!d.status){
+				   layer.alert(d.msg, {icon: 5})
+			   }else{
+				   layer.alert(d.msg, {icon: 6})
+				   refresh()
+			   }
+      	},
+ 		error:function (d) {
+	        layer.alert(d.msg, {icon: 5})
+	    }
+	 });
+   }
+  var endList={};
+  var tabIds={};
+  
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+  
+  [(${formJs})]
+  [(${layField})]
+ 
+[(${toolFun})]
+function openWindow(url,name){
+	 layui.openWindow(url,name);
+}
+</script>
+</body>
+</html>

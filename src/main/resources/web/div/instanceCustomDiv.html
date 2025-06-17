@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}对象管理|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<h3>
+		<label th:text="|${name}编辑|"></label>
+	</h3>
+	<form class="layui-form" th:id="|edit${label}|"
+		th:lay-filter="|edit${label}|" th:utext="|${formContent}|">
+
+	</form>
+	
+	<input type="button" class="layui-btn" th:id="|save${label}|"
+		value="保存" />
+		<br/>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">
+  <legend th:text="|${name}详情|"></legend>
+ </fieldset>
+ <!-- lay-allowclose="false" -->
+<div class="layui-tab layui-tab-brief" lay-filter="tabList" id="tabList" >
+
+</div>
+<script th:id="|${label}detail|" type="text/html">
+  <ul class="layui-tab-title" th:lay-filter="|${label}Tab|" th:id="|${label}TabHead|">
+    <li class="layui-this" lay-id="1" >数据列表</li>
+	<li lay-id="2">关系管理</li>
+  </ul>
+  <div class="layui-tab-content" th:id="|${label}TabContent|">
+    <div class="layui-tab-item layui-show" th:insert="~{divTemp :: searchList}">
+	</div>
+    <div class="layui-tab-item" th:insert="divTemp::relationManage">
+    </div>
+  </div>
+</script>
+
+	
+	<script id="barDemo" type="text/html">
+[(${opt})]
+<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		
+</script>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+<script>
+layui.use('element', function(){
+  var $ = layui.jquery
+  ,element = layui.element; //Tab的切换功能，切换事件监听等，需要依赖element模块
+  
+  
+  
+/*   //Hash地址的定位
+  var layid = location.hash.replace(/^#test=/, '');
+  element.tabChange('test', layid);
+  
+  element.on('tab(test)', function(elem){
+    location.hash = 'test='+ $(this).attr('lay-id');
+  }); */
+  
+  function addTab(id,title,content){
+      //新增一个Tab项
+      element.tabAdd('demo', {
+        title: '新选项'+ (Math.random()*1000|0) //用于演示
+        ,content: '内容'+ (Math.random()*1000|0)
+        ,id: new Date().getTime() //实际使用一般是规定好的id，这里以时间戳模拟下
+      })
+    }
+  
+  var getTpl = $("#[(${label})]detail").html();
+  $("#tabList").html(getTpl);
+});
+</script>
+	<script th:inline="javascript" type="text/javascript">
+[(${layUse})]
+
+		//触发事件
+		var active = {
+		  tabAdd: function(){
+		    //新增一个Tab项
+		    element.tabAdd('demo', {
+		      title: '新选项'+ (Math.random()*1000|0) //用于演示
+		      ,content: '内容'+ (Math.random()*1000|0)
+		      ,id: new Date().getTime() //实际使用一般是规定好的id，这里以时间戳模拟下
+		    })
+		  }
+		  ,tabDelete: function(othis){
+		    //删除指定Tab项
+		    element.tabDelete('demo', '44'); //删除：“商品管理”
+		    
+		    
+		    othis.addClass('layui-btn-disabled');
+		  }
+		  ,tabChange: function(){
+		    //切换到指定Tab项
+		    element.tabChange('demo', '22'); //切换到：用户管理
+		  }
+		};
+		
+		$('.site-demo-active').on('click', function(){
+		  var othis = $(this), type = othis.data('type');
+		  active[type] ? active[type].call(this, othis) : '';
+		});
+
+	  crudTable = table.render({
+		    elem: '#table[(${label})]'
+		    ,method: 'POST' //方式
+		    ,url:'[(${MODULE_NAME})]/cruder/[(${label})]/search'
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,title: '用户数据表'
+		    ,totalRow: true
+		    ,id: 'table[(${label})]'
+		    ,cols: [ [
+		    	{type:'checkbox', fixed: 'left'}[# th:each="ci : ${cols}"]
+		     	,{field:'[(${ci.field})]', title:'[(${ci.name})]',sort: true}[/]
+				,{fixed: 'right', title:'操作', align:'center', toolbar: '#barDemo',unresize: false, width: 260}
+		    ] ]
+		    ,page: true
+		    ,done: fixRightTool
+		    ,parseData: parseTableData
+	  });
+	  
+	  //表单取值
+	  layui.$('#save'+[[${label}]]).on('click', function(){
+		  var formData={};
+		  [# th:each="ci : ${colCodes}"]
+		  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+		  [/]
+		formData['poId']=$('#poIdReload').val(); 
+		 
+		 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/save";
+		 
+		 $.ajax({
+		    type: "post",
+		    url: genurl,
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",      
+			data: JSON.stringify(formData),
+			success: function (d) {
+				if(!d.status){
+		  			   layer.alert(d.msg, {icon: 5})
+		  		   }else{
+		  			   layer.alert(d.msg, {icon: 6})
+		  		   }
+		           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+		    });
+	   });
+	  
+	  //监听提交
+	  form.on('submit(searchDO)', function(data){
+		  var nameReload = $('#nameReload').val();
+	        //执行重载
+	        crudTable.reload({
+	          page: {
+	            curr: 1 //重新从第 1 页开始
+	          }
+	          ,where: {
+	              name: nameReload
+	          }
+	        });
+	    return true;
+	  });
+  
+  //监听表格复选框选择
+  table.on('row(table[(${label})])', function(obj){
+    //console.log(obj)
+    form.val('edit[(${label})]', obj.data);
+    $('#poId').val($('#poIdReload').val()); 
+    
+    //调用关系
+    objectRelation(obj.data);
+  });
+  //监听工具条
+  table.on('tool(table[(${label})])', function(obj){
+    var data = obj.data;
+    if(obj.event === 'del'){
+      layer.confirm('真的删除行么', function(index){
+        obj.del();
+        delDomain(obj)
+        layer.close(index);
+      });
+    }
+    if(obj.event === 'opt'){
+    	operate(obj.data);         
+      }
+  });
+let isMainData=false;
+// 监听单选框的选中事件
+form.on('radio(isMainData)', function(data){
+	isMainData=data.value
+});
+  /**
+	 * 保存关系
+	 */
+	 layui.$('#relationSave').on('click',function (po){
+		 var endLabel= $("#selectPo").val();
+		 var endCode = $("#selectObj").val();
+		 var relationCode = $("#relationCode").val();
+		 var relationName = $("#relationName").val();
+		 
+		 if(endCode==null||currentNode==null){
+			 return;
+		 }		
+		 var genurl = "[(${MODULE_NAME})]/objectRel/[(${label})]/"+endLabel+"/"+relationCode+"/save";
+		 
+		 var formData={};
+		 var relations=new Array();
+		 var relation={};
+		 var relProp={};
+		 relation['endId']=endCode;      
+		 relation['startId']=currentNode.id; 
+		 relProp['relationCode']=relationCode;
+		 relProp['relationName']=relationName;
+		 if(isMainData){
+			 relProp['mainData']='true';
+		 }
+
+
+		 relation['startLabel']="[(${label})]";
+		 relation['endLabel']=endLabel;
+		 relations[0]=relation;
+		 formData['relations']=relations;
+		 formData['relProp']=relProp;
+		//      
+		//formData['endCode']=$('#poIdReload').val();      
+		
+		 $.ajax({
+				type: "post",
+				url: genurl,
+				dataType : "json",
+				contentType : "application/json;charset=UTF-8",
+				data: JSON.stringify(formData),
+				success: function (d) {
+					if(!d.status){
+			  			   layer.alert(d.msg, {icon: 5})
+			  		   }else{
+			  			   layer.alert(d.msg, {icon: 6})
+			  		   }
+				    refresh()
+				},
+				error:function (d) {
+				      layer.alert(d.msg, {icon: 5})
+				      refresh()
+				}
+		    });
+	});
+	//表单取值
+	layui.$('#relationObj').on('click', function(data){
+	 var select= $("#selectPo").val();
+	 var selectPoName = $("#selectPoName").val();
+	 if(select==null||select==""){
+		 $("#selectPo").val("Po");
+		 select="Po"
+	 }
+	 layer.open({
+      type: 2,
+      anim: 0,
+      shade: 0,
+      maxmin: true,
+      title: "关联"+selectPoName,
+      area: ['70%', '80%'],
+      btn:['关闭'],
+      full: function(a, b) {
+        	$(a).find('.layui-layer-content').css('height','100%');
+        	$(a).find('iframe').css('height','100%');
+        },
+        restore: function(a, b) {
+        	$(a).find('iframe').css('height','90%');
+        	$(a).find('.layui-layer-content').css('height','90%');
+        },
+      yes:function(index,layero)
+      {
+      	var body = layer.getChildFrame('body', index);
+      	var selected = body.find('#selectObj').val();
+	    var selectedName = body.find('#selectObjName').val();
+	        	
+      	$("#relationObj").val(selectedName);
+      	$("#selectObj").val(selected);
+			
+				 close()
+          //index为当前层索引
+          layer.close(index)
+      },
+      cancel:function(){//右上角关闭毁回调
+     	 close()
+     	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+  		parent.layer.close(index); //再执行关闭
+      },
+      zIndex: layer.zIndex //重点1
+      ,success: function(layero, index){
+        layer.setTop(layero); //重点2
+   	  var body = layer.getChildFrame('body', index);
+   	 // var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+   	 // console.log(body.html()) //得到iframe页的body内容
+   	 //console.log(data)
+   	  //body.find('input').val('Hi，我是从父页来的')
+      },
+      content: "[(${MODULE_NAME})]/objectRel/[(${label})]/"+select
+  });
+});
+
+	layui.$('#relationPo').on('click', function(data){
+		  layer.open({
+	        type: 2,
+	        anim: 0,
+	        shade: 0,
+	        maxmin: true,
+	        title: "选择",
+	        area: ['70%', '80%'],
+	        btn:['关闭'],
+	        full: function(a, b) {
+	          	$(a).find('.layui-layer-content').css('height','100%');
+	          	$(a).find('iframe').css('height','100%');
+	          },
+	          restore: function(a, b) {
+	          	$(a).find('iframe').css('height','90%');
+	          	$(a).find('.layui-layer-content').css('height','90%');
+	          },
+	        yes:function(index,layero)
+	        {
+	        	var body = layer.getChildFrame('body', index);
+	        	var selected = body.find('#selectPo').val();
+	        	var selectedName = body.find('#selectPoName').val();
+	        	
+	        	$("#selectPo").val(selected);
+				//$("#selectPoName").text(selectedName);
+				$("#relationPo").val(selectedName);
+				close()
+	            //index为当前层索引
+	            layer.close(index)
+	        },
+	        cancel:function(){//右上角关闭毁回调
+	       	 close()
+	       	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+	    		parent.layer.close(index); //再执行关闭
+	        },
+	        zIndex: layer.zIndex //重点1
+	        ,success: function(layero, index){
+	          layer.setTop(layero); //重点2
+	     	  var body = layer.getChildFrame('body', index);
+	     	 // var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+	     	 // console.log(body.html()) //得到iframe页的body内容
+	     	// console.log(data)
+	     	  //body.find('input').val('Hi，我是从父页来的')
+	        },
+	        content: "[(${MODULE_NAME})]/vue/poSelect"
+	    });
+	});
+  
+  [(${layField})]
+  
+  
+function operate(po){
+	 var genurl = "[(${MODULE_NAME})]/admin/query";
+	 if(po.cypher==undefined){
+		 return;
+	 }
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",
+	        data: JSON.stringify(po),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+	    });
+}
+
+
+
+
+function delDomain(po){
+	 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/del";
+	 var vm=$("#table[(${label})]");
+	 var formData=po.data;
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",
+	        data: JSON.stringify(formData),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+	    });
+}
+function refresh(){
+	crudTable.reload( { //表格的id
+	    page: {
+	        curr: 1 //重新从第 1 页开始
+	    }
+	  });
+}
+function objectRelation(po){
+	 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/tabList";
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",
+	        data: JSON.stringify(po),
+	        success: function (d) {
+	           var data = d.data;
+	          /*  var getTpl = $("#[(${label})]detail").html();
+	           $("#tabList").html(getTpl); */
+	           
+	         /*   $("[(${label})]Tab"
+	           $("p").remove(".reltab"); */
+	           $("#"+"[(${label})]TabHead").append(data.tabHeadList)
+	           $("#"+"[(${label})]TabContent").append(data.tabContentList)
+	        	/* var getTpl = $("#[(${label})]detail").html();
+	        	getTpl.replace("[(${tabHeadList})]",);
+	        	getTpl.replace('[(${tabContentList})]',);
+	        	
+	        	  $("#tabList").html(getTpl); */
+	      	},
+	 		error:function (d) {
+		    }
+	    });
+}
+</script>
+</body>
+</html>

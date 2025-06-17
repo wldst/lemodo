@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}视图设计|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<h3>
+		<label th:text="|${name}视图设计|"></label>
+	</h3>
+	<form class="layui-form" th:id="|edit${label}View|"
+		th:lay-filter="|edit${label}View|" th:utext="|${formContent}|"></form>
+
+	<!-- <input type="button" class="layui-btn" th:id="|save${label}|"
+		value="保存" /> -->
+	<br />
+	<script id="barDemo" type="text/html">
+[(${opt})]
+		
+</script>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+[(${layUse})]
+window.openWindow = function (url,name){
+	var width='65%';
+  if(data.size>7){
+  	width='900px';
+  }
+	  layer.open({
+	      type: 2,
+	      anim: 0,
+	      shade: 0,
+	      title: name,
+	      maxmin: true,
+	      area: [width, '55%'],
+	      btn:['关闭'],
+	      yes:function(index,layero)
+	      {
+	      	var body = layer.getChildFrame('body', index);
+			close()
+	          //index为当前层索引
+	        layer.close(index)
+	      },
+	      cancel:function(){//右上角关闭毁回调
+	     	 close()
+	     	 var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+	  		parent.layer.close(index); //再执行关闭
+	      },
+	      zIndex: layer.zIndex //重点1
+	      ,success: function(layero, index){
+	        layer.setTop(layero); //重点2
+	   	  var body = layer.getChildFrame('body', index);
+	   	 var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+	     },
+	      content: url
+	  });
+}
+	 
+	  //监听提交
+	form.on('submit(edit[(${label})]View)', function(data){
+		formSubmit(data);
+	 return false;
+	});
+  
+  function formSubmit(data){
+	 var formData={};
+	 var inputs=data.elem;
+	 for(var key in inputs){
+	  if(inputs[key]!=null&&inputs[key].checked){
+		  formData[inputs[key].name]=inputs[key].checked
+	  }
+	 }
+	 var genurl = "[(${MODULE_NAME})]/viewDefine/[(${label})]/save";
+	 
+	 $.ajax({
+	    type: "post",
+	    url: genurl,
+		dataType : "json",
+		contentType : "application/json;charset=UTF-8",      
+		data: JSON.stringify(formData),
+		success: function (d) {
+			if(!d.status){
+				   layer.alert(d.msg, {icon: 5})
+			   }else{
+				   layer.alert(d.msg, {icon: 6})
+			   }
+      	},
+ 		error:function (d) {
+	        layer.alert(d.msg, {icon: 5})
+	    }
+	 });
+   }
+  var endList={};
+  var tabIds={};
+  
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+  [(${layField})]
+ 
+[(${toolFun})]
+function openWindow(url,name){
+	 layui.openWindow(url,name);
+}
+</script>
+</body>
+</html>

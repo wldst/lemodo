@@ -1,0 +1,8 @@
+import ${package}.${class};
+String[] params=subject.split(",");
+if(params.length<2){
+     returnValue="请输入正确的格式";
+}else{
+     ${class}.${method}(params[0], params[1]);
+}
+returnValue="成功";

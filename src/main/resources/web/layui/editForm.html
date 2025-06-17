@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head >
+<title th:text="|${name}|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+		<div class="layui-row">
+			<div id="opt"
+		style="overflow: hidden; width: 98%; white-space: pre-wrap;">
+		[(${opt})]</div>
+		</div>
+	<form class="layui-form" th:id="|edit${label}|"
+		th:lay-filter="|edit${label}|" th:utext="|${formContent}|"></form>
+<input id="relALabel" type="hidden"/>
+<input id="relAId" type="hidden"/>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var dropdown;
+var currentId='[(${currentId})]';
+var parentField='[(${parentField})]';
+
+[(${layUse})]
+form.on('submit(edit[(${label})])', function(data){
+	formSubmit();
+ return false;
+});
+	  //表单取值
+//layui.$('#save'+[[${label}]]).on('click', formSubmit);
+  function parentField(){
+	  var pid = $('#[(${parentField})]').val();
+	  var parentId = $('#parentId').val();
+	  if(parentId&&!pid){
+		  $('#[(${parentField})]').val(parentId);
+	  }
+  }	  
+	  
+ function formSubmit(){
+
+	 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/save";
+	 var formData={};
+	 parentField();
+	  [# th:each="ci : ${colCodes}"]
+	  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+	  [/]
+ $.ajax({
+    type: "post",
+    url: genurl,
+	dataType : "json",
+	contentType : "application/json;charset=UTF-8",      
+	data: JSON.stringify(formData),
+	success: function (d) {
+		if(!d.status){
+			   layer.alert(d.msg, {icon: 5})
+		   }else{
+			   layer.alert(d.msg, {icon: 6})
+			   var relALabel=$("#relStartLabel").val();
+		     	  var relAId=$("#relStartId").val();
+		     	  if(relALabel&&relAId&&d.data){
+		     		saveParentRel(d.data.value)
+		     	  }
+		     	  $("#id").val(d.data.value);
+		   }
+          
+     	},
+	error:function (d) {
+        layer.alert(d.msg, {icon: 5})
+    }
+    });
+  }
+ 
+ function saveParentRel(nodeId){
+	 var relALabel=$("#relStartLabel").val();
+	  var relAId=$("#relStartId").val();
+	 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/saveParentRel";
+	 var formData={}; 
+	 formData['relStartId']=relAId;
+	 formData['relStartLabel']=relALabel;
+	 formData['endId']=nodeId;
+	 
+ $.ajax({
+    type: "post",
+    url: genurl,
+	dataType : "json",
+	contentType : "application/json;charset=UTF-8",      
+	data: JSON.stringify(formData),
+	success: function (d) {
+		if(!d.status){
+			   layer.alert(d.msg, {icon: 5})
+		   }else{
+			   layer.alert(d.msg, {icon: 6})
+		   }
+     	},
+		error:function (d) {
+        layer.alert(d.msg, {icon: 5})
+    }
+    });
+  }
+ 
+form.render('select');
+
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+
+  
+  layui.define(['form'], function(exports){
+	  exports('formVal', function(data){
+		  form.val('edit[(${label})]', data);
+	  });
+	});
+  
+  [(${formFun})]
+ 
+  [(${layField})]
+
+
+function textEditorFun(data){
+	  [(${textEditorValue})]
+  }
+function initForm(data){
+	  [# th:each="ci : ${colCodes}"]
+	  $('#'+'[(${ci})]').val(data['[(${ci})]']);
+	  [/]
+		  [# th:each="ci : ${FmtCol}"]
+		  $('#'+'[(${ci})]').html(data['[(${ci})]']);
+			  [/]
+	 [(${codeInit})]
+	 textEditorFun(data);
+	  if(data.status){
+		  form.render('select');
+	  }
+	  
+}
+
+  function init(){
+	  if(currentId){
+		  var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/get/"+currentId;
+		$.ajax({
+		    type: "post",
+		    url: genurl,
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",      
+			data: JSON.stringify({}),
+			success: function (d) { 
+		           initForm(d)
+		     	},
+			error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		    }
+		    });
+	  }
+  }
+  init();
+  function getFormData(){	  
+	  var formData={};
+		  [# th:each="ci : ${colCodes}"]
+		  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+		  [/]
+		return formData;  
+  }
+  [(${toolFun})]
+</script>
+
+
+
+</body>
+</html>

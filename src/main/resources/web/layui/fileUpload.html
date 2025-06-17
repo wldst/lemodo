@@ -1,0 +1,279 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}管理|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<h3>
+		<label th:text="|${name}编辑|"></label>
+	</h3>
+	<form class="layui-form" th:id="|edit${label}|"
+		th:lay-filter="|edit${label}|" th:utext="|${formContent}|"></form>
+
+	<!-- <input type="button" class="layui-btn" th:id="|save${label}|"
+		value="保存" /> -->
+	<br />
+	<fieldset class="layui-elem-field layui-field-title" 
+		style="margin-top: 20px;">
+		<legend th:text="|${name}详情|"></legend>
+	</fieldset>
+	<!-- lay-allowclose="false" -->
+	<div class="layui-tab layui-tab-brief"
+		th:lay-filter="|${label}tabList|" style="width:100%;height:99%;" th:id="|${label}tabList|"></div>
+	<script th:id="|${label}detail|" type="text/html">
+  <ul class="layui-tab-title" th:lay-filter="|${label}Tab|" th:id="|${label}TabHead|">
+    <li class="layui-this" lay-id="1" >数据列表</li>
+  </ul>
+  <div class="layui-tab-content" th:id="|${label}TabContent|">
+    <div class="layui-tab-item layui-show" th:insert="~{divTemp :: searchList}">
+	</div>
+    </div>
+  </div>
+</script>
+
+	<script id="toolbarDemo" type="text/html">
+[(${toolbarOpt})]
+</script>
+	<script id="barDemo" type="text/html">
+[(${opt})]
+		
+</script>
+[(${tempalteContent})]
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var label='[(${label})]';
+[(${layUse})]
+	var getTpl = $("#[(${label})]detail").html();
+	$("#[(${label})]tabList").html(getTpl);
+	
+	  crudTable = table.render({
+		    elem: '#table[(${label})]'
+		    ,method: 'POST' //方式
+		    ,url:'[(${MODULE_NAME})]/cruder/[(${label})]/getBy/[(${relLabel})]/[(${startLabel})]/[(${startId})]'
+	//	    ,cellMinWidth: 80
+		//    ,height : 'full-200'
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,title: '用户数据表'
+		    /* ,totalRow: true */
+		    ,id: 'table[(${label})]'
+		    ,cols: [ [
+		    	{type:'checkbox', fixed: 'left'}[# th:each="ci : ${cols}"]
+		     	,{field:'[(${ci.field})]', title:'[(${ci.name})]'[(${ci.templat})],sort: true}[/]
+				,{fixed: 'right', align:'center',title:'操作', toolbar: '#barDemo',unresize: false}
+		    ] ]
+		    ,page: true
+		    ,done: fixRightTool
+		    ,parseData: parseTableData
+	  });
+	  //监听提交	  
+	  form.on('submit(edit[(${label})])', function(data){
+			formSubmit();
+		 return false;
+		});
+	  //表单取值
+	  function formSubmit(){
+		  var formData={};
+		  [# th:each="ci : ${colCodes}"]
+		  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+		  [/]
+		formData['poId']=$('#poIdReload').val(); 
+		 
+		 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/save/[(${relLabel})]/[(${startLabel})]/[(${startId})]";
+		 
+		 $.ajax({
+		    type: "post",
+		    url: genurl,
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",      
+			data: JSON.stringify(formData),
+			success: function (d) {
+				if(!d.status){
+		  			   layer.alert(d.msg, {icon: 5})
+		  		   }else{
+		  			   layer.alert(d.msg, {icon: 6})
+		  		   		refresh()
+		  		   }
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+		    });
+	   }
+	  form.render('select');
+	  
+	  function search(data){
+			[(${getSearchValue})]
+			searchForm["startId"]='[(${startId})]'
+			searchForm["startLabel"]='[(${startLabel})]'
+			//执行重载
+			crudTable.reload({
+			  page: {
+			    curr: 1 //重新从第 1 页开始
+			  }
+			  ,where: searchForm
+			});
+		    return false;
+	  }
+	  
+	  //监听提交
+	  form.on('submit(searchDO)', search);
+  
+  var endList={};
+  var tabIds={};
+  //监听表格复选框选择
+  table.on('checkbox(table[(${label})])', function(obj){
+    //console.log(obj) $('#edit[(${label})]')[0].reset();
+   
+    form.render();
+    form.val('edit[(${label})]', obj.data);
+    textEditorValue(obj.data);
+    $('#poId').val($('#poIdReload').val()); 
+    currentNode=obj.data;
+    if(tabIds!=null){
+    	for(var tab in tabIds){
+    		element.tabDelete('[(${label})]tabList',  tabIds[tab]);
+    	}
+    }
+  });
+  
+  table.on('rowDouble(table[(${label})])', function(obj){
+	    //console.log(obj) $('#edit[(${label})]')[0].reset();
+	    var width='65%';
+	    if(obj.data.size>7){
+	    	width='900px';
+	    }
+	    
+	layer.open({
+      type: 2,
+      anim: 0,
+      shade: 0,
+      title: "编辑",
+      maxmin: true,
+      area: [width, '55%'],
+      btn:['关闭'],
+      full: function(a, b) {
+        	$(a).find('.layui-layer-content').css('height','100%');
+        	$(a).find('iframe').css('height','100%');
+        },
+        restore: function(a, b) {
+        	$(a).find('iframe').css('height','90%');
+        	$(a).find('.layui-layer-content').css('height','90%');
+        },
+      yes:function(index,layero)
+      {
+      	var body = layer.getChildFrame('body', index);
+		close()
+          //index为当前层索引
+        layer.close(index)
+      },
+      cancel:function(){//右上角关闭毁回调
+     	 close()
+     	 var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+  		parent.layer.close(index); //再执行关闭
+      },
+      zIndex: layer.zIndex //重点1
+      ,success: function(layero, index){
+        layer.setTop(layero); //重点2
+   	  var body = layer.getChildFrame('body', index);
+   	 var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+   	 // console.log(body.html()) //得到iframe页的body内容
+   	 iframeWin.initForm(obj.data)
+   	// console.log(obj.data)
+   	  //body.find('input').val('Hi，我是从父页来的')
+      },
+      content: "[(${MODULE_NAME})]/layui/[(${label})]/form/"+obj.data.id
+  });
+	    form.render();
+	    form.val('edit[(${label})]', obj.data);
+	    textEditorValue(obj.data);
+	    $('#poId').val($('#poIdReload').val()); 
+	    currentNode=obj.data;
+  });
+  
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+  
+  
+  //监听工具条
+  table.on('tool(table[(${label})])', function(obj){
+    var data = obj.data;
+    [(${activLogic})]
+    
+  });	
+  [(${layField})]
+  
+  
+function operate(po){
+	 var genurl = "[(${MODULE_NAME})]/admin/query";
+	 if(po.cypher==undefined){
+		 return;
+	 }
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(po),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+	    });
+}
+
+[(${toolFun})]
+
+function delRel(obj){
+	 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/rel/[(${relLabel})]/del";
+	 var formData={};
+	 formData["endId"]=obj.data.id;
+	 formData["startLabel"]='[(${startLabel})]';
+	 formData["startId"]= '[(${startId})]';
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(formData),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+	 });
+}
+
+function refresh(){
+	crudTable.reload( { //表格的id
+	    page: {
+	        curr: 1 //重新从第 1 页开始
+	    }
+	  });
+}
+</script>
+</body>
+</html>

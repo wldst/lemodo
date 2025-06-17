@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8' />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+<link rel="stylesheet" th:href='@{/static/plugin/fullcalendar/lib/main.css}' />
+
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script th:src="@{/static/layui/layui.js}"></script>
+<script th:src='@{/static/plugin/fullcalendar/lib/main.js}'></script>
+<script th:src='@{/static/plugin/fullcalendar/lib/locales-all.js}'></script>
+<script>
+function dateFormat(fmt, date) {
+    let ret="";
+    date=new Date(date);
+    const opt = {
+      'Y+': date.getFullYear().toString(), // 年
+      'm+': (date.getMonth() + 1).toString(), // 月
+      'd+': date.getDate().toString(), // 日
+      'H+': date.getHours().toString(), // 时
+      'M+': date.getMinutes().toString(), // 分
+      'S+': date.getSeconds().toString() // 秒
+    }
+    for (let k in opt) {
+      ret = new RegExp('(' + k + ')').exec(fmt)
+      if (ret) {
+        fmt = fmt.replace(
+          ret[1],
+          ret[1].length == 1 ? opt[k] : opt[k].padStart(ret[1].length, '0')
+        )
+      }
+    }
+    return fmt
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var initialLocaleCode = 'zh-cn';
+    var localeSelectorEl = document.getElementById('locale-selector');
+    var calendarEl = document.getElementById('calendar');
+    var dataList;
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+      },
+     // initialDate: '2020-09-12',
+      locale: initialLocaleCode,
+      buttonIcons: false, // show the prev/next text
+      weekNumbers: true,
+      navLinks: true, // can click day/week names to navigate views
+      editable: true,
+      dayMaxEvents: true, // allow "more" link when too many events
+      events: function(info,callback){
+    	 var queryData= {
+              // our hypothetical feed requires UNIX timestamps
+              startTime: dateFormat('YYYY-mm-dd HH:MM:SS',info.startStr),
+              endTime: dateFormat('YYYY-mm-dd HH:MM:SS',info.endStr)
+          };
+    	  $.ajax({
+              url: '[(${MODULE_NAME})]/cruder/Todo/query',
+              dataType : "json",
+              type: "post",
+  	          contentType : "application/json;charset=UTF-8",
+              data: JSON.stringify(queryData),
+              success: function(ret) {
+                  var events = [];
+                  var data = ret.data;
+                  dataList=data;
+                  var currentTime = new Date();
+                  for(var dd in data){
+                	  var eventEl = data[dd];
+                	  var bColor = null;
+                  	if(currentTime < eventEl.startTime){
+                  		bColor = 'green';
+                  	}
+                  	if(currentTime >= eventEl.startTime && currentTime <= eventEl.endTime){
+                  		bColor = 'red';
+                  	}
+                  	if(currentTime > eventEl.endTime){
+                  		bColor = 'slategray ';
+                  	}
+                    events.push({                          
+                        id: eventEl['id'], // 日程id
+                        color: bColor, // 背景色
+                        title: eventEl['name'],
+                        start: eventEl['startTime'], // will be parsed
+                        end: eventEl['endTime']// 日程结束时间
+                    });
+                  }
+                  
+                  callback(events);
+              }
+          });
+      },
+   // dateClick接口：点击空白处的方法，此方法中的info是用户点击时间点的信息
+      dateClick: function(info) {
+      	// 获得info中的时间
+          var date = info.dateStr;
+          var form,layer,table;
+      	layui.config({
+          dir: '/static/layui/',
+          base: '/static/layui/lay/modules/'
+        }).use(['form','layer','layedit'], function(){
+      		  form = layui.form
+      		  ,layer = layui.layer;
+          layer.open({
+              type: 2,
+              anim: 0,
+              shade: 0,
+              title: "添加",
+              maxmin: true,
+              area: ['900px', '610px'],
+              btn:['关闭'],
+              yes:function(index,layero)
+              {
+              	var body = layer.getChildFrame('body', index);
+                  //index为当前层索引
+                layer.close(index)
+              },
+              cancel:function(){//右上角关闭毁回调
+          		location.reload();  // 刷新界面为新增的日程信息
+              },
+              zIndex: layer.zIndex //重点1
+              ,success: function(layero, index){
+                layer.setTop(layero); //重点2
+                var body = layer.getChildFrame('body', index);
+                var winName=layero.find('iframe')[0]['name'];
+	           	 var iframeWin = window[winName]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+	           	 // console.log(body.html()) //得到iframe页的body内容
+	           	 if(iframeWin){
+	           		 var formdata={};
+	           		if(date.indexOf(":")<0){
+	           			date=date+" 00:00:00";
+	                }
+	           		 formdata['startTime']=date;
+	           		formdata['endTime']=date;
+	           		 iframeWin.initForm(formdata)
+	           	 }
+              },
+              content: '[(${MODULE_NAME})]/layui/Todo/form'
+          });
+          });
+      },
+      // eventClick接口：单击日历上的日程信息方法，方法内部所使用的逻辑与新增的基本一样
+      eventClick: function(event) {
+      	// 这是为了获得点被点击日程的id值，此id值被放在event对象的event对象中，有兴趣的同学可以打个断点看看里面都有什么~
+          var id = event.event.id;
+      	  var eventData;
+          for(var k in dataList){
+        	  if(id==dataList[k].id){
+        		  eventData=dataList[k];
+        	  }
+          }
+          var form,layer,table;
+        	layui.config({
+              dir: '/static/layui/',
+              base: '/static/layui/lay/modules/'
+            }).use(['form','layer','layedit'], function(){
+        		  form = layui.form
+        		  ,layer = layui.layer;
+            layer.open({
+                type: 2,
+                anim: 0,
+                shade: 0,
+                title: "日程信息",
+                maxmin: true,
+                area: ['900px', '610px'],
+                btn:['关闭'],
+                yes:function(index,layero)
+                {
+                	var body = layer.getChildFrame('body', index);
+                    //index为当前层索引
+                  layer.close(index)
+                },
+                cancel:function(){//右上角关闭毁回调
+                	location.reload();  // 刷新界面为新增的日程信息
+                },
+                zIndex: layer.zIndex //重点1
+                ,success: function(layero, index){
+                  layer.setTop(layero); //重点2
+                  var body = layer.getChildFrame('body', index);
+                  var winName=layero.find('iframe')[0]['name'];
+  	           	 var iframeWin = window[winName]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+  	           	 // console.log(body.html()) //得到iframe页的body内容
+  	           	 if(iframeWin){
+  	           		 iframeWin.initForm(eventData)
+  	           	 }
+                },
+                content: '[(${MODULE_NAME})]/layui/Todo/form'
+            });
+            });
+      }
+    });
+
+    calendar.render();
+
+  });
+
+</script>
+<style>
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+    font-size: 14px;
+  }
+
+  #calendar {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 10px;
+  }
+
+</style>
+</head>
+<body>
+
+  <div id='calendar'></div>
+
+</body>
+</html>

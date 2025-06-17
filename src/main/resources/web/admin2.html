@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title th:text="${adminTitle}">管理中心</title>
+  <link rel="stylesheet" th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+  <link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+  <div class="layui-header">
+    <div class="layui-logo" th:text="${adminTitle}">layui 后台布局</div>
+    <!-- 头部区域（可配合layui已有的水平导航） -->
+    <ul class="layui-nav layui-layout-left">
+      <li class="layui-nav-item"><a href="[(${MODULE_NAME})]/desktop">桌面版</a></li>
+      <li class="layui-nav-item"><a href="javascript:;" onclick="openDomain('domain','领域管理','/view/domainDiv')">领域管理</a></li>
+      <li class="layui-nav-item" th:each="di:${domains}">
+      <a href="javascript:;" th:onclick="openBizDomain('[[${di.id}]]')" th:text="${di.name}"></a>
+      </li>
+      <!-- <li class="layui-nav-item">
+        <a href="javascript:;">其它系统</a>
+        <dl class="layui-nav-child">
+          <dd><a href="">邮件管理</a></dd>
+        </dl>
+      </li> -->
+    </ul>
+    <ul class="layui-nav layui-layout-right">
+      <li class="layui-nav-item">
+        <a href="javascript:;">
+          <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+          时空趋势
+        </a>
+        <dl class="layui-nav-child">
+          <dd><a href="">基本资料</a></dd>
+          <dd><a href="">安全设置</a></dd>
+        </dl>
+      </li>
+      <li class="layui-nav-item"><a href="">退了</a></li>
+    </ul>
+  </div>
+  
+  <div class="layui-side layui-bg-black">
+    <div class="layui-side-scroll">
+      <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+      <ul class="layui-nav layui-nav-tree"  id="menuLeft" lay-filter="menuLeft" th:utext="|${menuLeft}|">
+        
+      </ul>
+    </div>
+  </div>
+  
+  <div class="layui-body">
+    <!-- 内容主体区域 -->
+    <div id="container">
+<div class="layui-tab layui-tab-brief" lay-filter="adminTab" lay-allowclose="true" >
+  <ul class="layui-tab-title">
+  </ul>
+  <div class="layui-tab-content">
+  </div>
+</div>
+</div>
+  </div>
+  
+  <div class="layui-footer">
+    <!-- 底部固定区域 -->
+   <i class="layui-icon">&#xe60c;</i> ©QQ1721903353 微信:时空趋势
+  </div>
+</div>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+<script th:src="@{/static/layui/layui.js}"></script>
+
+<script>
+var element;
+layui.config({
+	  dir: '/static/layui/' //layui.js 所在路径（注意，如果是script单独引入layui.js，无需设定该参数。），一般情况下可以无视
+	  ,version: false //一般用于更新模块缓存，默认不开启。设为true即让浏览器不缓存。也可以设为一个固定的值，如：201610
+	  ,debug: false //用于开启调试模式，默认false，如果设为true，则JS模块的节点会保留在页面
+	  ,base: '/static/layui/lay/modeules/' //设定扩展的Layui模块的所在目录，一般用于外部模块扩展
+	}).use('element', function(){
+  element = layui.element;
+  element.render('nav','menuLeft');
+  
+  /* $("#leftNavbar a").each(function () {
+      var that = this;
+  if ($(that).attr("href") == relUrl) {
+      $(that).parent().addClass("layui-this");
+      $(that).parents("li:eq(0)").addClass("layui-nav-itemed");
+      var nodes = $(that).parents("li:eq(0)").find("a .layui-nav-more");
+      if (nodes.length > 0) {
+          nodes.each(function () {
+              if ($(this).parents("dd:eq(0)").find("[href='" + relUrl + 
+      "']").length > 0) {
+                  $(this).parent().parent().addClass("layui-nav-itemed");
+              }
+          });
+       }
+      }
+  });
+  */
+ element.on('nav(menuLeft)', function(elem){
+      if(elem[0].innerHTML.indexOf('layui-nav-more')>0){
+          var parent=elem.parent();
+         var className =  parent[0].className;
+         /*if(className.indexOf('layui-nav-itemed')>0){
+        	 $(parent[0]).removeClass("layui-nav-itemed");//设置为展开之前的css，即不展开的样式 .addClass('layui-nav-item')
+         }else{
+        	 $(parent[0]).addClass("layui-nav-itemed");
+         }*/
+         
+      }
+  });
+ //openDomain('home',"首页","[(${MODULE_NAME})]/home");
+ openDomain('card',"卡片","[(${MODULE_NAME})]/card");
+});
+
+
+
+function FrameWH() {
+    var h = $(window).height();
+    $("iframe").css("height",h*0.9+"px");
+}
+
+function openBizDomain(genurl){
+	 var url="[(${MODULE_NAME})]/domain/"+genurl;
+	var formData={};
+	$.ajax({
+	      type: "post",
+	      url: url,
+		  dataType: "html",
+		  contentType: "text/html;charset=UTF-8",
+		  data: JSON.stringify(formData),
+	      success: function (d) {
+	    	  $("#menuLeft").html(d);
+	      }
+	    });
+}
+function openDomain(tabId,title,genurl){
+	var myContent="";
+	if(genurl.indexOf("/module/") >0){
+		var formData={};
+		$.ajax({
+		      type: "post",
+		      url: genurl,
+			  dataType: "html",
+			  contentType: "text/html;charset=UTF-8",
+			  data: JSON.stringify(formData),
+		      success: function (d) {
+		    	  element.tabDelete('adminTab', tabId);
+		    	  element.tabAdd('adminTab', {
+		    	        title: title //用于演示
+		    	        ,content: d
+		    	        ,id: tabId //实际使用一般是规定好的id，这里以时间戳模拟下
+		    	      });
+		    	//切换到指定Tab项
+		          element.tabChange('adminTab', tabId); //切换到：用户管理
+		          FrameWH()
+		      }
+		    });
+	}else{
+		myContent='<iframe data-frameid="'+tabId+'" scrolling="auto" frameborder="0" src="'+genurl+'" style="width:100%;height:99%;"></iframe>';
+		element.tabDelete('adminTab', tabId);
+		 
+		 element.tabAdd('adminTab', {
+		        title: title //用于演示
+		        ,content: myContent
+		        ,id: tabId //实际使用一般是规定好的id，这里以时间戳模拟下
+		      });
+		//切换到指定Tab项
+	     element.tabChange('adminTab', tabId); //切换到：用户管理
+	    FrameWH()
+	}
+}
+
+</script>
+</body>
+</html>

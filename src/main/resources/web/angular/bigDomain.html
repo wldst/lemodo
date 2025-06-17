@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+<style>
+table, th , td  {
+  border: 1px solid grey;
+  border-collapse: collapse;
+  padding: 5px;
+}
+table tr:nth-child(odd)	{
+  background-color: #f1f1f1;
+}
+table tr:nth-child(even) {
+  background-color: #ffffff;
+}
+</style>
+</head>
+<body>
+
+	<div ng-app="myApp" ng-controller="myCtrl">
+		<table>
+			<thead>
+				<th><p>选择开始节点:</p></th>
+				<th><p>选择关系</p></th>
+				<th><p>选择结束节点:</p></th>
+			</thead>
+			<tr>
+				<td><select ng-model="selectedStart"
+					ng-options="x.name for x in domains"
+					ng-change="startData(selectedStart)">
+				</select></td>
+				<td><select ng-model="selectedRelation" ng-init="selectedRelation=relations[0]"
+					ng-options="x.name for x in relations" >
+				</select></td>
+				<td><select  ng-model="selectedEnd"
+					ng-options="x.name for x in domains" ng-change="endData(selectedEnd)">
+				</select></td>
+
+			</tr>
+			<tr>
+				<td>{{selectedStart.name}}</td>
+				<td>{{selectedRelation.name}}</td>
+				<td>{{selectedEnd.name}}</td>
+			</tr>
+		</table>
+
+		<h1>开始节点是: {{selectedStart.name}}</h1>
+		<p>标签为: {{selectedStart.label}}</p>
+		<p>列为: {{selectedStart.columns}}</p>
+		<p>头部信息为: {{selectedStart.header}}</p>
+		<p>主键为: {{selectedStart.primaryKey}}</p>
+		<table>
+		<thead>
+			<tr>
+				<th></th>
+				<th>名称</th>
+				<th>Label</th>
+			</tr>
+		</thead>
+	  <tr ng-repeat="e in startNodes">
+	  	<td>{{ $index + 1 }}</td>
+	    <td>{{ e.name }}</td>
+	    <td>{{ e.label }}</td>
+	  </tr>
+	</table>
+		<h1>{{selectedRelation.name}}</h1>
+		
+		<h1>结束节点是: {{selectedEnd.name}}</h1>
+		<p>标签为: {{selectedEnd.label}}</p>
+		<p>列为: {{selectedEnd.columns}}</p>
+		<p>头部信息为: {{selectedEnd.header}}</p>
+		<p>主键为: {{selectedEnd.primaryKey}}</p>
+	<br>
+	<table >
+	  <thead>
+		<tr>
+			<th></th>
+			<th>名称</th>
+			<th>Label</th>
+		</tr>
+	  </thead>
+	  <tr ng-repeat="s in endNodes">
+	  <td>{{ $index + 1 }}</td>
+	    <td>{{ s.name }}</td>
+	    <td>{{ s.label }}</td>
+	  </tr>
+	</table>
+
+ </div>
+</body>
+<script>
+	var app = angular.module('myApp', []);
+	app.controller('myCtrl', function($scope, $http) {
+		$http.post("[(${MODULE_NAME})]/metadata/list", {}, {}).then(function(result) {
+			$scope.domains = result.data.data;
+		});
+
+		$http.post("[(${MODULE_NAME})]/cruder/relation/list", {}, {}).then(function(result) {
+			$scope.relations = result.data.data;
+		});
+		
+		$scope.startData = function(selectedStart) {
+			if(selectedStart!=undefined){
+				 	$http.post("[(${MODULE_NAME})]/cruder/"+selectedStart.label+"/list", {}, {})
+				    .then(
+			    		function successCallback(result) {
+			    			if(result.data.hasOwnProperty("data")){			    				
+				    	        // 请求成功执行代码
+				    			$scope.startNodes = result.data.data;
+			    			}
+			    	    }, function errorCallback(result) {
+			    	        // 请求失败执行代码
+			    	 });
+			}
+		}    
+		
+		$scope.endData = function(selectedEnd) {
+			if(selectedEnd!=undefined){
+				$http.post("[(${MODULE_NAME})]/cruder/"+selectedEnd.label+"/list", {}, {})
+			    .then(
+			    		function successCallback(result) {
+			    			if(result.data.hasOwnProperty("data")){			    				
+			    				$scope.endNodes = result.data.data;
+			    			}
+			    	        
+			    	    }, function errorCallback(result) {
+			    	        // 请求失败执行代码
+			    	 });
+			}
+		}
+	});
+</script>
+</html>

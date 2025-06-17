@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+
+	<body>
+		<div id="test-svg">
+		</div>
+	</body>
+	<script th:src="@{/static/plugin/d3/d3.v5.js}"></script>
+	<script>
+		window.onload = function() {
+			// 原始数据
+			var datax = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+			var datay = [120, 200, 150, 80, 70, 110, 130];
+			//宽高和边框
+			var width = 800,
+				height = 400,
+				padding = {
+					top: 10,
+					right: 40,
+					bottom: 40,
+					left: 40
+				};
+			//创建一个svg盒子
+			var svg = d3.select("#test-svg")
+				.append('svg')
+				.attr('width', width + 'px')
+				.attr('height', height + 'px');
+				
+			// x轴
+			var xScale = d3.scaleOrdinal()
+				.domain(datax)
+				.range([100, 200, 300, 400, 500, 600, 700]);
+			var xAxis = d3.axisBottom()
+				.scale(xScale);
+			svg.append('g')
+				.call(xAxis)
+				.attr("transform", "translate(0," + (height - padding.bottom) + ")")
+				.selectAll("text")
+				.attr("dx", "50px");
+				
+			// y轴      
+			var yScale = d3.scaleLinear()
+				.domain([0, d3.max(datay)])
+				.range([height - padding.bottom, padding.top]);
+			var yAxis = d3.axisLeft()
+				.scale(yScale)
+				.ticks(10);
+			svg.append('g')
+				.call(yAxis)
+				.attr("transform", "translate(" + 100 + ",0)");
+			
+			var bar = svg.selectAll(".bar")
+				.data(datay)
+				.enter().append("g")
+				.attr("class", "bar")
+				.attr("transform", function(d, i) {
+					return "translate(" + xScale(i * 100) + "," + yScale(d) + ")";
+				});
+			//创建矩形
+			bar.append("rect")
+				.attr("x", 1)
+				.attr("width", 100)
+				.attr("height", function(d) {
+					return height - yScale(d) - padding.bottom;
+				})
+				.attr("stroke", "White");
+			//添加文本
+			bar.append("text")
+				.attr("dy", ".75em")
+				.attr("y", 6)
+				.attr("x", 50)
+				.attr("text-anchor", "middle")
+				.attr("font-size", "8px")
+				.attr("fill", "White")
+				.text(function(d) {
+					return d;
+				});
+		}
+	</script>
+
+</html>

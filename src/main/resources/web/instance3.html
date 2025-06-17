@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}对象管理|" ></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<h3><label th:text="|${name}编辑|"></label></h3>
+	<form class="layui-form" th:utext="${formContent}" th:lay-filter="'edit'+${label}">
+	<!-- row,rowStat -->
+		<!-- <div class="layui-form-item">
+		    <div class="layui-input-block">
+		      <button class="layui-btn" lay-submit lay-filter="*">立即提交</button>
+		      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+		    </div>
+		  </div> -->
+	</form>
+	<input type="button" class="layui-btn"  th:id="|save${label}|"
+		value="保存" />
+	<h3><label th:text="'查询'+${name}"></label></h3>
+		<div class="demoTable">
+			<form class="layui-form" action="">
+				<div class="layui-form-item">
+					<label class="layui-form-label">名称：</label>
+					<div class="layui-input-block">
+						<input name="name" class="layui-input" id="nameReload"
+							placeholder="请输入领域对象名称" autocomplete="off" lay-verify="name">
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">Label：</label>
+					<div class="layui-input-block">
+						<input name="label" class="layui-input" id="labelReload"
+							autocomplete="off">
+					</div>
+				</div>
+			</form>
+			<button class="layui-btn" lay-submit lay-filter="searchDO" data-type="reload" >搜索<i class="layui-icon">&#xe615;</i></button>
+		</div>
+		<table class="layui-table" th:lay-filter="|table${label}|"
+		th:lay-data="|{ height:530,url: '[(${MODULE_NAME})]/cruder/${label}/query',method: 'post'
+					,parseData: parseTableData
+					  ,toolbar: true
+					,dataType: 'json'
+					,contentType:'application/json;charset=UTF-8', page:true, id:'table${label}'}|">
+			<thead>
+				<tr id="columnHeader">
+					<th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+					<th th:each="ci:${cols}" th:attr="lay-data=${ci.code}" th:text="${ci.name}"></th>
+					<th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}"></th>
+				</tr>
+			</thead>
+		</table>
+<script id="barDemo" type="text/html">
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+
+	<script  th:inline="javascript"  type="text/javascript">
+	var form;
+	layui.use(['form',  'laydate'], function(){
+	  form = layui.form
+	  ,layer = layui.layer;
+	  //表单取值
+	  layui.$('#save'+[[${label}]]).on('click', function(){
+		  var formData={};
+		  [# th:each="ci : ${colCodes}"]
+		  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+		  [/]
+		 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/save";
+		 
+		 $.ajax({
+		      type: "post",
+		      url: genurl,
+			  dataType : "json",
+			  contentType : "application/json;charset=UTF-8",      
+			  data: JSON.stringify(formData),
+		      success: function (d) {
+		        console.log(d);
+		        if(!d.status){
+					   layer.alert(d.msg, {icon: 5})
+				   }else{
+		        table.reload('table[(${label})]', { //表格的id
+	                url:'[(${MODULE_NAME})]/cruder/[(${label})]/search'
+	                ,method:"post"
+	                ,page: {
+	                    curr: 1 //重新从第 1 页开始
+	                }
+	                ,where: {}
+	            });
+				   }
+		      }
+		    });
+		  });
+		  
+		  //监听提交
+		  form.on('submit(searchDO)', function(data){
+		     table.reload('table[(${label})]', { //表格的id
+                        url:'[(${MODULE_NAME})]/cruder/[[${label}]]/query',
+                        method:POST,
+                        where: data.field
+                    });
+		    return true;
+		  });
+		});
+	</script>
+	<script type="text/javascript"> 
+var table;
+layui.use('table', function(){
+  table = layui.table;
+  
+  //监听表格复选框选择
+  table.on('row(table[(${label})])', function(obj){
+    //console.log(obj)
+    form.val('edit[[${label}]]', obj.data);
+  });
+  //监听工具条
+  table.on('tool(table[(${label})])', function(obj){
+    var data = obj.data;
+    if(obj.event === 'del'){
+      layer.confirm('真的删除行么', function(index){
+        obj.del();
+        delDomain(obj)
+        layer.close(index);
+      });
+    }
+  });
+  
+  var $ = layui.$, active = {
+    getCheckData: function(){ //获取选中数据
+      var checkStatus = table.checkStatus('idTest')
+      ,data = checkStatus.data;
+      layer.alert(JSON.stringify(data));
+    }
+    ,getCheckLength: function(){ //获取选中数目
+      var checkStatus = table.checkStatus('idTest')
+      ,data = checkStatus.data;
+      layer.msg('选中了：'+ data.length + ' 个');
+    }
+    ,isAll: function(){ //验证是否全选
+      var checkStatus = table.checkStatus('idTest');
+      layer.msg(checkStatus.isAll ? '全选': '未全选')
+    }
+  };
+  
+  $('.demoTable .layui-btn').on('click', function(){
+    var type = $(this).data('type');
+    active[type] ? active[type].call(this) : '';
+  });
+});
+</script>
+<script>
+
+function delDomain(po){
+	 var genurl = "[(${MODULE_NAME})]/cruder/[[${label}]]/del";
+	 var vm=$("#table[(${label})]");
+	 var formData=po.data;
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(formData),
+	      success: function (d) {
+	        console.log(d);
+	        
+	        table.reload('table[(${label})]', { //表格的id
+                url:'[(${MODULE_NAME})]/cruder/[(${label})]/search'
+                ,method:"post"
+                ,page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+                ,where: {}
+            });
+	      }
+	    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}保存|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<form class="layui-form" th:id="|edit${label}|"
+		th:lay-filter="|edit${label}|" th:utext="|${formContent}|"></form>
+<input id="relALabel" type="hidden"/>
+<input id="relAId" type="hidden"/>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+[(${layUse})]
+
+	  //监听提交
+ 
+form.render('select');
+
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+  
+  layui.define(['form'], function(exports){
+	  exports('formVal', function(data){
+		  form.val('edit[(${label})]', data);
+	  });
+	});
+  
+  [(${formFun})]
+ 
+  [(${layField})]
+
+  
+function initForm(data){
+	  [# th:each="ci : ${colCodes}"]
+	  $('#'+'[(${ci})]').val(data['[(${ci})]']);
+	  [/]
+	 [(${codeInit})]
+	  $("input").attr('disabled','disabled')
+}
+</script>
+</body>
+</html>

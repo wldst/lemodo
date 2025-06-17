@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能体协作流程可视化</title>
+    <script src="https://unpkg.com/@antv/x6/dist/x6.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #00c6ff;
+            text-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0d2eb;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
+            gap: 30px;
+            height: 70vh;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            color: #00c6ff;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(0, 198, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            font-size: 1.3rem;
+        }
+
+        .agent-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .agent-card {
+            background: rgba(0, 198, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 198, 255, 0.2);
+        }
+
+        .agent-card:hover {
+            transform: translateY(-3px);
+            background: rgba(0, 198, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .agent-card.active {
+            background: rgba(0, 198, 255, 0.25);
+            border-color: #00c6ff;
+        }
+
+        .agent-card h3 {
+            color: #00c6ff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-card p {
+            color: #ccefff;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .graph-container {
+            flex: 1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(0, 20, 30, 0.4);
+        }
+
+        #graph {
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(to right, #0072ff, #00c6ff);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 114, 255, 0.6);
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: rgba(0, 198, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(0, 198, 255, 0.2);
+        }
+
+        .stat-card h3 {
+            font-size: 1.8rem;
+            color: #00c6ff;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #a0d2eb;
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #a0d2eb;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 20, 30, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            border-radius: 10px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 198, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00c6ff;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .agent-detail {
+            background: rgba(0, 20, 30, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(0, 198, 255, 0.3);
+        }
+
+        .agent-detail h3 {
+            color: #00c6ff;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .detail-label {
+            width: 120px;
+            color: #a0d2eb;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            flex: 1;
+            color: #fff;
+        }
+
+        @media (max-width: 992px) {
+            .app-container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .left-panel {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>智能体协作流程可视化</h1>
+        <p class="subtitle">基于AntV X6的多智能体协作流程设计与实现 - 展示智能体如何协同完成复杂任务</p>
+    </header>
+
+    <div class="app-container">
+        <div class="panel left-panel">
+            <h2 class="panel-title"><i class="fas fa-robot"></i> 智能体列表</h2>
+
+            <div class="agent-list">
+                <div class="agent-card active" data-agent="taskReceiver">
+                    <h3><i class="fas fa-tasks"></i> 任务接收智能体</h3>
+                    <p>接收用户任务，进行初步分析并分发任务给其他智能体</p>
+                </div>
+
+                <div class="agent-card" data-agent="taskDecomposer">
+                    <h3><i class="fas fa-sitemap"></i> 任务分解智能体</h3>
+                    <p>将复杂任务拆分为可并行处理的子任务</p>
+                </div>
+
+                <div class="agent-card" data-agent="coordinator">
+                    <h3><i class="fas fa-network-wired"></i> 协调智能体</h3>
+                    <p>监控任务进度，协调资源分配，解决冲突</p>
+                </div>
+
+                <div class="agent-card" data-agent="expert1">
+                    <h3><i class="fas fa-search"></i> 查询智能体</h3>
+                    <p>负责从知识库或互联网检索相关信息</p>
+                </div>
+
+                <div class="agent-card" data-agent="expert2">
+                    <h3><i class="fas fa-brain"></i> 分析智能体</h3>
+                    <p>对数据进行深度分析和推理</p>
+                </div>
+
+                <div class="agent-card" data-agent="expert3">
+                    <h3><i class="fas fa-pen-fancy"></i> 生成智能体</h3>
+                    <p>根据分析结果生成内容或解决方案</p>
+                </div>
+
+                <div class="agent-card" data-agent="integrator">
+                    <h3><i class="fas fa-puzzle-piece"></i> 结果整合智能体</h3>
+                    <p>合并所有子任务结果，形成完整输出</p>
+                </div>
+
+                <div class="agent-card" data-agent="qa">
+                    <h3><i class="fas fa-check-circle"></i> 质量保证智能体</h3>
+                    <p>验证结果质量，确保满足用户需求</p>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="run-btn">
+                    <i class="fas fa-play"></i> 执行协作流程
+                </button>
+            </div>
+        </div>
+
+        <div class="panel right-panel">
+            <h2 class="panel-title"><i class="fas fa-project-diagram"></i> 协作流程图</h2>
+
+            <div class="graph-container">
+                <div id="graph"></div>
+                <div class="loading" id="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <h3>智能体协作中...</h3>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>8</h3>
+                    <p>智能体数量</p>
+                </div>
+                <div class="stat-card">
+                    <h3>5</h3>
+                    <p>并行任务</p>
+                </div>
+                <div class="stat-card">
+                    <h3>12</h3>
+                    <p>协作步骤</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="agent-detail" id="agent-detail">
+        <h3>任务接收智能体详情</h3>
+        <div class="detail-row">
+            <div class="detail-label">功能描述：</div>
+            <div class="detail-value">接收用户任务，进行初步分析并分发任务给其他智能体</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">处理能力：</div>
+            <div class="detail-value">任务分类、优先级排序、初始分析</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">协作关系：</div>
+            <div class="detail-value">连接所有智能体，负责初始任务分发</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">状态：</div>
+            <div class="detail-value"><span style="color: #00c6ff;">运行中</span></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>智能体协作流程可视化系统 | 基于AntV X6实现 | 展示多智能体协同工作流程</p>
+    </div>
+</div>
+
+<script th:src="@{/web/x6/shape.js}"></script>
+<script type="text/javascript">
+
+    X6.Graph.registerNode("start",start,true);
+    X6.Graph.registerNode("end", endNode,true);
+    X6.Graph.registerNode("normal", normalNode,true);
+    X6.Graph.registerNode("orgnode", orgNode,true);
+    X6.Graph.registerNode("gateway", gateway,true);
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 页面元素
+        const runBtn = document.getElementById('run-btn');
+        const loadingElement = document.getElementById('loading');
+        const agentCards = document.querySelectorAll('.agent-card');
+        const agentDetail = document.getElementById('agent-detail');
+
+        // 智能体详情数据
+        const agentDetails = {
+            taskReceiver: {
+                title: "任务接收智能体详情",
+                description: "接收用户任务，进行初步分析并分发任务给其他智能体",
+                capabilities: "任务分类、优先级排序、初始分析",
+                relations: "连接所有智能体，负责初始任务分发",
+                status: "运行中"
+            },
+            taskDecomposer: {
+                title: "任务分解智能体详情",
+                description: "将复杂任务拆分为可并行处理的子任务",
+                capabilities: "任务分解、依赖关系分析、子任务分配",
+                relations: "接收任务接收智能体的指令，输出给协调智能体",
+                status: "待机中"
+            },
+            coordinator: {
+                title: "协调智能体详情",
+                description: "监控任务进度，协调资源分配，解决冲突",
+                capabilities: "状态监控、资源调度、冲突解决",
+                relations: "连接所有专家智能体，监控任务进度",
+                status: "待机中"
+            },
+            expert1: {
+                title: "查询智能体详情",
+                description: "负责从知识库或互联网检索相关信息",
+                capabilities: "信息检索、数据筛选、来源验证",
+                relations: "接收协调智能体指令，输出给结果整合智能体",
+                status: "待机中"
+            },
+            expert2: {
+                title: "分析智能体详情",
+                description: "对数据进行深度分析和推理",
+                capabilities: "数据分析、模式识别、预测建模",
+                relations: "接收协调智能体指令，输出给结果整合智能体",
+                status: "待机中"
+            },
+            expert3: {
+                title: "生成智能体详情",
+                description: "根据分析结果生成内容或解决方案",
+                capabilities: "内容生成、方案设计、报告撰写",
+                relations: "接收协调智能体指令，输出给结果整合智能体",
+                status: "待机中"
+            },
+            integrator: {
+                title: "结果整合智能体详情",
+                description: "合并所有子任务结果，形成完整输出",
+                capabilities: "结果融合、一致性检查、格式转换",
+                relations: "接收所有专家智能体输出，输出给质量保证智能体",
+                status: "待机中"
+            },
+            qa: {
+                title: "质量保证智能体详情",
+                description: "验证结果质量，确保满足用户需求",
+                capabilities: "质量评估、错误检测、用户反馈",
+                relations: "接收结果整合智能体输出，完成最终交付",
+                status: "待机中"
+            }
+        };
+
+        // 初始化AntV X6图
+        const graph = new X6.Graph({
+            container: document.getElementById('graph'),
+            width: '100%',
+            height: '100%',
+            grid: {
+                size: 10,
+                visible: true,
+            },
+            background: {
+                color: 'rgba(0, 20, 30, 0.4)',
+            },
+            panning: {
+                enabled: true,
+                modifiers: 'shift',
+            },
+            mousewheel: {
+                enabled: true,
+                modifiers: 'ctrl',
+                minScale: 0.5,
+                maxScale: 3,
+            },
+            connecting: {
+                router: 'manhattan',
+                connector: {
+                    name: 'rounded',
+                    args: {
+                        radius: 8,
+                    },
+                },
+                anchor: 'center',
+                connectionPoint: 'anchor',
+                allowBlank: false,
+                snap: {
+                    radius: 20,
+                },
+            },
+        });
+
+        // 定义节点样式
+        function createNode(id, x, y, label, type) {
+            const baseStyle = {
+                id: id,
+                x: x,
+                y: y,
+                label: label,
+                attrs: {
+                    label: {
+                        fontSize: 12,
+                        fill: '#fff',
+                    },
+                },
+            };
+
+            switch (type) {
+                case 'start':
+                case 'end':
+                    return graph.addNode({
+                        ...baseStyle,
+                        width: 60,
+                        height: 60,
+                        shape: 'circle',
+                        attrs: {
+                            body: {
+                                fill: type === 'start' ? '#4CAF50' : '#F44336',
+                                stroke: '#fff',
+                                strokeWidth: 2,
+                            },
+                            label: {
+                                fontWeight: 'bold',
+                            },
+                        },
+                    });
+                case 'decomposer':
+                    return graph.addNode({
+                        ...baseStyle,
+                        width: 100,
+                        height: 100,
+                        shape: 'polygon',
+                        attrs: {
+                            body: {
+                                points: '0,50 50,0 100,50 50,100',
+                                fill: '#FFC107',
+                                stroke: '#fff',
+                                strokeWidth: 2,
+                            },
+                        },
+                    });
+                case 'coordinator':
+                    return graph.addNode({
+                        ...baseStyle,
+                        width: 120,
+                        height: 120,
+                        shape: 'ellipse',
+                        attrs: {
+                            body: {
+                                fill: '#9C27B0',
+                                stroke: '#fff',
+                                strokeWidth: 2,
+                            },
+                        },
+                    });
+                case 'expert':
+                    return graph.addNode({
+                        ...baseStyle,
+                        width: 120,
+                        height: 60,
+                        shape: 'rect',
+                        attrs: {
+                            body: {
+                                fill: '#2196F3',
+                                stroke: '#fff',
+                                strokeWidth: 2,
+                                rx: 5,
+                                ry: 5,
+                            },
+                        },
+                    });
+                case 'integrator':
+                    return graph.addNode({
+                        ...baseStyle,
+                        width: 140,
+                        height: 80,
+                        shape: 'rect',
+                        attrs: {
+                            body: {
+                                fill: '#009688',
+                                stroke: '#fff',
+                                strokeWidth: 2,
+                                rx: 10,
+                                ry: 10,
+                            },
+                        },
+                    });
+                default:
+                    return graph.addNode({
+                        ...baseStyle,
+                        width: 100,
+                        height: 60,
+                        shape: 'rect',
+                        attrs: {
+                            body: {
+                                fill: '#00c6ff',
+                                stroke: '#fff',
+                                strokeWidth: 2,
+                                rx: 5,
+                                ry: 5,
+                            },
+                        },
+                    });
+            }
+        }
+
+        // 创建边
+        function createEdge(source, target, label = '') {
+            return graph.addEdge({
+                source: { cell: source },
+                target: { cell: target },
+                attrs: {
+                    line: {
+                        stroke: '#00c6ff',
+                        strokeWidth: 2,
+                        targetMarker: {
+                            name: 'block',
+                            size: 8,
+                        },
+                    },
+                },
+                labels: label ? [{
+                    position: 0.5,
+                    attrs: {
+                        label: {
+                            text: label,
+                            fill: '#00c6ff',
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            textWrap: {
+                                width: 100,
+                                height: 40,
+                                ellipsis: true,
+                            },
+                        },
+                    },
+                }] : [],
+            });
+        }
+
+        // 生成智能体协作流程
+        function generateAgentWorkflow() {
+            // 清除现有内容
+            graph.clearCells();
+
+            // 创建节点
+            const start = createNode('start', 100, 300, '开始', 'start');
+            const taskReceiver = createNode('taskReceiver', 250, 300, '任务接收智能体', '');
+            const taskDecomposer = createNode('taskDecomposer', 450, 300, '任务分解智能体', 'decomposer');
+            const coordinator = createNode('coordinator', 650, 300, '协调智能体', 'coordinator');
+
+            // 专家智能体
+            const expert1 = createNode('expert1', 550, 150, '查询智能体', 'expert');
+            const expert2 = createNode('expert2', 650, 150, '分析智能体', 'expert');
+            const expert3 = createNode('expert3', 750, 150, '生成智能体', 'expert');
+
+            const integrator = createNode('integrator', 850, 300, '结果整合智能体', 'integrator');
+            const qa = createNode('qa', 1050, 300, '质量保证智能体', '');
+            const end = createNode('end', 1200, 300, '结束', 'end');
+
+            // 创建边
+            createEdge(start, taskReceiver);
+            createEdge(taskReceiver, taskDecomposer);
+            createEdge(taskDecomposer, coordinator);
+
+            // 协调智能体到专家智能体
+            createEdge(coordinator, expert1, '分配查询任务');
+            createEdge(coordinator, expert2, '分配分析任务');
+            createEdge(coordinator, expert3, '分配生成任务');
+
+            // 专家智能体到结果整合
+            createEdge(expert1, integrator, '提供查询结果');
+            createEdge(expert2, integrator, '提供分析结果');
+            createEdge(expert3, integrator, '提供生成结果');
+
+            createEdge(integrator, qa, '提交整合结果');
+            createEdge(qa, end, '最终交付');
+
+            // 添加反馈循环
+            createEdge(qa, coordinator, '质量反馈', {
+                router: {
+                    name: 'manhattan',
+                    args: {
+                        startDirections: ['left'],
+                        endDirections: ['top'],
+                    },
+                },
+                connector: {
+                    name: 'rounded',
+                    args: {
+                        radius: 20,
+                    },
+                },
+            });
+
+            // 居中显示
+            graph.centerContent();
+            graph.zoomToFit({ padding: 50, maxScale: 1 });
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            loadingElement.style.display = 'flex';
+            setTimeout(() => {
+                loadingElement.style.display = 'none';
+
+                // 高亮显示所有智能体
+                const allAgents = ['taskReceiver', 'taskDecomposer', 'coordinator',
+                    'expert1', 'expert2', 'expert3', 'integrator', 'qa'];
+
+                let index = 0;
+                const highlightInterval = setInterval(() => {
+                    if (index < allAgents.length) {
+                        const agentId = allAgents[index];
+                        const node = graph.getCellById(agentId);
+
+                        if (node) {
+                            // 保存原始颜色
+                            if (!node.originalFill) {
+                                node.originalFill = node.attr('body/fill');
+                            }
+
+                            // 高亮显示
+                            node.attr('body/fill', '#ff5722');
+
+                            // 0.5秒后恢复原始颜色
+                            setTimeout(() => {
+                                if (node.originalFill) {
+                                    node.attr('body/fill', node.originalFill);
+                                }
+                            }, 500);
+                        }
+
+                        index++;
+                    } else {
+                        clearInterval(highlightInterval);
+                    }
+                }, 600);
+            }, 3000);
+        }
+
+        // 更新智能体详情
+        function updateAgentDetail(agentId) {
+            const detail = agentDetails[agentId];
+            if (detail) {
+                agentDetail.innerHTML = `
+                        <h3>${detail.title}</h3>
+                        <div class="detail-row">
+                            <div class="detail-label">功能描述：</div>
+                            <div class="detail-value">${detail.description}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">处理能力：</div>
+                            <div class="detail-value">${detail.capabilities}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">协作关系：</div>
+                            <div class="detail-value">${detail.relations}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">状态：</div>
+                            <div class="detail-value"><span style="color: #00c6ff;">${detail.status}</span></div>
+                        </div>
+                    `;
+            }
+        }
+
+        // 事件监听
+        runBtn.addEventListener('click', () => {
+            showLoading();
+        });
+
+        // 智能体卡片点击事件
+        agentCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // 移除所有active类
+                agentCards.forEach(c => c.classList.remove('active'));
+                // 添加active类到当前卡片
+                this.classList.add('active');
+
+                // 获取智能体ID
+                const agentId = this.getAttribute('data-agent');
+
+                // 更新详情
+                updateAgentDetail(agentId);
+
+                // 高亮显示对应的节点
+                const node = graph.getCellById(agentId);
+                if (node) {
+                    // 保存原始颜色
+                    if (!node.originalFill) {
+                        node.originalFill = node.attr('body/fill');
+                    }
+
+                    // 移除之前的高亮
+                    graph.getNodes().forEach(n => {
+                        if (n.originalFill) {
+                            n.attr('body/fill', n.originalFill);
+                        }
+                    });
+
+                    // 高亮当前节点
+                    node.attr('body/fill', '#ff5722');
+
+                    // 居中显示
+                    graph.centerCell(node);
+                }
+            });
+        });
+
+        // 添加节点点击事件
+        graph.on('node:click', ({ node }) => {
+            const agentId = node.id;
+
+            // 更新卡片选中状态
+            agentCards.forEach(card => {
+                if (card.getAttribute('data-agent') === agentId) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+
+            // 更新详情
+            updateAgentDetail(agentId);
+        });
+
+        // 初始化图
+        generateAgentWorkflow();
+
+        // 设置初始详情
+        updateAgentDetail('taskReceiver');
+    });
+</script>
+</body>
+</html>

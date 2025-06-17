@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+ 
+<meta charset="UTF-8">
+	<title th:text="${name}"></title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<div class="layui-fluid">
+		<div class="layui-row" th:if="${pre!=null||homePage!=null}">
+			<div class="layui-col-sm4">
+			<div id="pre"  >[(${pre})]</div>
+			</div>
+			<div class="layui-col-sm4">
+				<div id="homePage"  >[(${homePage})]</div>
+			</div>
+			<div class="layui-col-sm4">
+			<div id="next"  >[(${next})]</div>
+			</div>
+		</div>
+		<div class="layui-row" th:if="${content!=null}">
+			<div id="content"
+				style="overflow: hidden; width: 98%; white-space: pre-wrap;">
+				[(${content})]</div>
+		</div>
+		<div class="layui-row" th:if="${links!=null}">
+		<div id="links"
+		style="overflow: hidden; width: 98%; white-space: pre-wrap;">
+		[(${links})]</div>
+		</div>
+		<div class="layui-row" th:if="${opt!=null}">
+			<div id="opt"
+		style="overflow: hidden; width: 98%; white-space: pre-wrap;">
+		[(${opt})]</div>
+		</div>
+
+		<div class="layui-row">
+			<div id="dataObjects"
+				 style="overflow: hidden; width: 98%; white-space: pre-wrap;">
+				[(${dataObjects})]</div>
+		</div>
+	</div>
+	<div class="layui-fluid">
+		<div class="layui-row layui-col-space10" th:if="${mainContent!=null}">
+			<div class="layui-tab layui-tab-brief"
+				 id="tabList" ></div>
+		</div>
+	</div>
+
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script th:src="@{/static/layui/layui.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+<script type="text/javascript">
+var tabIds={};
+var tabContent={};
+
+
+var layer,form,table;
+layui.config({ dir: '/static/layui/',version: false ,debug: false,
+	 base: '/static/layui/lay/modeules/'})
+	 .use(['form','table','element'], function(){
+form = layui.form
+ ,table = layui.table
+ ,layer = layui.layer;
+var element = layui.element;
+
+function addTab(tabId,title,content){
+	var h = $(window).height();
+    var w = $(window).width();
+	element.tabDelete('tabList', tabId);
+	//新增一个Tab项
+	element.tabAdd('tabList', {
+	        title: title 
+	        ,content: '<iframe data-frameid="'+tabId+'" scrolling="auto" frameborder="0" src="'+content+'" style="width:'+w+'px;height:'+h+'px;"></iframe>' 
+	        ,id: tabId 
+	})
+	if(content!=""&&content){
+		element.tabChange('tabList', tabId) 
+	}
+}
+/* var mainTab= '[(${mainContent})]';
+if(mainTab.length>1){
+	var xx = [(${mainContent})];
+	addTab('mainTab',xx.title,xx.content);
+} */
+
+
+	 });
+
+[(${toolFun})]
+
+
+</script>
+</body>
+</html>

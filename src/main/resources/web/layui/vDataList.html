@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+<table th:id="|table${voId}|" th:lay-filter="|table${voId}|"></table>
+
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var layer,form,table,crudTable;
+
+  layui.config({ dir: '/static/layui/',version: false ,debug: false,
+	  base: '/static/layui/lay/modeules/'})
+.use([ 'table','layer','form'], function(){ 
+	form = layui.form;
+	layer = layui.layer;
+	table = layui.table;
+	  crudTable = table.render({
+		    elem: '#table[(${voId})]'
+		    ,method: 'POST' //方式
+		    ,url:'[(${MODULE_NAME})]/vo/instanceData/[(${voId})]'
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: false
+		    //,toolbar: '#toolbarDemo'
+		    //,title: '用户数据表'
+		    /* ,totalRow: true */
+		    ,where:{'instanceID':'[(${dataId})]'}
+		    ,id: 'table[(${voId})]'
+		    ,cols: [ [
+		    	{type:'checkbox', fixed: 'left'}[# th:each="ci : ${cols}"]
+		     	,{field:'[(${ci.field})]', title:'[(${ci.name})]',sort: true}[/]
+		    ] ]
+		    ,page: true
+		    ,done: fixRightTool
+		    ,parseData: parseTableData
+	  });
+});
+</script>
+</body>
+</html>

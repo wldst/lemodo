@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}Cypher查询结果|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<!-- lay-allowclose="false" -->
+	<input hidden=true id="id" name="id">
+	<div class="layui-tab layui-tab-brief"
+		th:lay-filter="|${domainId}tabList|" th:id="|table${domainId}tabList|"></div>
+<script th:id="|table${domainId}detail|" type="text/html">
+    <div class="layui-tab-item layui-show" th:insert="~{divTemp :: tablePageData}">
+	</div>
+</script>
+<script id="toolbarDemo" type="text/html">
+[(${toolbarOpt})]
+</script>
+
+	<script id="barDemo" type="text/html">
+[(${opt})]
+		
+</script>
+[(${tempalteContent})]
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var layer,crudTable,form,table,dropdown,element;
+layui.config({
+ 		dir: '/static/layui/',
+ 		version: false ,debug: false,
+ 		base: '/static/layui/lay/modules/'
+})
+.use(['form','table','dropdown','element'], function(){
+form = layui.form
+ ,table = layui.table
+ ,layer = layui.layer;
+ element = layui.element;
+ dropdown = layui.dropdown;
+dropDown=dropdown;
+	var getTpl = $("#table[(${domainId})]detail").html();
+	$("#table[(${domainId})]tabList").html(getTpl);
+	
+	var tableData=parseTableData;
+	if(table){
+		table.on('row(table[(${domainId})])', function(obj){
+			  currentNode=obj.data;
+		})
+		crudTable = table.render({
+		    elem: '#table[(${domainId})]'
+		    ,cellMinWidth: 80
+		    ,method: 'POST' //方式
+		    ,url: '[(${MODULE_NAME})]/cypher/query/[(${domainId})]/data'
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,toolbar: '#toolbarDemo'
+		    ,title: '用户数据表'
+		    /* ,totalRow: true */
+		    ,id: 'table[(${domainId})]'
+		    ,cols: [ [
+			    	[# th:each="ci : ${cols}"]
+			     	,{field:'[(${ci.field})]', [(${ci.width})] title:'[(${ci.name})]'[(${ci.templat})],sort: true}	    	
+			    	[/]
+			] ]
+		    ,page: true
+		    ,done: fixRightTool
+		    ,parseData: tableData
+	  });
+		  //监听工具条
+		  table.on('tool(table[(${domainId})])', function(obj){
+		    var data = obj.data;
+		    [(${activLogic})]    
+		  });
+	}else{
+		$.ajax({
+			type: "post",
+			url: '[(${MODULE_NAME})]/cypher/query/[(${domainId})]/data',
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",      //
+			data: JSON.stringify({}),
+			success: function (d) {
+				if(!d.status){
+					   layer.alert(d.msg, {icon: 5})
+				   }else{
+			    layer.alert(d.msg, {icon: 6})
+			    
+				   }
+			},
+			error:function (d) {
+			      layer.alert(d.msg, {icon: 5})
+			}
+	    });
+		
+	}
+}); 
+</script>
+</body>
+</html>

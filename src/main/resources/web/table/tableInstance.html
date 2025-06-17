@@ -1,0 +1,632 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}对象管理|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<!-- lay-allowclose="false" -->
+	<div class="layui-tab layui-tab-brief"
+		th:lay-filter="|${tableName}tabList|" th:id="|${tableName}tabList|"></div>
+	<script th:id="|${tableName}detail|" type="text/html">
+    <div class="layui-tab-item layui-show" th:insert="~{tableTemp :: searchList}">
+	</div>
+  </div>
+</script>
+
+	<script id="toolbarDemo" type="text/html">
+[(${toolbarOpt})]
+</script>
+<script id="barDemo" type="text/html">
+[(${opt})]
+		
+</script>
+[(${tempalteContent})]
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var label = '[(${tableName})]';
+[(${layUse})]
+table.on('row(table[(${tableName})])', function(obj){
+	  currentNode=obj.data;
+})
+window.openWindow = function (url,name){
+	var data=currentNode;
+	var width='65%';
+	  if(data.size>7){
+	  	width='80%';
+	  }
+	  layer.open({
+	      type: 2,
+	      anim: 0,
+	      shade: 0,
+	      title: name,
+	      area: [width, '55%'],
+	      btn:['关闭'],
+	      yes:function(index,layero)
+	      {
+	      	var body = layer.getChildFrame('body', index);
+			close()
+	          //index为当前层索引
+	        layer.close(index)
+	      },
+	      cancel:function(){//右上角关闭毁回调
+	     	 close()
+	     	 var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+	  		parent.layer.close(index); //再执行关闭
+	      },
+	      zIndex: layer.zIndex //重点1
+	      ,success: function(layero, index){
+	        layer.setTop(layero); //重点2
+	   	  var body = layer.getChildFrame('body', index);
+	   	 var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+	   	 // console.log(body.html()) //得到iframe页的body内容
+	   	 iframeWin.initForm(data)
+	   	// console.log(obj.data)
+	   	  //body.find('input').val('Hi，我是从父页来的')
+	      },
+	      content: url
+	  });
+}
+	var getTpl = $("#[(${tableName})]detail").html();
+	$("#[(${tableName})]tabList").html(getTpl);
+	
+	  crudTable = table.render({
+		    elem: '#table[(${tableName})]'
+		    ,method: 'POST' //方式
+		    ,url:'[(${MODULE_NAME})]/table/[(${tableName})]/query'
+		    ,cellMinWidth: 80
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,toolbar: '#toolbarDemo'
+		    ,title: '用户数据表'
+		    /* ,totalRow: true */
+		    ,id: 'table[(${tableName})]'
+		    ,cols: [ [
+		    	{type:'checkbox', fixed: 'left'}
+		    	[# th:each="ci : ${cols}"]
+			    		,{field:'[(${ci.field})]', title:'[(${ci.name})]'[(${ci.templat})],sort: true}
+		     	[/]
+				,{fixed: 'right', align:'center', title:'操作',toolbar: '#barDemo',unresize: false}
+		    ] ]
+		    ,page: true
+		    ,done: fixRightTool
+		    ,parseData: parseTableData
+	  });
+	  //监听提交
+	form.on('submit(edit[(${tableName})])', function(data){
+		formSubmit();
+	 return false;
+	});
+	  
+  //表单取值
+ // layui.$('#save'+[[${tableName}]]).on('click', formSubmit);
+  
+  [(${editIndex})]
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+  
+  form.verify({
+	  [(${formVerifyJs})]
+	});
+  
+  function formSubmit(){
+	  var formData={};
+	  [# th:each="ci : ${colCodes}"]
+	  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+	  [/]
+	formData['poId']=$('#poIdReload').val(); 
+	 
+	 var genurl = "[(${MODULE_NAME})]/table/[(${tableName})]/insert";
+	 
+	 $.ajax({
+	    type: "post",
+	    url: genurl,
+		dataType : "json",
+		contentType : "application/json;charset=UTF-8",      
+		data: JSON.stringify(formData),
+		success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           refresh()
+      	},
+ 		error:function (d) {
+	        layer.alert(d.msg, {icon: 5})
+	        refresh()
+	    }
+	    });
+   }
+  form.render('select');
+  //监听提交
+  form.on('submit(searchDO)', function(data){
+	[(${getSearchValue})]
+	
+	//执行重载
+	crudTable.reload({
+	  page: {
+	    curr: 1 //重新从第 1 页开始
+	  }
+	  ,where: searchForm
+	});
+    return false;
+  });
+  
+  var endList={};
+  var tabIds={};
+  var rowi=null;
+  //监听表格复选框选择
+  table.on('checkbox(table[(${tableName})])', function(obj){
+    //console.log(obj) $('#edit[(${tableName})]')[0].reset();
+   console.log(obj)
+   // form.render();
+    //form.val('edit[(${tableName})]', obj.data);
+    if(obj.data['unicode']){
+    	$('#unicodeIcon').html(obj.data['unicode'])
+    }
+    textEditorValue(obj.data);
+    $('#poId').val($('#poIdReload').val()); 
+    currentNode=obj.data;
+    rowi=obj.data;
+    if(tabIds!=null){
+    	for(var tab in tabIds){
+    		element.tabDelete('[(${tableName})]tabList',  tabIds[tab]);
+    	}
+    }
+    objectRelation(obj.data);
+  });
+  
+  table.on('rowDouble(table[(${tableName})])', function(obj){
+	    //console.log(obj) $('#edit[(${tableName})]')[0].reset();
+	    var width='65%';
+	    if(obj.data.size>7){
+	    	width='900px';
+	    }
+	    
+	layer.open({
+      type: 2,
+      anim: 0,
+      shade: 0,
+      title: "编辑",
+      maxmin: true,
+      area: [width, '55%'],
+      btn:['关闭'],
+      yes:function(index,layero)
+      {
+      	var body = layer.getChildFrame('body', index);
+		close()
+          //index为当前层索引
+        layer.close(index)
+      },
+      cancel:function(){//右上角关闭毁回调
+     	 close()
+     	/*  var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+  		parent.layer.close(index); //再执行关闭 */
+      },
+      zIndex: layer.zIndex //重点1
+      ,success: function(layero, index){
+        layer.setTop(layero); //重点2
+   	  var body = layer.getChildFrame('body', index);
+   	 var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+   	 // console.log(body.html()) //得到iframe页的body内容
+   	 iframeWin.initForm(obj.data)
+   	// console.log(obj.data)
+   	  //body.find('input').val('Hi，我是从父页来的')
+      },
+      content: "[(${MODULE_NAME})]/dbmanage/[(${tableName})]/form/"+obj.data.id
+  });
+	    form.render();
+	    form.val('edit[(${tableName})]', obj.data);
+	    textEditorValue(obj.data);
+	    $('#poId').val($('#poIdReload').val()); 
+	    currentNode=obj.data;
+  });
+  
+
+  
+  
+  //监听工具条
+  table.on('tool(table[(${tableName})])', function(obj){
+    var data = obj.data;
+    if(obj.event === 'del'){
+      layer.confirm('真的删除行么', function(index){
+        obj.del();
+        delDomain(obj)
+        layer.close(index);
+      });
+    }
+    [(${activLogic})]
+    
+  });
+  
+//头工具栏事件
+  table.on('toolbar(table[(${tableName})])', function(obj){
+      var checkStatus = table.checkStatus(obj.config.id);
+      var data = rowi;
+	  [(${toolBarActiveLogic})]
+  });
+
+let isMainData=false;
+// 监听单选框的选中事件
+form.on('radio(isMainData)', function(data){
+	isMainData=data.value
+});
+  /**
+	 * 保存关系
+	 */
+	 layui.$('#relationSave').on('click',function (po){
+		 var endLabel= $("#selectPo").val();
+		 var endCode = $("#selectObj").val();
+		 var relationCode = $("#relationCode").val();
+		 var relationName = $("#relationName").val();
+		 if(endCode==null||rowi==null&&currentNode==null){
+			 return;
+		 }	
+		 var startCode = currentNode==null?rowi.id:currentNode.id;			
+		 var genurl = "[(${MODULE_NAME})]/objectRel/[(${tableName})]/"+endLabel+"/"+relationCode+"/save";
+		 
+		 var formData={};
+		 var relations=new Array();
+		 var relation={};
+		 var relProp={};
+		 relation['endId']=endCode;      
+		 relation['startId']=startCode; 
+		 relProp['label']=relationCode;
+		 relProp['name']=relationName;
+		 if(isMainData){
+			 relProp['mainData']='true';
+		 }
+		 relation['startLabel']="[(${tableName})]";
+		 relation['endLabel']=endLabel;
+		 relations[0]=relation;
+		 formData['relations']=relations;
+		 formData['relProp']=relProp;
+		//      
+		//formData['endCode']=$('#poIdReload').val();      
+		
+		 $.ajax({
+				type: "post",
+				url: genurl,
+				dataType : "json",
+				contentType : "application/json;charset=UTF-8",      //
+				data: JSON.stringify(formData),
+				success: function (d) {
+					if(!d.status){
+						   layer.alert(d.msg, {icon: 5})
+					   }else{
+					    layer.alert(d.msg, {icon: 6})
+					    if(currentNode!=null){
+					    	objectRelation(currentNode);
+					    }
+				    }
+				},
+				error:function (d) {
+				      layer.alert(d.msg, {icon: 5})
+				      refresh()
+				}
+		    });
+	});
+  
+  //relationDel 删除关系
+  layui.$('#relationDel').on('click',function (po){
+		 var endLabel= $("#selectPo").val();
+		 var endId = $("#selectObj").val();
+		 var relationCode = $("#relationCode").val();
+		 var relationName = $("#relationName").val();
+		 var startCode = $("#id").val();
+		 if(endId==null||startCode==null){
+			 return;
+		 }		
+		 var genurl = "[(${MODULE_NAME})]/objectRel/[(${tableName})]/"+endLabel+"/"+relationCode+"/del";
+		 
+		 var formData={};
+		 var relations=new Array();
+		 var relation={};
+		 var relProp={};
+		 relation['endId']=endId;      
+		 relation['startId']=startCode; 
+		 relProp['label']=relationCode;
+		 relProp['name']=relationName;
+		 relation['startLabel']="[(${tableName})]";
+		 relation['endLabel']=endLabel;
+		 relations[0]=relation;
+		 formData['relations']=relations;
+		 formData['relProp']=relProp;
+		//      
+		//formData['endCode']=$('#poIdReload').val();      
+		
+		 $.ajax({
+				type: "post",
+				url: genurl,
+				dataType : "json",
+				contentType : "application/json;charset=UTF-8",      //
+				data: JSON.stringify(formData),
+				success: function (d) {
+				    layer.alert(d.msg, {icon: 6})
+				    if(currentNode!=null){
+				    	objectRelation(currentNode);
+				    }
+				},
+				error:function (d) {
+				      layer.alert(d.msg, {icon: 5})
+				      refresh()
+				}
+		    });
+	});
+  
+	//表单取值
+	layui.$('#relationObj').on('click', function(data){
+	 var select= $("#selectPo").val();
+	 var selectPoName = $("#relationPo").val();
+	 if(select==null||select==""){
+		 $("#selectPo").val("Po");
+		 select="Po"
+	 }
+	 layer.open({
+      type: 2,
+      anim: 0,
+      shade: 0,
+      title: "关联"+selectPoName,
+      area: ['95%', '95%'],
+      btn:['关闭'],
+      yes:function(index,layero)
+      {
+      	var body = layer.getChildFrame('body', index);
+      	var selected = body.find('#selectObj').val();
+	    var selectedName = body.find('#selectObjName').val();
+	        	
+      	$("#relationObj").val(selectedName);
+      	$("#selectObj").val(selected);
+			
+				 close()
+          //index为当前层索引
+          layer.close(index)
+      },
+      cancel:function(){//右上角关闭毁回调
+     	 close()
+     	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+  		parent.layer.close(index); //再执行关闭
+      },
+      zIndex: layer.zIndex //重点1
+      ,success: function(layero, index){
+        layer.setTop(layero); //重点2
+   	  var body = layer.getChildFrame('body', index);
+   	 // var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+   	 // console.log(body.html()) //得到iframe页的body内容
+   	 //console.log(data)
+   	  //body.find('input').val('Hi，我是从父页来的')
+      },
+      content: "[(${MODULE_NAME})]/objectRel/[(${tableName})]/"+select
+  });
+});
+	
+	layui.$('#relationPo').on('click', function(data){
+		  layer.open({
+	        type: 2,
+	        anim: 0,
+	        shade: 0,
+	        title: "选择",
+	        area: ['95%', '95%'],
+	        btn:['关闭'],
+	        yes:function(index,layero)
+	        {
+	        	var body = layer.getChildFrame('body', index);
+	        	var selected = body.find('#selectPo').val();
+	        	var selectedName = body.find('#selectPoName').val();
+	        	if(selected){
+	        		$("#selectPo").val("Po");
+	        		$("#relationPo").val("实体");
+	        	}else{
+	        		$("#selectPo").val(selected);
+	        		$("#relationPo").val(selectedName);
+	        	}
+	        	
+				//$("#selectPoName").text(selectedName);
+				
+				close()
+	            //index为当前层索引
+	            layer.close(index)
+	        },
+	        cancel:function(){//右上角关闭毁回调
+	       	 close()
+	       	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+	    		parent.layer.close(index); //再执行关闭
+	        },
+	        zIndex: layer.zIndex //重点1
+	        ,success: function(layero, index){
+	          layer.setTop(layero); //重点2
+	     	  var body = layer.getChildFrame('body', index);
+	     	 // var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+	     	 // console.log(body.html()) //得到iframe页的body内容
+	     	// console.log(data)
+	     	  //body.find('input').val('Hi，我是从父页来的')
+	        },
+	        content: "[(${MODULE_NAME})]/vue/poSelect"
+	    });
+	});
+  
+	function addTab(tabId,title,content){
+		element.tabDelete('[(${tableName})]tabList', tabId);
+		//新增一个Tab项
+		element.tabAdd('[(${tableName})]tabList', {
+		        title: title 
+		        ,content: content 
+		        ,id: tabId 
+		})
+		element.tabChange('[(${tableName})]tabList', tabId) 
+	}
+
+	function objectRelation(po){
+		 var genurl = "[(${MODULE_NAME})]/cruder/[(${tableName})]/tabList";
+		 
+		 $.ajax({
+		      type: "post",
+		      url: genurl,
+		        dataType : "json",
+		        contentType : "application/json;charset=UTF-8",      //
+		        data: JSON.stringify(po),
+		        success: function (d) {
+					if(d.data) {
+						var tabs = d.data.tabList;
+						if (tabs.length > 0) {
+							for (var tab in tabs) {
+								addTab(tabs[tab].tabId, tabs[tab].tabTitle, tabs[tab].tabContent);
+								tabIds[tab] = tabs[tab].tabId;
+							}
+						}
+
+						endList = d.data.relationEnd;
+						$("#[(${tableName})]ExistRelation").html(d.data.existRelation);
+						form.render('select');
+					}
+		      	},
+		 		error:function (d) {
+			    }
+		    });
+	}
+	
+	
+	form.on('select([(${tableName})]ExistRelation)', function(data){
+		$("#relationCode").val(data.value);
+		 
+		var sel = data.elem;
+		for(var i in sel){
+			if(parseInt(i)&&sel[i].value==data.value){
+				$("#relationName").val(sel[i].label);
+			}
+		}
+		
+		if(endList!=null){
+			var endNode=endList[data.value];
+			
+			$("#selectPo").val(endNode["label"]);
+			//$("#selectPoName").text(selectedName);
+			$("#relationPo").val(endNode["name"]);
+		}
+		
+	})
+	
+  [(${layField})]
+  
+  
+function operate(po){
+	 var genurl = "[(${MODULE_NAME})]/admin/query";
+	 if(po.cypher==undefined){
+		 return;
+	 }
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(po),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+	    });
+}
+
+[(${toolFun})]
+
+function delDomain(po){
+	 var genurl = "[(${MODULE_NAME})]/table/[(${tableName})]/del";
+	// var vm=$("#table[(${tableName})]");
+	 var formData=po.data;
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(formData),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		    }
+	    });
+}
+
+function delRel(label,id){	
+	 var genurl = "[(${MODULE_NAME})]/cruder/[(${tableName})]/rel/"+label+"/del";
+	 var formData={};
+	 formData["endId"]=id;
+	 formData["startId"]=currentNode.id;
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(formData),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           $("#"+label+id).remove();
+	           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+	 });
+}
+
+function delList(checkStatus){
+	 var genurl = "[(${MODULE_NAME})]/cruder/[(${tableName})]/delList";
+	 var vm=$("#table[(${tableName})]");
+	 var idList = "";
+	 var data = checkStatus.data;
+	 for(var i in data){
+		 if(idList!=""){
+			 idList=idList+","+data[i].id;
+		 }else{
+			 idList=data[i].id;
+		 }
+	 }
+	 var formData={};
+	 formData['id']=idList;
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(formData),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           table.reload('table[(${tableName})]',{});
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        table.reload('table[(${tableName})]',{});
+		    }
+	    });
+}
+function refresh(){
+	crudTable.reload( { //表格的id
+	    page: {
+	        curr: 1 //重新从第 1 页开始
+	    }
+	  });
+}
+function openWindow(url,name){
+	 layui.openWindow(url,name);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}接龙|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<form class="layui-form" th:id="|edit${label}|"
+		th:lay-filter="|edit${label}|" th:utext="|${formContent}|"></form>
+<input id="jlId" type="hidden"/>		
+<input id="jlName" type="hidden"/>		
+<input id="jlAction" type="hidden"/>	
+<input id="relALabel" type="hidden"/>
+<input id="relAId" type="hidden"/>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+[(${layUse})]
+
+	  //监听提交
+	  form.on('submit(edit[(${label})])', function(data){
+			formSubmit();
+		 return false;
+		});
+	  
+ function formSubmit(){
+	 var genurl = "[(${MODULE_NAME})]/collect/[(${label})]/save";
+	 var formData={};
+	  [# th:each="ci : ${colCodes}"]
+	  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+	  [/]
+	  formData['jlId']=$('#jlId').val();
+	  formData['jlName']=$('#jlName').val();
+	  formData['jlAction']=$('#jlAction').val();
+ $.ajax({
+    type: "post",
+    url: genurl,
+	dataType : "json",
+	contentType : "application/json;charset=UTF-8",      
+	data: JSON.stringify(formData),
+	success: function (d) {
+		if(!d.status){
+			   layer.alert(d.msg, {icon: 5})
+		   }else{
+			   layer.alert(d.msg, {icon: 6}) 
+		   }
+          var relALabel=$("#relStartLabel").val();
+     	  var relAId=$("#relStartId").val();
+     	  if(relALabel&&relAId&&d.data){
+     		saveParentRel(d.data.value)
+     	  }
+     	  $("#id").val(d.data.value);
+     	},
+	error:function (d) {
+        layer.alert(d.msg, {icon: 5})
+    }
+    });
+  }
+ 
+ function saveParentRel(nodeId){
+	 var relALabel=$("#relStartLabel").val();
+	  var relAId=$("#relStartId").val();
+	 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/saveParentRel";
+	 var formData={}; 
+	 formData['relStartId']=relAId;
+	 formData['relStartLabel']=relALabel;
+	 formData['endId']=nodeId;
+	 
+ $.ajax({
+    type: "post",
+    url: genurl,
+	dataType : "json",
+	contentType : "application/json;charset=UTF-8",      
+	data: JSON.stringify(formData),
+	success: function (d) {
+		if(!d.status){
+			   layer.alert(d.msg, {icon: 5})
+		   }else{
+			   layer.alert(d.msg, {icon: 6}) 
+		   }
+     	},
+		error:function (d) {
+        layer.alert(d.msg, {icon: 5})
+    }
+    });
+  }
+ 
+form.render('select');
+
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+  
+  layui.define(['form'], function(exports){
+	  exports('formVal', function(data){
+		  form.val('edit[(${label})]', data);
+	  });
+	});
+  
+  [(${formFun})]
+ 
+  [(${layField})]
+
+  
+function initForm(data){
+	  [# th:each="ci : ${colCodes}"]
+	  $('#'+'[(${ci})]').val(data['[(${ci})]']);
+	  [/]
+	 [(${codeInit})]
+}
+</script>
+</body>
+</html>

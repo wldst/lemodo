@@ -1,0 +1,111 @@
+<html>
+<head>
+<title>会议室自助预定</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=0.2,maximum-scale=2, user-scalable=yes">
+<link th:href="@{/static/css/bootstrap-theme.min.css}" rel="stylesheet">
+<link th:href="@{/static/css/bootstrap.min.css}" rel="stylesheet">
+<link th:href="@{/static/plugin/jqueryweui/lib/weui.css}" rel="stylesheet">
+<link th:href="@{/static/plugin/jqueryweui/css/jquery-weui.css}" rel="stylesheet">
+<style type="text/css">
+body { margin:15px; padding:0px; font-size:14px;}
+/*title width:10%; title1 width:20%; */
+.title { width:10%;background:#F6F6F6;  height:70px; border-right:dotted 1px #008080;border-top:dotted 1px #008080; text-align:center; line-height:25px;}
+.title span { font-weight:bold;}
+.title1 { width:20%;background:#F6F6F6;  height:70px;border:dotted 1px #008080; text-align:center; line-height:25px;}
+.title1 span { font-weight:bold;}
+.list_div { border-bottom:solid 1px #e7e7e7; border-top:solid 1px #e7e7e7; margin-bottom:20px;}
+.rc {  width:10%;height:70px; over-flow:hidden; padding:5px; border-right:dotted 1px #008080; cursor:pointer; font-size:12px; line-height:20px; border-bottom:solid 1px #e7e7e7; overflow:auto;}
+.ld { width:10%;vertical-align:middle; font-weight:bold; line-height:25px; text-align:center;border-left:dotted 1px #008080;}
+.ld_td { width:10%;text-align:center;  height:70px; border-right:dotted 1px #008080; border-bottom:solid 1px #e7e7e7;border-left:dotted 1px #008080;}
+.color0 { background:#b6e8d8;}
+.color1 { background:#b6e8d6;}
+.color2 { background:#e9c9b3;}
+.color3 { background:#dab3e9;}
+.color4 { background:#d7e9b3;}
+.color5 { background:#b3cee9;}
+.color6 { background:#e1c3ab;}
+
+.color7 { background:#b6e8d8;}
+.color8 { background:#b6e8d6;}
+.color9 { background:#e9c9b3;}
+.color10 { background:#dab3e9;}
+.color11 { background:#d7e9b3;}
+.color12 { background:#b3cee9;}
+.color13 { background:#e1c3ab;}
+
+.color14 { background:#b6e8d8;}
+.color15 { background:#b6e8d6;}
+.color16 { background:#e9c9b3;}
+.color17 { background:#dab3e9;}
+.color18 { background:#d7e9b3;}
+.color19 { background:#b3cee9;}
+.color20 { background:#e1c3ab;}
+
+.color21 { background:#b6e8d8;}
+.color22 { background:#b6e8d6;}
+.color23 { background:#e9c9b3;}
+.color24 { background:#dab3e9;}
+.color25 { background:#d7e9b3;}
+.color26 { background:#b3cee9;}
+.color27 { background:#e1c3ab;}
+
+.color28 { background:#b6e8d8;}
+.color29 { background:#b6e8d6;}
+.color30 { background:#e9c9b3;}
+.rc_red { background:#fbc7c7; height:70px; overflow:auto; cursor:pointer; padding:10px; line-height:20px; font-weight:bold; border:solid 2px #a75454; font-size:12px;}
+.rc_blue { background:#dddbff; height:70px; overflow:auto; cursor:pointer; padding:10px; line-height:20px; font-weight:bold; border:solid 2px #8a86da; font-size:12px;}
+</style>
+
+<script th:src="@{/static/plugin/jqueryweui/lib/jquery-2.1.4.js}"></script>
+
+</head>
+
+<body id="hbody">
+	<div id="addmanager">
+	
+	</div>
+	<table  border="0" cellspacing="0" cellpadding="0" class="tablecss" style="table-layout: fixed">
+	  	<tr>
+	   	   <td class="title1" rowspan="2" style="width: 30%"><span>会议室</span></td>
+	   	   <td class="title" colspan="7" style="width: 70%"><span>会议室使用情况(预定请填写部门及会议简称)</span></td>
+	  	</tr>
+	  	<tr th:utext="${tableHeader}">
+	   	</tr>
+	</table>
+	
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="myModalLabel">视频会议室预定</h4>
+	      </div>
+	      <div class="modal-body" >
+			 <form>
+				<input type="hidden" id="APPID" name="APPID">
+			    <div class="form-group">
+				    <textarea rows="3" class="form-control" id="RCCOMMENT"></textarea>
+			    </div>
+			 </form>
+	      </div>
+	      <div class="modal-footer" style="text-align: center;">
+	       <button type="button" class="btn btn-primary"  id="agree" onclick="save()">保存</button>
+	       <button type="button" class="btn btn-primary"  id="disagree" onclick="closeModal()">关闭</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+</body>
+<script th:src="@{/static/plugin/jqueryweui/js/jquery-weui.js}"></script>
+<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+<script >
+	var dates = '[[${dates}]]';
+	var curUserId = '[[${userId}]]';
+	var permission = "";
+	var days = '[[${days}]]';
+	var basePath = '[[${MODULE_NAME}]]';
+
+</script>
+<script th:src="@{/web/meetingRoom/meetingroom.js}"></script>
+</html>

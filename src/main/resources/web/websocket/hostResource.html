@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>tail log</title>
+	<link rel="stylesheet" th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}"/>
+	<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+	<style type="text/css">
+	.gauge-title{
+  font-size: 10px;
+  fill: #A1A6AD;
+}
+	</style>
+</head>
+<body>
+ <h1>微服务日志监控和下载</h1>
+	 <div class="row m-sm no-padding">
+	    <table id="logMonitor"
+	     class="table table-striped table-bordered table-hover dataTables-example">
+	     <thead>
+		     <tr>
+		       <th style="width: 10%">服务host</th>
+		       <th style="width: 10%">微服务安装路径</th>
+		       <th style="width: 10%">微服务</th>
+		       <th style="width: 10%">日志相对路径</th>
+		       <th style="width: 10%">操作</th>
+		       <th style="width: 10%">日志文件</th>
+		       <th>日志文件</th>
+		     </tr>
+	     </thead>
+	        <tbody id="tbody1">
+	        	<tr>
+		        	<td>
+						<select id="hosts" onchange="changeServer(this);">
+							<option th:each="l:${hosts}"  th:value="${l}" th:text="${l}"></option>
+						</select>
+					</td>
+	        	<td>
+	        		<label>请输入微服务安装路径:</label>
+	        		<input type="text" id="installHome" name="installHome" value="" />
+				   <label>更新微服务安装路径:</label> 
+				   <input type="button" class="u-btn save-btn" onclick="updateHome();" value="更新APPHome"/>
+	        	</td>
+	        	<td>
+				   <select id="appList" onClick="selectApp();">
+					  <option th:each="l:${appList}"  th:value="${l}" th:text="${l}"></option>
+				   </select>
+	        	</td>
+	        	<td>
+		        	<label>如需修改日志相对路径，请输入正确的日志相对路径:</label>
+		        	<input type="text" id="logPath" onchange="selectApp();" value="/" />
+	        	</td>
+	        	<td><input type="button" class="u-btn save-btn" onclick="tailFile();" value="监控选定日志文件" />
+	        	<input type="button" class="u-btn save-btn" onclick="runtimeLog();" value="监控运行时日志" />
+	        	</td>
+	        	<td><input type="button" class="u-btn save-btn" onclick="downloadLog();" value="下载选定日志文件" /></td>
+	        	<td>
+				   <select id="logList">
+						<option th:each="l:${logList}" th:value="${l}" th:text="${l}"></option>
+				   </select>
+				</td>
+	        	</tr>
+	       </tbody>
+        </table>
+   </div>
+   <h1>服务器资源情况</h1>
+   <div class="row m-sm no-padding">
+	    <table id="hostMonitor"
+	     class="table table-striped table-bordered table-hover dataTables-example">
+	     <thead>
+		     <tr>
+		       <th style="width: 5%">host</th>
+		       <th style="width: 5%">cpu</th>
+		       <th style="width: 10%">内存</th>
+		       <th style="width: 15%">存储</th>
+		       <th style="width: 10%">网络</th>
+		       <th style="width: 10%">系统进程详情</th>
+		     </tr>
+	     </thead>
+         <tbody id="tbody0">
+        	
+        </tbody>
+       </table>
+   </div>
+   
+</body>
+<script src="https://d3js.org/d3-ease.v1.min.js"></script>
+<!-- <script  th:src="@{/static/plugin/d3-ease.v1.min.js}"></script> -->
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+
+ <script th:src="@{/static/layui/layui.js}"></script>
+  <script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+<script>
+String.prototype.replaceAll = function(s1, s2) {
+    return this.replace(new RegExp(s1, "gm"), s2);
+}
+
+String.prototype.replaceId = function() {
+	 return  this.replace(new RegExp("\\.", "g"), "_");
+}
+var layer;
+layui.use('layer', function(){
+  layer = layui.layer;
+});  
+var hostsParam='[[${hosts}]]';
+var html="";
+var hostsParam = hostsParam.replace("[","");
+var hostsParam = hostsParam.replace("]","");
+var hosts = hostsParam.split(",");
+for(var index in hosts){
+	var hi=hosts[index].replaceId();
+	html ='<tr>';
+	html+='<td>'
+	html+='	<select id="hosts" onchange="changeServer();">'
+	html+='	<label th:value="${l}">'+hi+'</label>'
+	html+='</select>'
+	html+='</td>'
+	html+='	<td>'
+	html+='<input type="button" class="u-btn save-btn" onclick="optMonitor(\"cpu\");" value="cpu监控" /><br/>'
+	html+='<label>cpu已经使用%：</label><span id="cpuUsed'+hi+'">2.1</span><br/>'
+	html+='<label>cpu空余%：</label><span id="cpuIdle'+hi+'">97.9</span>'
+	html+='<svg id="myGauge" width="120" height="118" ></svg>'
+	html+='</td>'
+	html+='<td>'
+	html+='<input type="button" class="u-btn save-btn" onclick="optMonitor(\"memory\");" value="内存监控" /><br/>'
+	html+='<label>内存总共：</label><span id="memTotal'+hi+'"></span>'
+	html+='<label>已经使用：</label><span id="memUsed'+hi+'"></span>'
+	html+='<label>空余：</label><span id="memFree'+hi+'"></span><br/>'
+	html+='<label>交换分区总共：</label><span id="swapTotal'+hi+'"></span>'
+	html+='<label>已经使用：</label><span id="swapUsed'+hi+'"></span>'
+	html+='<label>空闲：</label><span id="swapFree'+hi+'" ></span>'
+	html+='<label>可用内存：</label><span id="availMem'+hi+'" ></span>'
+	html+='<label>缓存：</label><span id="buffer'+hi+'" ></span>'
+	html+='</td>'
+	html+='<td>'
+	html+='  <input type="button" class="u-btn save-btn" onclick="optMonitor(\"df\");" value="磁盘容量监控" />'
+	html+='  <div id="diskInfo'+hi+'">'
+	html+='  </div>'
+	html+='</td>'
+	html+='<td>'
+	html+='  <input type="button" class="u-btn save-btn" onclick="optMonitor(\"network\");" value="网络监控" /> '
+	html+='  <div id="networkList'+hi+'">'
+	html+='  </div> '
+	html+='</td>'
+	html+='<td>'
+	html+='  <input type="button" class="u-btn save-btn" onclick="optMonitor(\"process\");" value="进程信息" /> '
+	html+='  <div id="javaProcess'+hi+'">'
+	html+='  </div> '
+	html+='</td>'
+	html+='</tr>'
+}
+$("#tbody0").html(html);
+//文件下载
+function downlog(url,appName,fileName){
+    jQuery('<form action="'+url+'" method="'+('get')+'">' +  // action请求路径及推送方法
+             '<input name="appName" value="'+appName.trim()+'"/>'+
+             '<input name="fileName" value="'+fileName.trim()+'"/>'+
+            '</form>')
+    .appendTo('body').submit().remove();
+};
+function downloadLog(){
+	 var genurl = "/monitor/download";
+	 downlog(genurl,$("#appList").val(),$("#logList").val());
+}
+
+function showDivList(divId,dataArray){
+	var tables =  dataArray.split(',');
+    var html = ''; 
+    for(var index in tables){
+    	var tablei = tables[index];
+   		html+="<option value='"+tablei+"' >"+tablei+"</option>";
+    }
+    $("#"+divId).html(html);
+    return html;
+}
+
+$(document).ready(function() {	
+	createMonitor()
+});
+
+function closeCMD(){
+	cmdFun.close();
+}
+
+var sockets={}
+var server={}
+function createMonitor(){
+	var genurl = "/resource/server";
+	var formData={};
+	$.post(genurl,formData,function(res){
+	  var hostList = res.split(",");
+	  for(var index in hostList){
+			var hi=hostList[index];
+			server[index]=hi;
+			var logWS=initWS(index,hi)
+			sockets[index]=logWS;
+		}
+	});
+}
+function showDiskInfoList(divId,dataArray){
+	var html = ''; 
+    for(var index in dataArray){
+    	var diski = dataArray[index];
+   		html+=diski.Mounted +" : "+ diski.Filesystem+" : "+divK(diski.Used)+" : "+divK(diski.Available)+" : "+diski.Use+"<br/>";
+    }
+	/*  html+="</table>" */
+    $("#"+divId).html(html);
+    return html;
+}
+
+function showJPSList(divId,dataArray){
+	var html = ''; 
+    for(var index in dataArray){
+    	var networki = dataArray[index];
+   		html+=networki.pid+"  :  "+networki.process+"<br/>";
+    }
+	/*  html+="</table>" */
+    $("#"+divId).html(html);
+    return html;
+}
+function showNetworkList(divId,dataArray){
+	var html = ''; 
+    for(var index in dataArray){
+    	var networki = dataArray[index];
+
+   		html+=networki.name+"  :  ";
+   		var rb = parseInt(networki.recv_bytes);
+    	html+="  <--<span>"+byteConvert(rb)+"</span>，";
+    	var tb = parseInt(networki.transmit_bytes);
+    	html+="--><span>"+byteConvert(tb)+"</span><br>";
+    }
+	/*  html+="</table>" */
+    $("#"+divId).html(html);
+    return html;
+}
+function initWS(index,hosti){
+	var cmdFun = new WebSocket('ws://'+hosti+'/ws/cmd');
+	cmdFun.onmessage = function(event) {
+		// 接收服务端的实时日志并添加到HTML页面中
+		var data=event.data;
+		if(String(data).startWith("initok")){
+			cmdFun.send('host:'+server[index]);
+			cmdFun.send('monitor');
+			return;
+		}
+		if(data.indexOf("Idle")<1){
+			return;
+		}
+		var monitorData =   JSON.parse(data);
+		
+		var hi=hosti.split(":")[0].replaceId();
+		//$("#Buffers").text(monitorData["Buffers"]);
+		$("#memFree"+hi).text(divK(monitorData["memFree"]));
+		$("#memTotal"+hi).text(divK(monitorData["memTotal"]));
+		$("#memUsed"+hi).text(divK(monitorData["memUsed"]));
+		$("#swapFree"+hi).text(divK(monitorData["swapFree"]));
+		$("#swapTotal"+hi).text(divK(monitorData["swapTotal"]));
+		$("#swapUsed"+hi).text(divK(monitorData["swapUsed"]));
+		$("#cpuIdle"+hi).text(monitorData["cpuIdle"]);
+		//$("#cpuUUse").text(monitorData["Buffers"]);
+		$("#cpuUsed"+hi).text(monitorData["cpuUsed"]);
+		$("#buffer"+hi).text(divK(monitorData["buffers"]));
+		$("#availMem"+hi).text(divK(monitorData["availMem"]));
+		var networks=monitorData["networks"];
+		var javaProcess=monitorData["javaProcess"];
+		var diskInfo=monitorData["diskInfo"];
+		showNetworkList("networkList"+hi,networks);
+		showJPSList("javaProcess"+hi,javaProcess);
+		showDiskInfoList("diskInfo"+hi,diskInfo);
+		refreshCpuUsed(monitorData["cpuUsed"]);
+	}
+	return cmdFun;
+}
+function closex(){
+	for(var index in sockets){
+		sockets[index].close();
+	}
+}
+</script>
+<script>
+	var width=120, 
+	height=118,  //svg的高度和宽度，也可以通过svg的width、height属性获取
+	innerRadius = 30,
+	outerRadius = 48, //圆弧的内外半径
+	arcMin = -Math.PI*2/3,
+	arcMax = Math.PI*2/3; //圆弧的起始角度和终止角度
+
+	var arc = d3.svg.arc()
+	.innerRadius(30)
+	.outerRadius(48)
+	.startAngle(arcMin);
+
+	var svg = d3.select("#myGauge")
+	var g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+	//添加仪表盘的标题
+	g.append("text").attr("class", "gauge-title")
+	  .style("alignment-baseline", "central") //相对父元素对齐方式
+	  .style("text-anchor", "middle") //文本锚点，居中
+	  .attr("y", -55)  //到中心的距离
+	  .text("CPU占用率");
+	//添加仪表盘显示的数值，因为之后还要更新，所以声明一个变量
+	var valueLabel = g.append("text").attr("class", "gauge-value")
+	  .style("alignment-baseline", "central") //相对父元素对齐方式
+	  .style("text-anchor", "middle") //文本锚点，居中
+	  .attr("y", 25)  //到中心的距离
+	  .text(12.65); 
+	//添加仪表盘显示数值的单位      
+	g.append("text").attr("class", "gauge-unity")
+	  .style("alignment-baseline", "central") //相对父元素对齐方式
+	  .style("text-anchor", "middle") //文本锚点，居中
+	  .attr("y", 40)  //到中心的距离
+	  .text("%");
+	  
+	//添加背景圆弧
+	var background = g.append("path")
+	  .datum({endAngle:arcMax}) //传递endAngle参数到arc方法
+	  .style("fill", "#ddd")
+	  .attr("d", arc);
+	  
+	//计算圆弧的结束角度
+	var currentAngle = angle(12.65)
+	
+	//添加另一层圆弧，用于表示百分比
+	var foreground = g.append("path")
+	  .datum({endAngle:currentAngle})
+	  .style("fill", "orange")
+	  .attr("d", arc);
+/* 	var tick = g.append("line")
+	.attr('class', 'gauge-tick')
+	.attr("x1", 0)
+	.attr("y1", -innerRadius)
+	.attr("x2", 0)
+	.attr("y2", -(innerRadius + 12)) //定义line位置，默认是在圆弧正中间，12是指针的长度
+	.style("stroke", "orange")
+	.attr('transform', 'rotate('+ angleToDegree(currentAngle) +')') */
+	
+function refreshCpuUsed(data){
+		var oldNum = valueLabel.text();
+		valueLabel.text(data)
+		var currentAngle = angle(data)
+		var oldAngle = angle(oldNum)
+		
+		//更新圆弧，并且设置渐变动效
+		foreground.transition()
+		  .duration(750)
+		//  .ease(linear)
+		 //.ease(d3.easeElastic)  //设置来回弹动的效果
+		//  .attr("d", arc);
+		.attrTween("d", arcTween(currentAngle));
+		//更新圆弧末端的指针标记，并且设置渐变动效      
+		/* tick.transition()
+		  .duration(750)
+		 //.ease(linear)
+		//.ease(d3.easeElastic)  //设置来回弹动的效果
+		  .attr('transform','rotate('+ angleToDegree(currentAngle) +')') */
+	}
+function arcTween(newAngle) {
+	  let self=this
+	  return function(d) {
+	    var interpolate = d3.interpolate(d.endAngle, newAngle); //在两个值间找一个插值
+	    return function(t) {
+	      d.endAngle = interpolate(t);  //根据 transition 的时间 t 计算插值并赋值给endAngle
+	      return arc(d); //返回新的“d”属性值
+	    }; 
+	  };
+	}
+function angle(data){
+	return data*(arcMax-arcMin)/100 + arcMin
+}
+function angleToDegree(data){
+	return data*180/(arcMax-arcMin)
+}		
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}选择|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<div class="demoTable">
+		<form class="layui-form" action="">
+			<div class="layui-form-item">
+				<label class="layui-form-label">关键字：</label>
+				<div class="layui-input-inline">
+					<input name="KeyWord" class="layui-input" id="KeyWord"
+						placeholder="请输入关键字查询" autocomplete="off">
+				</div>
+			</div>
+			<input id="selectObj" hidden=true>
+			<input id="selectObjName" hidden=true>
+			<input id="selectValue" hidden=true>
+		</form>
+		<button class="layui-btn" lay-submit lay-filter="searchDO"
+					data-type="reload">
+					搜索<i class="layui-icon">&#xe615;</i>
+		</button>
+	</div>
+	<table th:id="|table${label}|"  th:lay-filter="|table${label}|"></table>
+	[(${tempalteContent})]
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+
+	<script th:inline="javascript" type="text/javascript">
+var layr,form,table,crudTable;
+layui.use(['form', 'table'], function(){
+	  form = layui.form
+	  ,table = layui.table
+	  ,layer = layui.layer;
+	  
+	  crudTable = table.render({
+		    elem: '#table[(${label})]'
+		    ,method: 'POST' //方式
+		    ,url:'[(${MODULE_NAME})]/cruder/[(${label})]/search'
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,title: '数据表'
+		    //,totalRow: true
+		    ,id: 'table[(${label})]'
+		    ,cols: [ [
+		    	{type:'checkbox', fixed: 'left'}
+		    	[# th:each="ci : ${cols}"]
+		     		,{field:'[(${ci.field})]', title:'[(${ci.name})]'[(${ci.templat})],sort: true}
+		    	[/]
+		    ] ]
+		    ,page: true
+		    ,parseData: parseTableData
+		  });
+	  
+	//表单取值
+	  layui.$('#save'+[[${label}]]).on('click', function(){
+		  var formData={};
+		  [# th:each="ci : ${colCodes}"]
+		  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+		  [/]
+		 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/save";
+		 
+		 $.ajax({
+		    type: "post",
+		    url: genurl,
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",      
+			data: JSON.stringify(formData),
+			success: function (d) {
+				if(!d.status){
+					   layer.alert(d.msg, {icon: 5})
+				   }else{
+		           layer.alert(d.msg, {icon: 6})
+		           refresh()}
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+		    });
+		});
+	  //监听提交
+	  form.on('submit(searchDO)', function(data){
+		  var KeyWord = $('#KeyWord').val();
+	        //执行重载
+	        crudTable.reload({
+	          page: {
+	            curr: 1 //重新从第 1 页开始
+	          }
+	          ,where: {
+				  KeyWord: KeyWord
+	          }
+	        });
+	    return true;
+	  });
+	  function queryByObjectId(){
+		  var idReload = $('#idReload').val();
+	        //执行重载
+	        crudTable.reload({
+	          page: {
+	            curr: 1 //重新从第 1 页开始
+	          }
+	          ,where: {
+	              objectId: idReload
+	          }
+	        });
+	  }
+	  queryByObjectId();
+  //监听表格复选框选择
+  table.on('checkbox(table[(${label})])', function(obj){
+    //console.log(obj)
+    var checkStatus = table.checkStatus('table[(${label})]'); 
+    
+    var checks = checkStatus.data;
+    var selectV = new String("[(${selectValue})]").trim();
+    console.log("selectV:"+selectV.length+":"+selectV);
+    if(checks.length>1){
+    	var ids="";
+        var names="";
+        var selectValues = "";
+       
+    	for(var i in checks){
+        	if(parseInt(i)>0){
+        		names=names+","+checks[i].name;
+        		ids=ids+","+checks[i].id;
+        		if(selectV.length>0){
+        			selectValues=selectValues+","+checks[i]['[(${selectValue})]'];
+        		}
+        		
+        	}else{
+        		names=checks[i].name;
+        		ids=checks[i].id;
+        		if(selectV.length>0){
+        			selectValues=checks[i]['[(${selectValue})]'];
+        		}
+        		
+        	}
+        }
+    	$("#selectObjName").val(names);
+        $("#selectObj").val(ids);
+        if(selectV.length>0){
+        	$("#selectValue").val(selectValues);
+        }
+    }else{
+    	$("#selectObjName").val(obj.data.name);
+        $("#selectObj").val(obj.data.id);
+        if(selectV.length>0){
+        	$("#selectValue").val(obj.data['[(${selectValue})]']);
+        }
+    }
+    
+    form.val('edit[(${label})]', obj.data);
+  });
+});
+
+function refresh(){
+	crudTable.reload( { //表格的id
+	    page: {
+	        curr: 1 //重新从第 1 页开始
+	    }
+	  });
+}
+</script>
+</body>
+</html>

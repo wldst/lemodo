@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}选择|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<form class="layui-form" th:id="|edit${label}|"
+		th:lay-filter="|edit${label}|" th:utext="|${formContent}|">
+	</form>
+	<!-- <input type="button" class="layui-btn" th:id="|save${label}|"
+		value="保存" /> -->
+	<h3>
+		<label th:text="'查询'+${name}"></label>
+	</h3>
+	<div class="demoTable">
+		<form class="layui-form" action="">
+			<div class="layui-form-item">
+				<label class="layui-form-label">名称：</label>
+				<div class="layui-input-inline">
+					<input name="name" class="layui-input" id="nameReload"
+						placeholder="请输入领域对象名称" autocomplete="off">
+						
+				</div>
+				<!-- <label class="layui-form-label">编码：</label> -->
+				<div class="layui-input-inline" hidden=true>
+					<input id="idReload">
+					<input name="poIdReload" id="poIdReload" >
+				</div>
+			</div>
+		</form>
+		<button class="layui-btn" lay-submit lay-filter="searchDO"
+					data-type="reload">
+					搜索<i class="layui-icon">&#xe615;</i>
+		</button>
+	</div>
+	<table th:id="|table${label}|"  th:lay-filter="|table${label}|"></table>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script id="barDemo" type="text/html">
+[(${opt})]
+<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		
+</script>
+	<script th:inline="javascript" type="text/javascript">
+[(${layUse})]
+	  
+	  crudTable = table.render({
+		    elem: '#table[(${label})]'
+		    ,method: 'POST' //方式
+		    ,url:'[(${MODULE_NAME})]/cruder/[(${label})]/search'
+			,where: {
+				name: $('#nameReload').val(),
+	            objectId: $('#idReload').val(),
+	            poId: $('#poIdReload').val()
+			 }
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,title: '数据表'
+		    ,id: 'table[(${label})]'
+		    ,cols: [ [
+		    	{type:'checkbox', fixed: 'left'}
+		    	[# th:each="ci : ${cols}"]
+		     		,{field:'[(${ci.field})]', title:'[(${ci.name})]',sort: true}
+		    	
+		    	[/]
+		    		,{fixed: 'right', title:'操作', align:'center', toolbar: '#barDemo',unresize: false, width: 260}
+		    ] ]
+		    ,page: true
+		    ,done: fixRightTool
+		    ,parseData: parseTableData
+		  });
+	  
+form.on('submit(edit[(${label})])', function(data){
+	formSubmit();
+ return false;
+});
+	//表单取值
+	layui.$('#save'+[[${label}]]).on('click', formSubmit);
+	
+	function formSubmit(){
+		 var formData={};
+		 [# th:each="ci : ${colCodes}"]
+		  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+		  [/]
+		 formData['objectId']=$('#idReload').val();
+		 formData['poId']=$('#poIdReload').val();
+		 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/save";
+		 
+		 $.ajax({
+		    type: "post",
+		    url: genurl,
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",      
+			data: JSON.stringify(formData),
+			success: function (d) {
+		           layer.alert(d.msg, {icon: 6})
+		           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+		    });
+		}
+	
+	  layui.$('#relationPo').on('click', function(data){
+		  layer.open({
+	        type: 2,
+	        anim: 0,
+	        shade: 0,
+	        title: "选择",
+	        area: ['70%', '80%'],
+	        btn:['关闭'],
+	        yes:function(index,layero)
+	        {
+	        	var body = layer.getChildFrame('body', index);
+	        	var selected = body.find('#selectPo').val();
+	        	var selectedName = body.find('#selectPoName').val();
+	        	
+	        	$("#type").val(selected);
+	        	$("#isPo").val("true");
+				$("#relationPo").val(selectedName);
+				poFieldSelect(selected);
+					 close()
+	            //index为当前层索引
+	            layer.close(index)
+	        },
+	        cancel:function(){//右上角关闭毁回调
+	       	 close()
+	       	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+	    		parent.layer.close(index); //再执行关闭
+	        },
+	        zIndex: layer.zIndex //重点1
+	        ,success: function(layero, index){
+	          layer.setTop(layero); //重点2
+	     	  var body = layer.getChildFrame('body', index);
+	     	 // var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+	     	 // console.log(body.html()) //得到iframe页的body内容
+	     	// console.log(data)
+	     	  //body.find('input').val('Hi，我是从父页来的')
+	        },
+	        content: "[(${MODULE_NAME})]/vue/poSelect"
+	    });
+	});
+	  
+	  function poFieldSelect(data){
+		  var genurl = "[(${MODULE_NAME})]/cruder/"+data+"/fieldList";
+			 var formData={}
+			 $.ajax({
+			    type: "post",
+			    url: genurl,
+				dataType : "json",
+				contentType : "application/json;charset=UTF-8",      
+				data: JSON.stringify(formData),
+				success: function (d) {
+					var fileds=d.data;
+					var vo= $("#valueField");
+					vo.empty();
+					for(var i in fileds){
+						vo.append("<option value='"+fileds[i].code+"'>"+fileds[i].name+"</option>");
+					}
+					layui.form.render('select');
+			          
+		      	},
+		 		error:function (d) {
+			        layer.alert(d.msg, {icon: 5})
+			    }
+			  });
+	  }
+	  //监听提交
+	  form.on('submit(searchDO)', function(data){
+		  var nameReload = $('#nameReload').val();
+		  var idReload = $('#idReload').val();
+		  var poIdReload = $('#poIdReload').val();
+	        //执行重载
+	        crudTable.reload({
+	          page: {
+	            curr: 1 //重新从第 1 页开始
+	          }
+	          ,where: {
+	        	  name: $('#nameReload').val(),
+		          objectId: $('#idReload').val(),
+		          poId: $('#poIdReload').val()
+	          }
+	        });
+	    return true;
+	  });
+	  
+	  //监听工具条
+	  table.on('tool(table[(${label})])', function(obj){
+	    var data = obj.data;
+	    if(obj.event === 'del'){
+	      layer.confirm('真的删除行么', function(index){
+	        obj.del();
+	        delDomain(obj)
+	        layer.close(index);
+	      });
+	    }
+	  });
+	  
+	  
+	  queryByObjectId();
+  //监听表格复选框选择
+  table.on('row(table[(${label})])', function(obj){
+    //console.log(obj)
+    form.val('edit[(${label})]', obj.data);
+  });
+[(${layField})]
+
+function queryByObjectId(){
+      //执行重载
+      crudTable.reload({
+        page: {
+          curr: 1 //重新从第 1 页开始
+        }
+        ,where: {
+            objectId: $('#idReload').val(),
+            poId: $('#poIdReload').val()
+        }
+      });
+}
+
+function delDomain(po){
+	 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/del";
+	 var vm=$("#table[(${label})]");
+	 var formData=po.data;
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(formData),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+	    });
+}
+function refresh(){
+	queryByObjectId();
+	//form.render('select');
+	/* crudTable.reload( { //表格的id
+	    page: {
+	        curr: 1 //重新从第 1 页开始
+	    }
+	  }); */
+}
+</script>
+</body>
+</html>

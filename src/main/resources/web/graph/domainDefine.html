@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title th:utext="|#{po.name}管理|">Domain管理</title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<h3 th:utext="|#{po.name}信息|">领域对象信息</h3>
+	<form class="layui-form" lay-filter="example">
+		<div class="layui-form-item">
+			<label class="layui-form-label">Label：</label>
+			<div class="layui-input-inline">
+				<input name="label" th:value="|${label}|" class="layui-input" id="label"
+				placeholder="请输入 业务对象的英文名,此字段是业务对象的唯一标识符"	autocomplete="off" required>
+			</div>
+			<label class="layui-form-label">名称：</label>
+			<div class="layui-input-inline">
+				<input name="name" th:value="|${name}|"class="layui-input" id="name"
+					placeholder="请输入 业务对象的名称" autocomplete="off" lay-verify="name" required>
+			</div>
+			<label class="layui-form-label">主键：</label>
+			<div class="layui-input-inline">
+				<input name="primaryKey" th:value="|${primaryKey}|"class="layui-input" id="primaryKey"
+					autocomplete="off" required>
+			</div>
+			<label class="layui-form-label">数据库表：</label>
+			<div class="layui-input-inline">
+				<input name="tableName" th:value="|${tableName}|" class="layui-input" id="tableName"
+					autocomplete="off">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">属性列：</label>
+			<div class="layui-input-block">
+				<input name="columns" th:value="|${columns}|" class="layui-input" id="columns"
+					placeholder="请输入 columns,多列用英文逗号隔开,主键列必须有。" autocomplete="off">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">表头列：</label>
+			<div class="layui-input-block">
+				<input name="header" th:value="|${header}|" class="layui-input" id="header"
+					placeholder="请输入表头列,多列用英文逗号隔开,与属性列个数和顺序保持一致。" autocomplete="off">
+			</div>
+
+		</div>
+	</form>
+	<input type="button" class="layui-btn" onclick="saveDomain();"
+		value="保存" />
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:src="@{/static/layui/lay/modules/form.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+<script type="text/javascript">
+var form,layer;
+layui.config({
+	dir: '/static/layui/',
+	base: '/static/layui/lay/modules/'
+}).use(['form','layer', 'layedit', 'laydate'], function(){
+		  form = layui.form
+		  ,layer = layui.layer;
+		  
+		  //监听提交		  
+		  form.on('submit(example)', function(data){
+			  saveDomain(data.field);
+			    return true;
+		  });
+});
+function saveDomain(){
+	 var genurl = "[(${MODULE_NAME})]/metadata/save";
+	 var formData={};
+	 formData["tableName"]=$("#tableName").val();
+	 formData["name"]=$("#name").val();
+	 formData["label"]=$("#label").val();
+	 formData["primaryKey"]=$("#primaryKey").val();
+	 formData["columns"]=$("#columns").val();
+	 formData["primaryKey"]=$("#primaryKey").val();
+	 formData["header"]=$("#header").val();
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	      dataType : "json",
+	      contentType : "application/json;charset=UTF-8",
+	      data: JSON.stringify(formData),
+	      success: function (d) {
+	    	  if(!d.status){
+	  			   layer.alert(d.msg, {icon: 5})
+	  		   }else{
+	  			   layer.alert(d.msg, {icon: 6})
+	  		   }
+	      },
+	 	  error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		  }
+	 });
+	}
+</script>
+
+</body>
+</html>

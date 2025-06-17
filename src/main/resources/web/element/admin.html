@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title th:text="${adminTitle}">管理中心</title>
+  <link rel="stylesheet" th:href="@{/static/plugin/elementui/index.css}" >
+</head>
+<body>
+<div id="app">
+    <div class="t_container">
+        <el-button type="text" @click="dialogTableVisible = true" style="color:#487bff">用户中心</el-button>
+        <el-dialog title="用户中心" :visible.sync="dialogTableVisible" style="position: absolute">
+            <el-tabs v-model="activeName" @tab-click="handleClick">
+                <el-tab-pane label="个人信息管理" name="first">
+                    <el-form label-position="right"
+                             label-width="120px"
+                             :model="UserMessage"
+                             style="font-size:16px">
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="用户名：">
+                                    <span class="lh29">{{UserMessage.username}}</span>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="性别：">
+                                    <span class="lh29">{{UserMessage.gender=='1'?'男':'女'}}</span>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="部门：">
+                                    <span class="lh29">{{UserMessage.departmentName}}</span>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="岗位(角色)：">
+                                    <span class="lh29">{{UserMessage.role}}</span>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="职称：">
+                                    <span class="lh29">{{UserMessage.title}}</span>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <span v-else class="lh29">{{UserMessage.address}}</span>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    </el-form>
+                </el-tab-pane>
+                <el-tab-pane label="密码管理" name="second">
+                    <div class="password-update">
+                        <el-form label-position="right"
+                                 label-width="120px"
+                                 :model="Password"
+                                 style="font-size:16px">
+                            <el-form-item label="旧密码：">
+                                <el-input v-model="Password.oldPassword"
+                                          show-password></el-input>
+                            </el-form-item>
+                            <el-form-item label="新密码：">
+                                <el-input v-model="Password.newPassword"
+                                          show-password></el-input>
+                            </el-form-item>
+                            <el-form-item label="确认密码：">
+                                <el-input v-model="Password.newPasswordAgain"
+                                          show-password></el-input>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary">确定</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
+        </el-dialog>
+    </div>
+</div>
+
+</body>
+  <!-- import Vue before Element -->
+  <script th:src="@{/static/plugin/vue/vue.min.js}"></script>
+  
+  <!-- import JavaScript -->
+  <script th:src="@{/static/plugin/elementui/index.js}"></script>
+  <script th:src="@{/static/plugin/axios/axios.min.js}"></script>
+  <script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                activeName: 'second',
+                dialogTableVisible: false,
+                isEdit: false,
+                UserMessage: {
+                    username: 'XXX',
+                    gender: 1,
+                    departmentName: 'XXX',
+                    role: 'XXX',
+                    title: 'XXX',
+                    address: 'XXX'
+                },
+                Password: {
+                    oldPassword: '',
+                    newPassword: '',
+                    newPasswordAgain: ''
+                },
+            }
+        },
+        methods: {
+            handleClick(tab, event) {
+                console.log(tab, event);
+            },
+            editUserInfo () {
+                this.isEdit = true
+            }
+        }
+    })
+</script>
+</html>

@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}转换关系字段为关系|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<form class="layui-form" lay-filter="example">
+		<div class="layui-form-item">
+			<label class="layui-form-label">关系代码：</label>
+			<div class="layui-input-inline">
+				<input name="rel" class="layui-input" id="rel"
+				placeholder="请输入关系代码"	autocomplete="off" required>
+			</div>
+			</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">关系名称：</label>
+			<div class="layui-input-inline">
+				<input name="relName" class="layui-input" id="relName"
+				placeholder="请输入关系名称"	autocomplete="off" required>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">关系字段：</label>
+			<div class="layui-input-block">
+				<select name="relField"  id="relField"
+					 lay-search="搜索字段"></select>
+			</div>
+		</div>
+	</form>
+	<input type="button" class="layui-btn" onclick="formSubmit();"
+		value="转换关系" />
+	<br />
+	
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var fieldTable;
+
+
+
+[(${layUse})]
+	
+
+	  
+	  function relFieldSelect(){
+		  var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/fieldList";
+			 var formData={}
+			 $.ajax({
+			    type: "post",
+			    url: genurl,
+				dataType : "json",
+				contentType : "application/json;charset=UTF-8",      
+				data: JSON.stringify(formData),
+				success: function (d) {
+					var fileds=d.data;
+					var vo= $("#relField");
+					vo.empty();
+					for(var i in fileds){
+						vo.append("<option value='"+fileds[i].code+"'>"+fileds[i].name+"</option>");
+					}
+					layui.form.render('select');
+			          
+		      	},
+		 		error:function (d) {
+			        layer.alert(d.msg, {icon: 5})
+			    }
+			  });
+	  }
+	  relFieldSelect()
+[(${layField})]
+	  function formSubmit(){
+			 var formData={};
+			  if($('#relField').val()){
+				  formData['relField']= $('#relField').val();
+			  }else{
+				  $('#relField').focus();
+				  layer.alert("关系字段必填", {icon: 6})
+				  return ;
+			  }
+			  
+			  if($('#rel').val()){
+				  formData['rel']= $('#rel').val();
+			  }else{
+				  $('#rel').focus();
+				  layer.alert("关系代码必填", {icon: 6})
+				  return ;
+			  }
+			  
+			  if($('#relName').val()){
+				  formData['relName']= $('#relName').val();
+			  }else{
+				  layer.alert("关系名称必填", {icon: 6})
+				  $('#relName').focus();
+				  return ;
+			  }
+			var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/tranRel";
+			 
+			 $.ajax({
+			    type: "post",
+			    url: genurl,
+				dataType : "json",
+				contentType : "application/json;charset=UTF-8",      
+				data: JSON.stringify(formData),
+				success: function (d) {
+			           layer.alert(d.msg, {icon: 6})
+		    	},
+				error:function (d) {
+			        layer.alert(d.msg, {icon: 5})
+			    }
+			    });
+			}
+</script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}对象管理|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<!-- lay-allowclose="false" -->
+	<div class="layui-tab layui-tab-brief"
+		th:lay-filter="|${label}tabList|" th:id="|${label}tabList|">
+		  <ul class="layui-tab-title" th:lay-filter="|${label}Tab|" th:id="|${label}TabHead|">
+		    <li class="layui-this" lay-id="1" th:text="|${name}|"></li>
+		  </ul>
+		  <div class="layui-tab-content" th:id="|${label}TabContent|">
+		    <div class="layui-tab-item layui-show">
+		    <form class="layui-form" th:id="|edit${label}|"
+		th:lay-filter="|edit${label}|" th:utext="|${formContent}|"></form>
+			</div>
+		  </div>
+	</div>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var currentId='[(${currentId})]';
+function initForm(data){
+		  [# th:each="ci : ${colCodes}"]
+			  $('#'+'[(${ci})]').val(data['[(${ci})]']);
+			  [/]
+	currentNode=data;
+}
+
+[(${layUse})]
+ 	var tabIds={};
+  
+	function addTab(tabId,title,content){
+		element.tabDelete('[(${label})]tabList', tabId);
+		//新增一个Tab项
+		element.tabAdd('[(${label})]tabList', {
+		        title: title 
+		        ,content: content 
+		        ,id: tabId 
+		})
+		element.tabChange('[(${label})]tabList', tabId) 
+	}
+	
+	function objectRelation(po){
+		 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/tabList";
+		 
+		 $.ajax({
+		      type: "post",
+		      url: genurl,
+		        dataType : "json",
+		        contentType : "application/json;charset=UTF-8",      //
+		        data: JSON.stringify(po),
+		        success: function (d) {
+		           var tabs = d.data.tabList;
+		           if(tabs.length>0){
+		        	   for(var tab in tabs){
+			        	   addTab(tabs[tab].tabId,tabs[tab].tabTitle,tabs[tab].tabContent);
+			        	   tabIds[tab]=tabs[tab].tabId;
+			           }
+		           }
+		          
+		           endList = d.data.relationEnd;
+		           $("#[(${label})]ExistRelation").html(d.data.existRelation);
+			       	form.render('select');
+		      	},
+		 		error:function (d) {
+			    }
+		    });
+	}
+  
+  //relationDel 删除关系
+  layui.$('#relationDel').on('click',function (po){
+		 var endLabel= $("#selectPo").val();
+		 var endId = $("#selectObj").val();
+		 var relationCode = $("#relationCode").val();
+		 var relationName = $("#relationName").val();
+		 var startCode = $("#id").val();
+		 if(endId==null||startCode==null){
+			 return;
+		 }		
+		 var genurl = "[(${MODULE_NAME})]/objectRel/[(${label})]/"+endLabel+"/"+relationCode+"/del";
+		 
+		 var formData={};
+		 var relations=new Array();
+		 var relation={};
+		 var relProp={};
+		 relation['endId']=endId;      
+		 relation['startId']=startCode; 
+		 relProp['label']=relationCode;
+		 relProp['name']=relationName;
+		 relation['startLabel']="[(${label})]";
+		 relation['endLabel']=endLabel;
+		 relations[0]=relation;
+		 formData['relations']=relations;
+		 formData['relProp']=relProp;
+		//      
+		//formData['endCode']=$('#poIdReload').val();      
+		
+		 $.ajax({
+				type: "post",
+				url: genurl,
+				dataType : "json",
+				contentType : "application/json;charset=UTF-8",      //
+				data: JSON.stringify(formData),
+				success: function (d) {
+				    layer.alert(d.msg, {icon: 6})
+				    if(currentNode!=null){
+				    	objectRelation(currentNode);
+				    }
+				},
+				error:function (d) {
+				      layer.alert(d.msg, {icon: 5})
+				}
+		    });
+	});
+	
+	
+	objectRelation(currentNode);
+	
+  [(${layField})]
+  
+  function delRel(label,id){	
+	  $("#"+label+id).remove();
+		 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/rel/"+label+"/del";
+		 var formData={};
+		 formData["endId"]=id;
+		 formData["startId"]=currentNode.id;
+		 $.ajax({
+		      type: "post",
+		      url: genurl,
+		        dataType : "json",
+		        contentType : "application/json;charset=UTF-8",      //
+		        data: JSON.stringify(formData),
+		        success: function (d) {
+		           layer.alert(d.msg, {icon: 6})
+		      	},
+		 		error:function (d) {
+			        layer.alert(d.msg, {icon: 5})
+			    }
+		 });
+	}
+  function init(){
+	  if(currentId){
+		  var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/get/"+currentId;
+		$.ajax({
+		    type: "post",
+		    url: genurl,
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",      
+			data: JSON.stringify({}),
+			success: function (d) { 
+		           initForm(d)
+		     	},
+			error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		    }
+		    });
+	  }
+  }
+  init();
+</script>
+</body>
+</html>

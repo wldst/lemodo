@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Application</title>
+    <link rel="stylesheet" href="styles.css">
+    <style type="text/css">
+    /* styles.css */
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    height: 100vh;
+}
+
+header {
+    background-color: #5b6ef5;
+    color: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#chatHistory{
+    border: 1px solid #ccc;
+    margin: 1rem;
+    padding: 1rem;
+     width: calc(10% - 2rem);
+    height: calc(70% - 2rem);
+    overflow-y: auto;
+}
+#chatbox {
+    border: 1px solid #ccc;
+    margin: 1rem;
+    padding: 1rem;
+    width: calc(80% - 2rem);
+    height: calc(70% - 2rem);
+    overflow-y: auto;
+}
+
+
+#userInput {
+    width: calc(100% - 100px);
+}
+
+footer {
+    display: flex;
+}
+
+button {
+    background-color: #5b6ef5;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    margin-left: 1rem;
+}
+
+aside {
+    /* Styles for the chat list sidebar */
+}
+
+/* Add more styles as needed */
+    </style>
+</head>
+<body>
+    <header>
+        <h1>聊天室</h1>
+        <button id="createChat">新建对话</button>
+    </header>
+    <aside>
+        <!-- Search and chat list will go here -->
+    </aside>
+    <main>
+        <section id="chatHistory">
+            <!-- Chat history will be displayed here -->
+        </section>
+        <section id="chatbox">
+            <!-- Current chat will be displayed here -->
+        </section>
+        <footer>
+            <input type="text" id="userInput" placeholder="请输入消息...">
+            <button id="sendButton">发送</button>
+        </footer>
+    </main>
+    <script >
+    $(document).ready(function(){
+        $("#sendButton").click(function(){
+            var userText = $("#userInput").val();
+            $("#chatbox").append("<p>" + userText + "</p>");
+            $("#userInput").val("");
+        });
+
+        $("#createChat").click(function(){
+            $("#chatbox").empty();
+            $("#chatHistory").append("<p>Chat created</p>");
+        });
+    });</script>
+</body>
+</html>

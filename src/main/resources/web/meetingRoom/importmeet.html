@@ -1,0 +1,154 @@
+<html>
+<head>
+<title>重要会议申请</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=0.2,maximum-scale=2, user-scalable=yes">
+<link th:href="@{/static/plugin/jqueryweui/lib/weui.css}" rel="stylesheet">
+<link th:href="@{/static/plugin/jqueryweui/css/jquery-weui.css}" rel="stylesheet">
+<script th:src="@{/static/plugin/jqueryweui/lib/jquery-2.1.4.js}"></script>
+<style type="text/css">
+.demos-title {
+  text-align: center;
+  font-size: 34px;
+  color: #3cc51f;
+  font-weight: 400;
+  margin: 0 15%;
+}
+
+.demos-header {
+  padding: 35px 0;
+}
+</style>
+</head>
+
+<body>
+ 	<input class="weui-input" type="hidden" name="roomId" id ="roomId" th:value="${roomId}">
+ 	<input class="weui-input" type="hidden" name="apm" id = "apm" th:value="${apm}">
+ 	<input class="weui-input" type="hidden" name="date" id = "date" th:value="${date}">
+   <div class="weui-cells__title">参会领导</div>
+    <div class="weui-cells weui-cells_checkbox">
+      <label class="weui-cell weui-check__label" for="ldbz">
+        <div class="weui-cell__hd">
+          <input type="checkbox" class="weui-check" name="participantsLeader" id="ldbz" onclick="javascript:leaderChange(this)"  value="领导班子">
+          <i class="weui-icon-checked"></i>
+        </div>
+        <div class="weui-cell__bd">
+          <p>领导班子</p>
+        </div>
+      </label>
+      <label class="weui-cell weui-check__label" for="jytd">
+        <div class="weui-cell__hd">
+          <input type="checkbox" name="participantsLeader" class="weui-check" id="jytd" value="经营团队" >
+          <i class="weui-icon-checked"></i>
+        </div>
+        <div class="weui-cell__bd">
+          <p>经营团队</p>
+        </div>
+      </label>
+        <label class="weui-cell weui-check__label" for="wu">
+            <div class="weui-cell__hd">
+                <input type="checkbox" name="participantsLeader" class="weui-check" id="wu" value="无" >
+                <i class="weui-icon-checked"></i>
+            </div>
+            <div class="weui-cell__bd">
+                <p>无</p>
+            </div>
+        </label>
+    </div>
+    
+    <div id="leaderDisplay">
+		<div class="weui-cells weui-cells_form">
+		  <div class="weui-cell">
+		   <div class="weui-cell__hd"><label class="weui-label">领导信息:</label></div>
+		    <div class="weui-cell__bd">
+		      <textarea class="weui-textarea" placeholder="输入领导信息" id="leader" rows="3"></textarea>
+		    </div>
+		  </div>
+		</div>
+	</div>
+    
+   <div class="m-celltitle">会议形式:</div>
+    	<div class="m-cell">
+            <div class="cell-item">
+                <div class="cell-right">
+                    <select class="cell-select" id="type" name="type">
+                    	<option value="">--请选择--</option>
+                        <option value="01">本地</option>
+						<option value="02">I国网</option>
+						<option value="03">亿联</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+      <div class="weui-cell weui-cell_switch">
+        <div class="weui-cell__bd">是否需要会议室指导或支持:</div>
+        <div class="weui-cell__ft">
+          <input class="weui-switch" type="checkbox" id="ishelp" onclick="javascript:changehelp(this)">
+        </div>
+      </div>
+    <div class="weui-cell" >
+	    <div class="weui-cell__hd"><label class="weui-label">申请人:</label></div>
+	    <div class="weui-cell__bd">
+	        <input class="weui-input" type="text" name="username" id = "username" th:value="|${user.name}|" >
+	      <input class="weui-input" type="hidden" name="userId" id = "userId" th:value="${user.userId}">
+	    </div>
+    </div>
+   <div class="weui-cell">
+	    <div class="weui-cell__hd"><label class="weui-label">申请部门：</label></div>
+	    <div class="weui-cell__bd">
+	      <input class="weui-input" type="text" name="deptname" id = "deptname" th:value="|${userdept.name}|">
+	    </div>
+    </div>
+    <div class="weui-cell">
+	    <div class="weui-cell__hd"><label class="weui-label">会议时间:</label></div>
+	    <div class="weui-cell__bd">
+	      <input class="weui-input" type="text"  name='meetingdate' id='meetingdate' placeholder="会议时间应为当前以以后">
+	    </div>
+    </div>
+      <div class="weui-cell">
+	    <div class="weui-cell__hd"><label class="weui-label">结束时间:</label></div>
+	    <div class="weui-cell__bd">
+	      <input class="weui-input" type="text"  name='endDate' id='endDate' placeholder="会议时间应为会议时间以后">
+	    </div>
+    </div>
+	  <div class="weui-cell">
+	   <div class="weui-cell__hd"><label class="weui-label">会议名称：</label></div>
+	    <div class="weui-cell__bd">
+	      <input class="weui-input" type="text" name="meetingtitle" id="meetingtitle" placeholder="请输入会议名称">
+	    </div>
+	  </div>
+    
+     <div class="weui-cell">
+	    <div class="weui-cell__hd"><label class="weui-label">会议人数:</label></div>
+	    <div class="weui-cell__bd">
+	      <div class="weui-count">
+                <a class="weui-count__btn weui-count__decrease"></a>
+                <input class="weui-count__number" type="number" value="2" id="meetingnum" name="meetingnum"/>
+                <a class="weui-count__btn weui-count__increase"></a>
+              </div>
+	    </div>
+    </div>
+     <div id="isdisplay">
+		<div class="weui-cells weui-cells_form">
+		  <div class="weui-cell">
+		   <div class="weui-cell__hd"><label class="weui-label">会议物资:</label></div>
+		    <div class="weui-cell__bd">
+		      <textarea class="weui-textarea" placeholder="点击选择会议物资" id="wuzi" rows="3"></textarea>
+		    </div>
+		  </div>
+		</div>
+</div>
+    <div class="weui-btn-area">
+      <a class="weui-btn weui-btn_primary" href="javascript:savemeetinginfo()" id="savebtn">确定</a>
+    </div>
+</body>
+<script type="text/javascript">
+    var dates = '[[${dates}]]';
+    var curUserId = '[[${userId}]]';
+    var permission = "";
+    var days = '[[${days}]]';
+    var basePath = '[[${MODULE_NAME}]]';
+</script>
+<script th:src="@{/static/plugin/jqueryweui/js/jquery-weui.js}"></script>
+<script th:src="@{/web/meetingRoom/importmeet.js}"></script>
+<script th:src="@{/static/js/common/common.js}" charset="utf-8" type="text/javascript"></script>
+</html>

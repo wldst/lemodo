@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title th:utext="|#{po.name}管理|">Domain管理</title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<form class="layui-form" lay-filter="example">
+		<div class="layui-form-item">
+			<label class="layui-form-label">名称：</label>
+			<div class="layui-input-inline" >
+				<label  th:utext="|${name}|">
+			</div>
+			<label class="layui-form-label">Label：</label>
+			<div class="layui-input-inline">
+				<label th:utext="|${label}|">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">主键：</label>
+			<div class="layui-input-inline">
+				<label th:utext="|${primaryKey}|"/>
+			</div>
+			<label class="layui-form-label">数据库表：</label>
+			<div class="layui-input-inline">
+			<label th:utext="|${tableName}|"/>
+			</div>
+		</div>
+		
+		<div class="layui-form-item">
+			<label class="layui-form-label">属性列：</label>
+			<div class="layui-input-inline" >
+			<label th:utext="|${columns}|"/>
+			</div>
+			<label class="layui-form-label">表头列：</label>
+			<div class="layui-input-inline" >
+				<label th:utext="|${header}|"/>
+			</div>
+		</div>
+	</form>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+</body>
+</html>

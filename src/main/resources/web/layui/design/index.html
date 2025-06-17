@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" media="all"/>
+	<script th:src="@{/static/layui/layui.js}"  charset="utf-8"></script>
+</head>
+<body>
+	<div class="demoTable">
+		<div class="layui-form">
+			<div class="layui-form-item">
+				<div class="layui-inline ">
+					<label class="layui-form-label">类型</label>
+					<div class="layui-input-inline">
+						<select name="typeReload" id="typeReload">
+							<option value="">请选择类型</option>
+							<option value="172658">产品宣传</option>
+							<option value="172638">桌面壁纸</option>
+						</select>
+					</div>
+				</div>
+				<label class="layui-form-label">名称</label>
+				<div class="layui-input-inline">
+					<input name="nameReload" class="layui-input" id="nameReload"
+						placeholder="请输入名称" autocomplete="off">
+				</div>
+			</div>
+			<div class="layui-row">
+				<div class="layui-col-xs3">
+					<div class="grid-demo grid-demo-bg1">
+						<div class="grid-demo">
+							<button class="layui-btn" id="searchDO" >
+								搜索<i class="layui-icon">&#xe615;</i>
+							</button>
+							<button class="layui-btn layui-btn-primary" id="data-checked-btn"><i class="layui-icon">&#xe615;</i> 设置为桌面背景</button>
+							<button class="layui-btn layui-btn-primary" id="data-add-btn">新增</button>
+						</div>
+					</div>
+				</div>
+				<div class="layui-col-xs3"></div>
+			</div>
+			</div>
+	</div>
+	<!-- <form class="layui-form layui-form-pane">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">卡片标题</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="realName"id="realName" placeholder="" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">卡片名称</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="username"id="username" placeholder="" class="layui-input">
+                    </div>
+                    <div class="layui-inline">
+                        <button type="submit" class="layui-btn layui-btn-primary" lay-submit lay-filter="data-search-btn"><i class="layui-icon">&#xe615;</i> 搜 索</button>
+                    	<button type="submit" class="layui-btn layui-btn-primary" lay-submit lay-filter="data-btn"><i class="layui-icon">&#xe615;</i> 获取数据</button>
+						<button type="submit" class="layui-btn layui-btn-primary" lay-submit lay-filter="data-checked-btn"><i class="layui-icon">&#xe615;</i> 获取选中数据</button>
+                    </div>
+                </div>
+    </form> -->
+    <table id="currentTableId"></table>
+<script>
+layui.config({ 
+	dir: '/static/layui/',
+	version: false ,debug: false,
+	base: '/static/layui/lay/layui_exts/'
+}).extend({
+     cardTable: 'cardTable/cardTable' 
+   }).use(['table','layer', 'form', 'jquery', 'cardTable'], function () {
+		let table = layui.table;
+		let form = layui.form;
+		let $ = layui.jquery;
+        let layer = layui.layer;
+        let cardTable = layui.cardTable;
+        var searchForm={}
+   		var type=$('#typeReload').val();
+   		searchForm['type']=type;
+   		var name=$('#nameReload').val();
+   		searchForm['name']=name;
+   		 
+       cardTable.render({
+               elem: '#currentTableId',
+               //linenum:4,
+			url: '[(${MODULE_NAME})]/cruder/Card/queryData'
+			,where: searchForm
+		})
+			
+				  //监听提交
+	  layui.$('#searchDO').on('click', function(data){
+		var searchForm={}
+		var type=$('#typeReload').val();
+		 searchForm['type']=type;
+		var name=$('#nameReload').val();
+		 searchForm['name']=name;
+		
+		 cardTable.reload("currentTableId", {
+			 url:'[(${MODULE_NAME})]/cruder/Card/queryData',
+		     page: {
+				    curr: 1 //重新从第 1 页开始
+				  }
+			,where: searchForm
+		 });
+	  });
+	  
+	form.render('select');
+			
+	// 监听搜索操作
+	/* form.on('submit(data-search-btn)', function (data) {
+	             queryJson = data.field;
+	             cardTable.reload("currentTableId", {
+	                 where: queryJson,
+	             });
+	             return false;
+	}); */
+	layui.$('#data-checked-btn').on('click', function(data){
+	             var data = cardTable.getChecked("currentTableId");
+	             var po = {};
+	         	po['BackGroundImg']=data.image;
+	         	$.ajax({
+	         	      type: "post",
+	         	      url: "[(${MODULE_NAME})]/adminctrl/saveMySetting",
+	         	        dataType : "json",
+	         	        contentType : "application/json;charset=UTF-8",
+	         	        data: JSON.stringify(po),
+	         	        success: function (d) {
+	         	        	if(!d.status){
+	         	  			   layer.alert(d.msg, {icon: 5})
+	         	  		   }else{
+	         	  			   layer.alert(d.msg, {icon: 6})
+	         	  		   }
+	         	        	window.parent.changeBg(data.image)
+	         	      	},
+	         	 		error:function (d) {
+	         		    }
+	         	    });
+	             
+	             return false;
+	});
+	
+	layui.$('#data-add-btn').on('click', function(){
+	    var width='65%';
+		layer.open({
+	      type: 2,
+	      anim: 0,
+	      shade: 0,
+	      maxmin: true,
+	      title: "编辑",
+	      area: [width, '55%'],
+	      btn:['关闭'],
+	      full: function(a, b) {
+	          	$(a).find('.layui-layer-content').css('height','100%');
+	          	$(a).find('iframe').css('height','100%');
+	          },
+	      restore: function(a, b) {
+	          	$(a).find('iframe').css('height','90%');
+	          	$(a).find('.layui-layer-content').css('height','90%');
+	          },
+	      yes:function(index,layero)
+	      {
+	          //index为当前层索引
+	        layer.close(index)
+	      },
+	      cancel:function(){//右上角关闭毁回调
+	     	 close()
+	      },
+	      zIndex: layer.zIndex
+	      ,success: function(layero, index){
+	        layer.setTop(layero); 
+	      },
+	      content: "[(${MODULE_NAME})]/layui/Card/form"
+	  });
+  });
+	
+	/* form.on('submit(data-btn)', function () {
+		var data = cardTable.getAllData("currentTableId");
+	             layer.msg(JSON.stringify(data));
+		return false;
+	}); */
+})
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天消息</title>
+     <script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+    <script>
+        function sendMsg() {             
+        	var message= document.getElementById("sendMsg").value;
+            //消息发送
+            document.getElementById("sendMsg").value = "";
+        }
+        function talking(content) {
+            document.getElementById("content").append(content + "\r\n");
+        }
+    </script>
+</head>
+<body>
+<div style="text-align: center;background-color: rgba(129,86,255,0.35);margin:0 auto;border:1px solid #000;width:600px;height:650px">
+    <textarea id="content" cols="60" rows="30" readonly="readonly"></textarea><br>
+    <input type="text" id="sendMsg">
+    <button type="button" onclick="sendMsg()">转发消息</button>
+    <br/><br/>
+    用户：<input type="text" id="user">
+</div>
+</body>
+</html>

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{voice::voiceHeader(${name})}">
+
+</head>
+<body>
+<style>
+/*.container{position:relative;width:100%;min-height:620px;} */
+.body{padding-bottom:143px;} 
+.footer{height:143px;position:fixed;bottom:0px;right:0px;}
+#leftMenu {
+    width: 80%;
+    display: inline-block;
+    box-sizing: border-box;
+    overflow: auto; /* 自动显示滚动条 */
+    height: 620px; /* 指定列表高度 */
+}
+
+.nav {
+    margin: 0 auto;
+    background-color: #EEEEEE;
+}
+
+.nav>li {
+    list-style: none;
+    border: none;
+    border-bottom: none;
+    line-height: 30px;
+    border-top: 1px solid #c6c6c6;
+    border-bottom: 1px solid #c6c6c6;
+    padding: 1% 0 1% 1%;
+    text-align: left;
+}
+
+.nav>li label {
+    /* display: inline-block; */
+    vertical-align: middle;
+    float: left;
+}
+
+.sub {
+    display: none;
+    background-color: #EEEEEE;
+    text-align: left;
+}
+
+.sub>li {
+    list-style: none;
+    padding-left: 1%;
+    font-size: 14px;
+}
+
+.sub>li:hover {
+    background-color: #2497FF;
+}
+
+
+/* 向上箭头 */
+
+.triangle-up {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 10px solid #c6c6c6;
+    display: inline-block;
+    margin-right: 2%;
+}
+
+
+/* 向下箭头 */
+
+.triangle-down {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 10px solid #c6c6c6;
+    display: inline-block;
+    margin-right: 2%;
+}
+
+.sub li>a {
+    text-decoration: none;
+    color: #000000;
+}
+</style>
+<div th:insert="~{voice::voiceHTML}"></div>
+<div th:insert="~{voice::voiceJS}"></div>
+<div>
+<div class="layui-row">
+			<div class="layui-col-md2">
+					<ul   class="ztree layui-tab-more">
+        <li class="list-group-item ">
+        <label for="">关键词:</label>
+        <input id="searchKey" type="text"></input></br>
+         <button onclick="search()" class="btn">搜索</button></li>
+            <li>
+                <label for="">对话历史</label>
+                <span class="triangle-down"></span>
+                <ul class="sub chat-group">
+                    <li class="list-group-item chatList" >
+					 <a href="#" onclick="chatBox('xxx')">xxx</a>
+					</li>
+                </ul>
+            </li>
+            <li>
+                <label for="">操作</label>
+                <ul class="sub list-group" >
+                    <li class="list-group-item optList" >
+					<a href="#" onclick="authType('del')">删除权限</a>
+					</li>
+					<li class="list-group-item optList" onclick="authType('add')">
+					<a href="#" >增加权限</a>
+					</li>
+					<li class="list-group-item optList" onclick="authType('remove')">
+					解除权限
+					</li>
+					<li class="list-group-item optList"  onclick="authType('forbidden')">
+					禁止权限
+					</li>
+					<li class="list-group-item optList"  onclick="authType('relAdd')">
+					添加关系
+					</li>
+					<li class="list-group-item optList"  onclick="authType('relDel')">
+					删除关系
+					</li>
+					<li class="list-group-item optList"  onclick="authType('open')">
+					打开资源
+					</li>
+					<li class="list-group-item optList"  onclick="authType('queryPath')">
+					A和B有什么关系？
+					</li>
+					<li class="list-group-item optList"  onclick="authType('hasIs')">
+					A有什么？是什么
+					</li>
+                </ul>
+            </li>
+         
+        </ul>
+					
+			</div>
+			<div class="layui-col-md10">
+				 <div class="form-group body">
+				    <div style="width:100%;overflow:auto;height:450px;overflow-y:auto">
+						<div id="message_content" style="overflow:hidden;width:98%;white-space: pre-wrap;"></div>
+						<div><a id="msg_end" name="1" href="#1">&nbsp</a></div>
+					</div>
+				</div>
+				<div class="form-group footer">
+					<div style="width:100%;"><label id="tips">输入操作指令 &nbsp;</label>
+				    <textarea id="talkContent"  style="rows: 5;" onkeydown="render()" class="form-control" onscroll="this.rows++;"></textarea></br>
+				    <button onclick="sendInfo()" class="btn btn-info">执行</button>
+				    </div>
+				</div>
+			</div>
+		</div>
+	 
+		
+	
+	<!-- <div class="row">
+		<div class="col-2">
+			<div class="form-group">
+			    <input id="in_room_id" type="hidden" value="square" class="form-control">
+			</div>
+		</div>
+		<div class="col-10">
+			
+		</div>
+	</div> -->
+	
+</div>
+<script>
+Date.prototype.pattern= function(fmt) {         
+    var o = {
+   "M+" :  this.getMonth()+1,  // 月份       
+   "d+" :  this.getDate(),  // 日         
+   "h+" :  this.getHours()%12 == 0 ? 12 :  this.getHours()%12,  // 小时         
+   "H+" :  this.getHours(),  // 小时         
+   "m+" :  this.getMinutes(),  // 分         
+   "s+" :  this.getSeconds(),  // 秒         
+   "q+" : Math.floor(( this.getMonth()+3)/3), //季度         
+   "S" :  this.getMilliseconds()  // 毫秒         
+   };         
+    var week = {         
+   "0" : "/u65e5",         
+   "1" : "/u4e00",         
+   "2" : "/u4e8c",         
+   "3" : "/u4e09",         
+   "4" : "/u56db",         
+   "5" : "/u4e94",         
+   "6" : "/u516d"        
+   };         
+    if(/(y+)/.test(fmt)){         
+       fmt=fmt.replace(RegExp.$1, ( this.getFullYear()+"").substr(4 - RegExp.$1.length));         
+   }         
+    if(/(E+)/.test(fmt)){         
+       fmt=fmt.replace(RegExp.$1, ((RegExp.$1.length>1) ? (RegExp.$1.length>2 ? "/u661f/u671f" : "/u5468") : "")+week[ this.getDay()+""]);         
+   }         
+    for( var k  in o){         
+        if( new RegExp("("+ k +")").test(fmt)){         
+           fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));         
+       }         
+   }         
+    return fmt;         
+}     
+
+
+var sockets={};
+var webSocketUrl = 'wss://'+window.location.host+'/context/';//websocketi连接地址
+var myName='[(${myName})]';
+var myId='[(${myId})]';
+    //创建websocket连接
+
+function createContextConnect(userId) {
+        if (!sockets[userId]||sockets[userId].readyState != sockets[userId].OPEN) {//避免重复连接
+            console.log(userId);
+            var contextWs = new WebSocket(webSocketUrl + userId);
+            contextWs.onopen = function () {
+                contextWs.send("context"+userId);
+            };
+            contextWs.onmessage = function (e) {
+                //服务端发送的消息
+                $("#message_content").append(e.data + '\n');
+            };
+            contextWs.onclose = function () {
+            	console.log(myName + "");
+            }
+            sockets[userId]=contextWs;
+        }
+}
+    
+    function mySelect(index){
+    	if(!sockets[myId]||sockets[myId].readyState!='1'){
+    		createContextConnect(myId);
+    	}
+    	sockets[myId].send("userSelected:"+index);
+    }
+
+
+
+function insertText(content){
+	var now = new Date();
+	var div = $("#message_content");
+	div.scrollTop = div.scrollHeight;
+	var xx = now.pattern("yyyy-MM-dd hh:mm:ss");
+	$("#message_content").append(xx +":"+content+ '<br />');
+	let element = document.getElementById("msg_end");
+    if (element) {
+      element.scrollIntoView();
+    }
+}
+ 
+function render(ev) {
+	var ev = ev || window.event
+	if(ev.keyCode == "13") {
+		sendInfo()
+	}
+}
+var promptList=null;
+function search() {
+    let msg = $('#searchKey').val(); 
+	var formData={'name':msg};
+	$.ajax({
+		     type: "post",
+		     url: "[(${MODULE_NAME})]/cruder/help/query",
+		     dataType : "json",
+		     contentType : "application/json;charset=UTF-8",      //
+		     data: JSON.stringify(formData),
+		     success: function (d) {
+		    	 var data = d.data;
+		    	 
+		    	 if(data){
+		    		 var list = data;
+		    		 promptList=list;
+		    		 $(".optList").remove();
+		    		 $(".chatList").remove();
+		    		 if(list.length>0){
+		    			 var xx="";
+		    			 for(var i in list){
+	   		    			if(list[i]['name']!=null){
+	   		    				xx+="<li class='list-group-item optList' onclick=\"clickType('"+i+"')\">"+
+	   		    					list[i]['name']+"</li>";
+	   	   	   		    	 }
+	   		    		 }
+		    			 $(".list-group").append(xx);
+		    		 }
+		    	 }
+		     }
+		});
+}
+
+function searchChat() {
+    let msg = $('#searchKey').val(); 
+	var formData={'name':msg};
+	$.ajax({
+		     type: "post",
+		     url: "[(${MODULE_NAME})]/cruder/Chat/query",
+		     dataType : "json",
+		     contentType : "application/json;charset=UTF-8",      //
+		     data: JSON.stringify(formData),
+		     success: function (d) {
+		    	 var data = d.data;
+		    	 
+		    	 if(data){
+		    		 var list = data;
+		    		 promptList=list;
+		    		 $(".chatList").remove();
+		    		 if(list.length>0){
+		    			 var xx="";
+		    			 for(var i in list){
+	   		    			if(list[i]['name']!=null){
+	   		    				xx+="<li class='list-group-item chatList' onclick=\"clickType('"+i+"')\">"+
+	   		    					list[i]['name']+"</li>";
+	   	   	   		    	 }
+	   		    		 }
+		    			 $(".chat-group").append(xx);
+		    		 }
+		    	 }
+		     }
+		});
+}
+
+//消息
+function sendInfo() {
+        let msg = $('#talkContent').val();
+    	var genurl = "[(${MODULE_NAME})]/auth/talk";
+    	if(!sockets[myId]){
+    		createContextConnect(myId);
+    	}
+    	var formData={};
+    	formData['msg']=msg;
+    	formData['myId']=myId;
+    	$.ajax({
+   		     type: "post",
+   		     url: genurl,
+   		     dataType : "json",
+   		     contentType : "application/json;charset=UTF-8",      //
+   		     data: JSON.stringify(formData),
+   		     success: function (d) {
+   		    	$("#message_content").append("\n");
+   		    	 var data = d.data;
+   		    	 if(data.data){
+   		    		 var list = data.data;
+   		    		 if(list.length>1){
+   		    			 for(var i in list){
+   	   		    			if(list[i]['url']!=null){
+   	   	   	   		    		$(".desktop-menu").hide()
+   	   	   	   	   		        //openLayer(list[i])
+   	   	   	   	   		        openManage(list[i].name,list[i].url);
+   	   	   	   		    	 }else if(list[i]['msg']!=null&&list[i]['msg'].indexOf('href=')>0){
+ 	   	   	   		    		$(".desktop-menu").hide()
+   	   	   	   	   		        insertText(list[i].msg)
+   	   	   	   		    	 }else{
+   	   	   	   		    		$("#message_content").append(list[i]+"<br/>");
+   	   	   	   		    	 }
+   	   		    		 }
+   		    		 }
+   		    		
+   		    		 if(list.length==1){
+   		    			var ret = list;
+     		    			if(ret[0]['url']!=null){
+     	   	   		    		$(".desktop-menu").hide()
+     	   	   	   		      //  openLayer(ret[0])
+     	   	   	   		 openManage(ret[0].name,ret[0].url);
+     	   	   		    	 }else if(ret[0]['msg']!=null&&ret[0]['msg'].indexOf('href=')>0){
+ 	   	   	   		    		$(".desktop-menu").hide()
+   	   	   	   	   		        insertText(ret[0].msg)
+   	   	   	   		    	 }else{
+     	   	   		    		$("#message_content").append(ret[0].msg+"<br/>");
+     	   	   		    	 }
+   		    		 }
+   		    		 if(list.length==0){
+   		    				$("#message_content").append("<br/>"+msg+"<br/>");
+    		    	  }
+   		    	 }
+   		    	 else{
+   		    		 if(data.value){
+   		    			$("#message_content").append("<br/>");
+   		    			$("#message_content").append("<br/>"+data.value+"<br/>");
+   		    		 }else if (data.msg){
+    		    			$("#message_content").append("<br/>");
+       		    			$("#message_content").append("<br/>"+data.msg+"<br/>");
+       		    		 }else{
+   		    			$("#message_content").append("<br/>"+msg+"执行成功<br/>");
+   		    		 }
+   		    	 }
+   		     }
+   		});
+}
+
+    
+    function openNode(name,url){
+    	var h = '600px';
+	    var w = '800px';
+	layer.open({
+	      type: 2,
+	      anim: 0,
+	      shade: 0,
+	      title: name,
+	      maxmin: true,
+	      area: [w, h],
+	      yes:function(index,layero)
+	      {
+	      	var body = layer.getChildFrame('body', index);
+			close()
+	          //index为当前层索引
+	        layer.close(index)
+	      },
+	      cancel:function(){//右上角关闭毁回调
+	     	 //var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+	  		//parent.layer.close(index); //再执行关闭
+	      },
+	      zIndex: layer.zIndex //重点1
+	      ,success: function(layero, index){
+	      },
+	      content: url
+	  });
+    }
+    function openLayer(data){
+    	 var h = '600px';
+    	    var w = '800px';
+    	layer.open({
+  	      type: 2,
+  	      anim: 0,
+  	      shade: 0,
+  	      title: data.name,
+  	      maxmin: true,
+  	      area: [w, h],
+  	      yes:function(index,layero)
+  	      {
+  	      	var body = layer.getChildFrame('body', index);
+  	          //index为当前层索引
+  	        layer.close(index)
+  	      },
+  	      cancel:function(){//右上角关闭毁回调
+  	     	 //var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+  	  		//parent.layer.close(index); //再执行关闭
+  	      },
+  	      zIndex: layer.zIndex //重点1
+  	      ,success: function(layero, index){
+  	      },
+  	      content: data.url
+  	  });
+    } 
+    
+    function clickType(index){
+    	var data = promptList[index];
+    	$('#tips').text(data.description);
+    	$('#talkContent').val(data.demo);
+    }
+    function chatBox(data){ 
+    	
+    }
+    function authType(data){ 
+    	if('add'==data){    		
+    		$('#tips').text('说明：给{谁：角色或者用户}添加{元数据：对象}的{xx权限：访问权限、编辑权限、读取权限}');
+    		$('#talkContent').val('给{谁}添加{什么}的{xx权限}');
+    	}
+    	if('del'==data){
+    		$('#tips').text('说明：将{谁：角色或者用户}的{元数据：对象}的{xx权限：访问权限、编辑权限、读取权限}删除');
+    		$('#talkContent').val('将{谁}的{什么}的{xx权限}删除');
+    	}
+    	if('relAdd'==data){    		
+    		$('#tips').text('说明：添加关系：{元数据：对象}-需要签名(relCode){关系属性}->{元数据：对象}');
+    		$('#talkContent').val('添加关系{谁}-关系名称(relCode){year:2023}->{谁}');
+    	}
+    	if('relDel'==data){    		
+    		$('#tips').text('说明：删除关系：{元数据：对象}-需要签名->{元数据：对象}');
+    		$('#talkContent').val('删除关系{谁}-关系名称(relCode)->{谁}');
+    	}
+    	if('remove'==data){
+    		$('#tips').text('说明：删除{谁：角色或者用户}的{元数据：对象}的{xx权限：访问权限、编辑权限、读取权限}');
+    		$('#talkContent').val('删除{谁}的{什么}的{xx权限}');
+    	}
+    	if('forbidden'==data){
+    		$('#tips').text('说明：禁止{谁：角色或者用户}的{元数据：对象}的{xx权限：访问权限、编辑权限、读取权限、删除权限}');
+    		$('#talkContent').val('禁止{谁}的{什么}的{xx权限}');
+    	}
+    	if('open'==data){
+    		$('#tips').text('说明：打开{元数据：对象}');
+    		$('#talkContent').val('打开{什么}');
+    	}
+    	if('manage'==data){
+    		$('#tips').text('说明：管理{元数据：对象}');
+    		$('#talkContent').val('管理{什么}');
+    	}
+    	if('query'==data){
+    		$('#tips').text('说明：{元数据：对象}的{关系或者属性}（是？、是什么？、有哪些？、有多少、有什么？）');
+    		$('#talkContent').val('{谁}的{什么}是{什么}、有{哪些}');
+    	}
+    	
+    	if('queryPath'==data){
+    		$('#tips').text('说明：{元数据：对象}和{元数据：对象}有什么关系？可达路径）');
+    		$('#talkContent').val('{A}和{B}有什么关系？');
+    	}
+    	if('hasIs'==data){
+    		$('#tips').text('说明：{元数据：对象}{的什么}是{什么}有有什么关系？可达路径）');
+    		$('#talkContent').val('{A}的{属性、关系}有哪些、是什么？');
+    	}
+    	
+	}
+    
+    folderMenu()
+
+    function folderMenu() {
+        $('.nav>li').on('click', function() {
+            // 当前ul未展开
+            if ($(this).children('.sub').css('display') == 'none') {
+                // 遍历除了当前ul的其他ul
+                $(this).siblings().each(function(index, ele) {
+                        // 若ul的display不为none，说明当前ul为展开状态
+                        if ($(ele).children('.sub').css('display') != 'none') {
+                            // ul收回
+                            $(ele).children('.sub').slideUp(300);
+                            // 将朝向上的箭头换为朝向下的
+                            $(ele).children('.triangle-up').removeClass('triangle-up').addClass('triangle-down');
+                        }
+                    })
+                    // 展开当前ul
+                $(this).children('.sub').slideDown(300);
+                // 将朝向下的箭头换为朝向上的
+                $(this).children('.triangle-down').removeClass('triangle-down').addClass('triangle-up');
+            } else {
+                // 当前ul已展开
+                $(this).children('.sub').slideUp(300);
+                // 将朝向上的箭头换为朝向下的
+                $(this).children('.triangle-up').removeClass('triangle-up').addClass('triangle-down');
+
+            }
+
+        })
+        $('.sub li').on('click', function(e) {
+            event.stopPropagation(); //阻止子级li点击触发父级点击事件：阻止冒泡
+        })
+    }
+    
+/*     function toggleSubMenu(element) {
+        var subMenu = element.nextElementSibling; // 获取同级的下一个元素（子菜单）
+        
+        if (subMenu && subMenu.classList.contains('show')) {
+            subMenu.classList.remove('show'); // 如果已经展开则关闭子菜单
+        } else {
+            closeAllSubMenus(); // 先关闭所有打开的子菜单
+            
+            if (subMenu) {
+                subMenu.classList.add('show'); // 打开指定的子菜单
+            }
+        }
+    }
+    
+    function closeAllSubMenus() {
+        var subMenus = document.querySelectorAll('.menu li > ul.show'); // 查询所有处于展开状态的子菜单
+        
+        for (var i = 0; i < subMenus.length; i++) {
+            subMenus[i].classList.remove('show'); // 将每个子菜单都关闭
+        }
+    } */
+</script>
+</body>
+</html>

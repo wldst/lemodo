@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title ><label th:text="${name}"></label>信息管理</title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<h3><label th:text="${name}"></label>信息管理</h3>
+	<form class="layui-form" th:utext="${formContent}" lay-filter="saveDO">
+		
+	</form>
+	<input type="button" class="layui-btn"  onclick="saveInstance();"
+		value="保存" />
+	<h3><label th:text="${name}"></label>列表</h3>
+		<div class="demoTable">
+			<form class="layui-form" action="">
+				<div class="layui-form-item">
+					<label class="layui-form-label">名称：</label>
+					<div class="layui-input-block">
+						<input name="name" class="layui-input" id="nameReload"
+							placeholder="请输入领域对象名称" autocomplete="off" lay-verify="name">
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">Label：</label>
+					<div class="layui-input-block">
+						<input name="label" class="layui-input" id="labelReload"
+							autocomplete="off">
+					</div>
+				</div>
+			</form>
+			<button class="layui-btn" lay-submit lay-filter="searchDO" data-type="reload" >搜索<i class="layui-icon">&#xe615;</i></button>
+		</div>
+		<table id="domainObject" class="layui-table" lay-filter="domainObject" >
+			<thead>
+				<tr id="columnHeader">
+					<th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+					<th th:each="ci:${cols}" th:attr="lay-data=${ci.code}" th:text="${ci.name}"></th>
+					<th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}"></th>
+				</tr>
+			</thead>
+		</table>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script type="text/javascript">
+	var form;
+	layui.use(['form',  'laydate'], function(){
+		  form = layui.form
+		  ,layer = layui.layer;
+		  
+		  //监听指定开关
+		  form.on('switch(switchTest)', function(data){
+		    layer.msg('开关checked：'+ (this.checked ? 'true' : 'false'), {
+		      offset: '6px'
+		    });
+		    layer.tips('温馨提示：请注意开关状态的文字可以随意定义，而不仅仅是ON|OFF', data.othis)
+		  });
+		  
+		  //监听提交
+		  form.on('submit(searchDO)', function(data){
+		     table.reload('domainObject', { //表格的id
+                        url:'[(${MODULE_NAME})]/cruder/[[${label}]]/query',
+                        method:POST,
+                        where: data.field
+                    });
+		    return true;
+		  });
+		});
+	</script>
+<script id="barDemo" type="text/html">
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script>
+var tablelayData="{ height:530,url: '[(${MODULE_NAME})]/cruder/[[${label}]]/query'\n"
+	+",method: 'post'\n"
+	+",parseData: parseTableData\n"
+	+",dataType: 'json'\n"
+	+" ,contentType:'application/json;charset=UTF-8', page:true, id:'[[${primaryKey}]]'}";
+    
+    $("#domainObject").attr("lay-data",tablelayData);
+var table;
+layui.use('table', function(){
+  table = layui.table;
+  
+  //监听表格复选框选择
+  table.on('row(domainObject)', function(obj){
+    console.log(obj)
+    form.val('saveData', obj.data);
+  });
+  //监听工具条
+  table.on('tool(domainObject)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'detail'){
+      layer.msg('ID：'+ data.id + ' 的查看操作');
+    } else if(obj.event === 'del'){
+      layer.confirm('真的删除行么', function(index){
+        obj.del();
+        delDomain(obj)
+        layer.close(index);
+      });
+    } else if(obj.event === 'edit'){
+      layer.alert('编辑行：<br>'+ JSON.stringify(data))
+    }
+  });
+  
+  var $ = layui.$, active = {
+    getCheckData: function(){ //获取选中数据
+      var checkStatus = table.checkStatus('idTest')
+      ,data = checkStatus.data;
+      layer.alert(JSON.stringify(data));
+    }
+    ,getCheckLength: function(){ //获取选中数目
+      var checkStatus = table.checkStatus('idTest')
+      ,data = checkStatus.data;
+      layer.msg('选中了：'+ data.length + ' 个');
+    }
+    ,isAll: function(){ //验证是否全选
+      var checkStatus = table.checkStatus('idTest');
+      layer.msg(checkStatus.isAll ? '全选': '未全选')
+    }
+  };
+  
+  $('.demoTable .layui-btn').on('click', function(){
+    var type = $(this).data('type');
+    active[type] ? active[type].call(this) : '';
+  });
+});
+</script>
+<script>
+function saveInstance(){
+	 var genurl = "[(${MODULE_NAME})]/cruder/[[${label}]]/save";
+	 var data = form.val('saveDO');
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+		  dataType : "json",
+		contentType : "application/json;charset=UTF-8",      //
+		data: JSON.stringify(data),
+	      success: function (d) {
+	    	  if(!d.status){
+				   layer.alert(d.msg, {icon: 5})
+			   }else{
+	        console.log(d);
+	        table.reload('domainObject', { //表格的id
+                url:'[(${MODULE_NAME})]/cruder/[[${label}]]/query',
+                method:POST,
+                where: {}
+            });}
+	      }
+	    });
+}
+
+function delDomain(po){
+	 var genurl = "[(${MODULE_NAME})]/cruder/[[${label}]]/del";
+	 
+	 var formData=po.data;
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(formData),
+	      success: function (d) {
+	        console.log(d);
+	        
+	      }
+	    });
+}
+</script>
+</body>
+</html>

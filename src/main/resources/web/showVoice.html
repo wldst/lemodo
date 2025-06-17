@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>奔月教程(runoon.com)</title>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+</head>
+
+<body>
+
+<p>点击文档任意一处获取焦点，如果点击文档外则会失去焦点。</p>
+
+<form>
+<table>
+<tr>
+<td><label>字段1</label></td>
+<td><input type="text" id="voice" ></td>
+</tr>
+<tr>
+<td><label>字段2</label></td>
+<td><input type="text" id="voiceArea" ></td>
+</tr>
+<tr>
+<td><label>字段3</label></td>
+<td><input type="text" id="voice1" ></td>
+</tr>
+<tr>
+<td><label>字段4</label></td>
+<td><input type="text" id="voiceArea1" ></td>
+</tr>
+<tr>
+<td><label>录音</label></td>
+<td><input type="button" id="luyin"value="录音" onclick="record();"></td>
+</tr>
+</table>
+
+<p id="demo"></p>
+
+</form>
+<iframe src="" scrolling="no" frameborder="0" id="mainFrameVoice" style="width:500px;height:600px;"></iframe>
+<script>
+var focusId=null;
+setInterval("myFunction()", 1);
+function record() {
+ var frame = document.getElementById("mainFrameVoice");
+ frame.src="https://localhost:9443/lemodo/antv/index.html?inputId="+focusId;
+  $("#mainFrameVoice").show();
+}
+
+window.addEventListener('message', function(e) {
+    $("#"+focusId).val(e.data.msg);
+})
+
+$('input').bind("contextmenu",function(e){
+			var data = $(this).attr('id');
+			var url="https://localhost:9443/lemodo/antv/index.html?inputId="+focusId;
+			 
+			return false;
+		});
+
+function myFunction() {
+    var x = document.getElementById("demo");
+    if (document.hasFocus()) {
+		if(document.activeElement.id!="luyin"&&document.activeElement.id!="mainFrameVoice"){
+		focusId=document.activeElement.id;
+		x.innerHTML = "已获取焦点。"+"id="+document.activeElement.id;
+		}
+    } else {
+        x.innerHTML = "失去焦点。"+"id="+document.activeElement.id;
+    }
+}
+
+function uploadForm() {
+    var form = new FormData(document.getElementById("my_form"));
+    form.append("user_audio_blob", audioBlob);
+    var request = new XMLHttpRequest();
+    var async = true;
+    request.open("POST", "/my_form_handler", async);
+    if (async) {
+        request.onreadystatechange = function() {
+            if(request.readyState == 4 && request.status == 200) {
+                var response = null;
+                try {
+                    response = JSON.parse(request.responseText);
+                } catch (e) {
+                    response = request.responseText;
+                }
+                uploadFormCallback(response);
+            }
+        }
+    }
+    request.send(form);
+}
+</script>
+
+</body>
+</html>

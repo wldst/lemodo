@@ -1,0 +1,89 @@
+<html>
+<head>
+<title>视频会议室预定</title>
+<meta http-equiv="refresh" content="120"> 
+<link th:href="@{/static/css/bootstrap-theme.min.css}" rel="stylesheet">
+<link th:href="@{/static/css/bootstrap.min.css}" rel="stylesheet">
+<style type="text/css">
+<!--
+body { margin:15px; padding:0px; font-size:14px;}
+.title { background:#F6F6F6; width:10%; height:70px; border-right:dotted 1px #008080;border-top:dotted 1px #008080; text-align:center; line-height:25px;}
+.title span { font-weight:bold;}
+.title1 { background:#F6F6F6; width:30%; height:70px; border:dotted 1px #008080; text-align:center; line-height:25px;}
+.title1 span { font-weight:bold;}
+.list_div { border-bottom:solid 1px #e7e7e7; border-top:solid 1px #e7e7e7; margin-bottom:20px;}
+.rc { width:10%; height:70px; over-flow:hidden; padding:10px; border-right:dotted 1px #008080; cursor:pointer; font-size:12px; line-height:20px; border-bottom:solid 1px #e7e7e7; overflow:auto;}
+.ld { vertical-align:middle; font-weight:bold; line-height:25px; width:10%; text-align:center;border-left:dotted 1px #008080;}
+.ld_td { text-align:center; width:10%; height:70px; border-right:dotted 1px #008080; border-bottom:solid 1px #e7e7e7;border-left:dotted 1px #008080;}
+.color0 { background:#b6e8d8;}
+.color1 { background:#b6e8d6;}
+.color2 { background:#e9c9b3;}
+.color3 { background:#dab3e9;}
+.color4 { background:#d7e9b3;}
+.color5 { background:#b3cee9;}
+.color6 { background:#e1c3ab;}
+.rc_red { background:#fbc7c7; height:70px; overflow:auto; cursor:pointer; padding:10px; line-height:20px; font-weight:bold; border:solid 2px #a75454; font-size:12px;}
+.rc_blue { background:#dddbff; height:70px; overflow:auto; cursor:pointer; padding:10px; line-height:20px; font-weight:bold; border:solid 2px #8a86da; font-size:12px;}
+
+-->
+</style>
+
+<script th:src="@{/static/plugin/jQuery/jquery-1.11.3.min.js}"></script>
+
+</head>
+
+<body id="hbody">
+	<table width="100%" border="0" cellspacing="0" cellpadding="0">
+	  	<tr>
+	   	   <td class="title1" rowspan="2"><span>视频会议室</span></td>
+	   	  <!-- <td class="title" rowspan="2"><span>会议室说明</span></td>
+ 	   	   <td class="title" rowspan="2"><span>容量</span></td>
+	   	   <td class="title" rowspan="2"><span>时间</span></td> -->
+	   	   <td class="title" colspan="<%= days %>>"><span>视频会议室使用情况(预定请填写开会期间、部门及会议简称)</span></td>
+	  	</tr>
+	  	<tr>
+	   	 <%
+			Date date = new Date();
+			for(int i = 0;i < days; i++){
+				Date d = CalendarUtil.getDateAfter(date, i);
+				String itemDate  = CalendarUtil.convertDateToString(d);
+				dates += itemDate;
+				if(i < days - 1){
+				    dates += ",";
+				}
+		%>
+		    <td class="title">
+		    	<%=CalendarUtil.getWeek(itemDate) %>
+		    <br />
+		    	<%=itemDate.substring(5) %></td>
+			<%
+			}
+			%>
+	   	</tr>
+	</table>
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="myModalLabel">会议室预定</h4>
+	      </div>
+	      <div class="modal-body" >
+			 <form>
+				<input type="hidden" id="APPID" name="APPID">
+			    <div class="form-group">
+				    <textarea rows="3" class="form-control" id="RCCOMMENT"></textarea>
+			    </div>
+			 </form>
+	      </div>
+	      <div class="modal-footer" style="text-align: center;">
+	       <button type="button" class="btn btn-primary"  id="agree" onclick="save()">保存</button>
+	       <button type="button" class="btn btn-primary"  id="disagree" onclick="closeModal()">关闭</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+</body>
+<script th:src="@{/static/plugin/bootstrap/bootstrap.min.js}"></script>
+<script th:src="@{/web/meetingRoom/screen.js}"></script>
+</html>

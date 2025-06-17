@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title text="|${name}选择列|"></title>
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<h3>
+		<label th:text="|${name}列|"></label>
+	</h3>
+	<table id="columnList" ></table>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+	layui.use('table', function(){
+	  var table = layui.table;
+	  
+	  //展示已知数据
+	  table.render({
+	    elem: '#columnList'
+	    ,cols: [[ //标题栏
+	    	{type:'checkbox', fixed: 'left'}
+	    	{field: 'index', title: '序号', width: 50}
+	    	,{field: 'columnName', title: '列名', width: 200}
+	      ,{field: 'columnCode', title: '列编码', minWidth: 200}
+	      ,{field: 'columnType', title: '列类型', minWidth: 80}
+	      ,{field: 'nullAble', title: '是否为空', width: 100}
+	      ,{field: 'columnSize', title: '列大小', width: 100,sort: true}	      
+	    ]]
+	    ,data: [(${data})]
+	    ,skin: 'line' //表格风格
+	    ,even: true
+	    ,page: true //是否显示分页
+	    ,limits: [30, 50, 100]
+	    ,limit: 30 //每页默认显示的数量
+	  });
+	});
+	</script>
+</body>
+</html>

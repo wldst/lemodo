@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" media="all"/>
+	<script th:src="@{/static/layui/layui.js}"  charset="utf-8"></script>
+</head>
+<body>
+    <div class="layui-carousel" id="test10">
+	  <div carousel-item="" id="images">
+	  </div>
+	</div>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">
+  <legend>图片懒加载</legend>
+</fieldset>
+<div class="site-demo-flow" id="layImages">
+</div>
+	
+	<script>
+	layui.config({ 
+		dir: '/static/layui/',
+		version: false ,debug: false,
+		base: '/static/layui/lay/layui_exts/'
+	}).extend({
+      cardTable: 'cardTable/cardTable' 
+    }).use(['table','layer', 'form', 'jquery', 'carousel','flow'], function () {
+			let table = layui.table;
+			let form = layui.form;
+			let $ = layui.jquery;
+            let layer = layui.layer;
+            let carousel = layui.carousel;
+            let flow = layui.flow;
+            
+        var genurl = "[(${MODULE_NAME})]/cruder/Card/queryData";
+   		 
+   		 $.ajax({
+   		    type: "post",
+   		    url: genurl,
+   			dataType : "json",
+   			contentType : "application/json;charset=UTF-8",      
+   			data: {},
+   			success: function (d) {
+   		           for(var i in d.data){
+   		        	 $("#images").append("<div><img src="+d.data[i].image+" ></div>");
+   		        	 $("#layImages").append("<img lay-src="+d.data[i].image+">");
+   		         
+   		           }
+   		      //图片轮播
+   	            carousel.render({
+   	              elem: '#test10'
+   	              ,width: '778px'
+   	              ,height: '440px'
+   	              ,interval: 5000
+   	            });
+   		      
+   	       //按屏加载图片
+   	         flow.lazyimg({
+   	           elem: '#layImages img'
+   	           ,scrollElem: '#layImages' //一般不用设置，此处只是演示需要。
+   	         });
+   		          
+   	      	},
+   	 		error:function (d) {
+   		        layer.alert(d.msg, {icon: 5})
+   		    }
+   		    });
+
+          
+		})
+	</script>
+</body>
+</html>

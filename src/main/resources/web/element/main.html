@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+
+<div>
+  <section class="app-main">
+    <transition name="fade" mode="out-in">
+      <router-view></router-view>
+    </transition>
+  </section>
+  <script  th:src="@{/static/plugin/vue/vue.min.js}"></script>
+  <!-- import JavaScript -->
+  <script  th:src="@{/static/plugin/elementui/index.js}"></script>
+  <script type="module" th:src="@{/web/element/main.js}"></script>
+  
+  <script type="module" src="https://unpkg.com/vue-router@3.5.4/dist/vue-router.min.js"></script>
+  <!-- <script type="module" th:src="@{/static/plugin/vue/router/vue-router.global.js}"></script> -->
+  <script type="module" th:src="@{/web/element/store/index.js}"></script>
+  <script type="module" th:src="@{/web/element/router/index.js}"></script>
+  <script type="module" th:src="@{/web/element/utils/permission.js}"></script>
+  <script type="module" th:src="@{/static/plugin/axios/axios.min.js}"></script>
+    <!-- import JavaScript -->
+  <script type="module" th:src="@{/static/plugin/elementui/index.js}"></script>
+  <script type="module" th:src="@{/static/plugin/nprogress/nprogress.js}"></script>
+  <script type="module" th:src="@{/static/plugin/elementui/index.js}"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/v-charts/lib/line.min.js"></script>
+<script type="module" th:src="@{/static/plugin/elementui/index.js}"></script>
+<script>
+const AppMain = {
+        template: '#AppMain',
+  name: 'AppMain',
+  computed: {
+    // key() {
+    //   return this.$route.name !== undefined ? this.$route.name + +new Date() : this.$route + +new Date()
+    // }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+  @import "/web/element/styles/mixin.scss";
+  .app-wrapper {
+    @include clearfix;
+    position: relative;
+    height: 100%;
+    width: 100%;
+  }
+</style>
+
+</div>
+</html>

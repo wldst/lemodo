@@ -1,0 +1,90 @@
+server:
+  root:
+    host: 43.139.73.202
+    port: 9500
+    #host: 192.168.0.7
+    #port: 9100
+    #host: localhost
+    #port: 9600
+  tomcat:
+    http-max-header-size: 8096
+  port: 9443
+  ssl: 
+    key-store: server.keystore
+    key-alias: tomcat
+    enabled: true
+    key-store-password: 1234567
+    key-store-type: JKS
+http:
+  port: 9500
+eureka:  
+  client:  
+    registerWithEureka: true  
+    service-url:  
+      defaultZone: http://localhost:9871/eureka
+spring:
+  application:
+    name: ruder
+  thymeleaf: 
+    #前缀，也就是模板存放的路径
+    prefix: classpath:/web/
+    #编码格式
+    encoding: UTF-8
+    #是否开启缓存
+    cache: false
+    #后缀
+    suffix: .html
+    #设置不严格的html
+    mode: LEGACYHTML5
+  messages:
+     encoding: UTF-8  #默认
+     cache-duration: 1  #默认为-1s
+     basename: i18n/messages_zh_CN #默认为messages，这里设置指向resource下的message配置文件
+  mvc: 
+    view: 
+      suffix: .jsp
+      prefix: /WEB-INF/jsp/
+  mail:
+    host: smtp.qq.com
+    username: 442441824@qq.com
+    password: liuqiangchengdu
+    properties: 
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
+          starttls.required: true
+  data.jpa.repositories.bootstrap-mode: deferred
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+  main.allow-bean-definition-overriding: true
+feign:
+  okhttp:
+    enabled: true
+security:
+  oauth2:
+    resource:
+      user-info-uri: http://gateway/api/auth/current
+      id: ${spring.application.name:}
+    client:
+      client-id: webApp
+      client-secret: 123456
+      access-token-uri: http://gateway/api/auth/oauth/token
+      grant-type: password
+      scope: webApp
+file:
+  plugin:
+  voice: file/voice
+  lib:
+  static: /static/
+  meta: file/meta
+  data: file/data
+  relation: file/relation
+  update: file/update
+  image: file/image
+logging:
+  config: log4j2.xml
+  level:
+    com.wldst.ruder: trace

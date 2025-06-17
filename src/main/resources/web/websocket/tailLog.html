@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>tail log</title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+ <script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+<!-- <script src="//cdn.bootcss.com/jquery/2.1.4/jquery.js"></script> -->
+</head>
+<body>
+   <h3>当前微服务如下</h3>
+      <div id="hosts">
+		<div  th:each="l:${hosts}">
+			<span th:text="${l}"></span>
+		</div>
+   </div>
+   <div id="tailLogSize">
+		<div>
+			<span th:text="500"></span>
+			<span th:text="1000"></span>
+			<span th:text="5000"></span>
+			<span th:text="10000"></span>
+		</div>
+   </div>
+   <div id="appList">
+		<div  th:each="l:${appList}">
+			<span th:text="${l}"></span>
+		</div>
+   </div>
+   <input type="button" class="u-btn save-btn" onclick="selectApp();" value="选定专业"/>
+   <div id="logfile">
+		<div  th:each="l:${logFileList}">
+			<span th:text="${l}"></span>
+		</div>
+	</div>
+   <input type="button" class="u-btn save-btn" onclick="tailFile();" value="选定日志文件" />
+   <input type="button" class="u-btn save-btn" onclick="downloadLog();" value="下载选定日志文件" />
+	 <div id="logList">
+		<div  th:each="l:${logList}">
+			<span th:text="${l}"></span>
+		</div>
+	</div>
+<h1>tail log</h1>
+	<div id="log-container" style="height: 450px; overflow-y: scroll; background: #333; color: #aaa; padding: 10px;">
+		<div>
+		
+		</div>
+	</div>
+</body>
+<script>
+function selectApp(){
+	 var genurl = "/ois/generator/updateDbInfo";
+	 var formData={};
+	 formData["app"]=$("#app").val();
+	 $.post(genurl,formData,function(res){
+		  var result = eval(res);
+		});
+}
+function selectApp(){
+	 var genurl = "/ois/generator/updateDbInfo";
+	 var formData={};
+	 formData["app"]=$("#app").val();
+	 $.post(genurl,formData,function(res){
+		  var result = eval(res);
+		});
+}
+//文件下载
+jQuery.download = function(url,tableName){
+    jQuery('<form action="'+url+'" method="'+('get')+'">' +  // action请求路径及推送方法
+             '<input name="tableName" value="'+tableName.trim()+'"/>'+
+            '</form>')
+    .appendTo('body').submit().remove();
+};
+function downloadLog(){
+	 var genurl = "/ois/generator/genCode";
+	 $.download(genurl,$("#logfile").val());
+}
+
+function updateDbiTables(){
+	 var showTable = "/ois/generator/showTable";
+	 $.get(showTable,function(res){
+		  var result = eval(res);
+		  showList(result.data);
+		  showList2(result.data);
+		});	
+}
+
+function showDivList(divId,dataArray){
+	var tables =  dataArray.split(',');
+    var html = ''; 
+    for(var index in clomuns){
+    	var tablei = tables[index];
+   			html+="<option value='"+tablei+"' >"+tablei+"</option>";
+        }
+    $("#"+divId).html(html);
+    return html;
+}
+
+
+
+$(document).ready(function() {
+	// 指定websocket路径
+	var websocket = new WebSocket('ws://[[${server}]]/log');
+	websocket.onmessage = function(event) {
+		// 接收服务端的实时日志并添加到HTML页面中
+		var text = $("#log-container div").text;
+		if(text.length>5000){
+			$("#log-container div").text(text.substring(5000));
+		}
+		$("#log-container div").append(event.data);
+		// 滚动条滚动到最低部
+		$("#log-container").scrollTop($("#log-container div").height() - $("#log-container").height());
+	};
+	
+	var optWS = new WebSocket('ws://[[${server}]]/opt');
+	optWS.onmessage = function(event) {
+		// 接收服务端的实时日志并添加到HTML页面中
+		var text = $("#log-container div").text;
+		var data=event.data;
+		showDivList(data[0],data[1]);
+	};
+	
+	optWS.send("listApp:appList");
+});
+</script>
+</body>
+</html>

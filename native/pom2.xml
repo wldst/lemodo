@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<!-- <version>2.4.4</version> -->
+		<version>3.0.0-M3</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.wldst</groupId>
+	<artifactId>ruder</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>ruder</name>
+	<description>Demo project for Spring Boot</description>
+
+	<properties>
+		<java.version>17</java.version>
+		<skipTests>true</skipTests>
+		<knife4j.version>2.0.4</knife4j.version>
+	</properties>
+
+	<dependencies>
+
+		<!-- <dependency> <groupId>us.codecraft</groupId> <artifactId>webmagic-core</artifactId> 
+			<version>0.7.3</version> </dependency> -->
+		<!--<dependency> 服务器开发需要的jar包 <groupId>org.neo4j.driver</groupId> <artifactId>neo4j-java-driver</artifactId> 
+			<version>1.7.5</version> </dependency> -->
+		<!-- https://mvnrepository.com/artifact/org.neo4j.driver/neo4j-java-driver -->
+		<!--Knife4j API文档生产工具 -->
+		<!-- <dependency> <groupId>com.github.xiaoymin</groupId> <artifactId>knife4j-micro-spring-boot-starter</artifactId> 
+			<version>${knife4j.version}</version> </dependency> <dependency> <groupId>com.github.xiaoymin</groupId> 
+			<artifactId>knife4j-spring-boot-starter</artifactId> <version>${knife4j.version}</version> 
+			</dependency> -->
+		<dependency>
+			<groupId>org.neo4j.driver</groupId>
+			<artifactId>neo4j-java-driver</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>2.1.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.14</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.14</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml-schemas</artifactId>
+			<version>3.14</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-scratchpad</artifactId>
+			<version>3.14</version>
+		</dependency>
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>itext7-core</artifactId>
+			<version>7.1.12</version>
+			<type>pom</type>
+		</dependency>
+		<!-- <dependency> <groupId>com.itextpdf</groupId> <artifactId>itext7-core</artifactId> 
+			<version>7.1.12</version> </dependency> -->
+		<!--ribbond的依赖包 -->
+		<dependency>
+			<!-- 嵌入式开发需要的jar包 -->
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j</artifactId>
+			<version>3.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.microsoft.sqlserver</groupId>
+			<artifactId>sqljdbc4</artifactId>
+			<version>4.0</version>
+		</dependency>
+		<!-- <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+    </dependency>-->
+		<!-- 注意是starter,自动配置 -->
+		<!-- <dependency> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-starter-security</artifactId> 
+			</dependency> -->
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
+
+		<!-- <dependency> <groupId>org.springframework.cloud</groupId> <artifactId>spring-cloud-commons</artifactId> 
+			<version>3.0.1-SNAPSHOT</version> </dependency> -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.qliu6</groupId>
+			<artifactId>property</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>2.0.1.Final</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.rometools</groupId>
+			<artifactId>rome</artifactId>
+			<version>1.8.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>rome</groupId>
+			<artifactId>rome</artifactId>
+			<version>1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc6</artifactId>
+			<version>11.2.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-neo4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<!-- 排除springboot自带的logback框架 -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<exclusions>
+				<!-- 去掉springboot默认配置 -->
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<!-- 引入log4j2依赖 -->
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mapdb</groupId>
+			<artifactId>mapdb</artifactId>
+			<version>3.0.8</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache-extras.beanshell</groupId>
+			<artifactId>bsh</artifactId>
+			<version>2.0b6</version>
+		</dependency>
+
+		<!-- 阿里巴巴fastjson，解析json视图 -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.15</version>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid</artifactId>
+			<version>1.1.3</version>
+		</dependency>
+
+		<!-- Log4j Dependency <dependency> <groupId>log4j</groupId> <artifactId>log4j</artifactId> 
+			<version>1.2.17</version> </dependency> -->
+
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.9.13</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-dbutils</groupId>
+			<artifactId>commons-dbutils</artifactId>
+			<version>1.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-dbcp2</artifactId>
+		</dependency>
+
+		<!--文件上传 -->
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.3.3</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.5</version>
+		</dependency>
+
+		<!-- activiti 依赖 -->
+		<!-- <dependency> <groupId>org.activiti</groupId> <artifactId>activiti-spring-boot-starter</artifactId> 
+			<version>7.1.0.M4</version> </dependency> <dependency> <groupId>org.activiti.dependencies</groupId> 
+			<artifactId>activiti-dependencies</artifactId> <version>7.1.0.M4</version> 
+			<type>pom</type> </dependency> -->
+		<!--邮件模块依赖 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		<!--drools规则引擎 -->
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-core</artifactId>
+			<version>7.6.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-compiler</artifactId>
+			<version>7.6.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-templates</artifactId>
+			<version>7.6.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kie-api</artifactId>
+			<version>7.6.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kie</groupId>
+			<artifactId>kie-spring</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-tx</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-beans</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context</artifactId>
+				</exclusion>
+			</exclusions>
+			<version>7.6.0.Final</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.statemachine</groupId>
+			<artifactId>spring-statemachine-core</artifactId>
+			<version>2.1.3.RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>3.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>javase</artifactId>
+			<version>3.3.0</version>
+		</dependency>
+
+		<!-- <dependency> <groupId>org.springframework.cloud</groupId> <artifactId>spring-cloud-starter-openfeign</artifactId> 
+			</dependency> <dependency> <groupId>io.github.openfeign</groupId> <artifactId>feign-okhttp</artifactId> 
+			</dependency> -->
+
+		<!--语音转写 SDK -->
+		<dependency>
+			<groupId>com.iflytek.msp.lfasr</groupId>
+			<artifactId>lfasr-sdk</artifactId>
+			<version>3.0.1</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/lfasr-sdk-3.0.1.jar</systemPath>
+		</dependency>
+<!-- <dependency>
+        <groupId>org.graalvm.sdk</groupId>
+        <artifactId>graal-sdk</artifactId>
+        <version>22.1.0</version>
+        <scope>provided</scope>
+    </dependency>-->
+		<!--第三方依赖包 -->
+		<dependency>
+			<groupId>com.alibaba.fastjson2</groupId>
+			<artifactId>fastjson2</artifactId>
+			<version>2.0.4</version>
+		</dependency>		
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+		</dependency>
+
+		<!-- 引入SpringBoot内嵌Tomcat对jsp的解析依赖，不添加这个解析不了jsp -->
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-jasper</artifactId>
+		</dependency>
+
+	</dependencies>
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>*.yml</include>
+					<include>*.properties</include>
+					<include>*.json</include>
+					<include>*.xml</include>
+				</includes>
+			</resource>
+			<resource>
+				<!-- 源文件夹 -->
+				<directory>src/main/webapp</directory>
+				<!-- 指定编译到的路径为 META-INF/resources -->
+				<targetPath>META-INF/resources</targetPath>
+				<!-- 指定源文件夹中的哪些资源需要进行编译 -->
+				<includes>
+					<include>*.*</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<includes>
+					<include>static/**</include>
+					<include>i18n/**</include>
+					<include>web/**</include>
+				</includes>
+			</resource>
+		</resources>
+		<plugins>
+			<!-- <plugin>
+	             <groupId>org.graalvm.nativeimage</groupId>
+	             <artifactId>native-image-maven-plugin</artifactId>
+	             <version>21.2.0</version>
+	             <executions>
+	                 <execution>
+	                     <goals>
+	                         <goal>native-image</goal>
+	                     </goals>
+	                     <phase>package</phase>
+	                 </execution>
+	             </executions>
+	             <configuration>
+	                 <skip>false</skip>
+	                 <imageName>Ruder</imageName>
+	                 <mainClass>com.wldst.ruder.RuderApplication</mainClass>
+	                 <buildArgs>
+	                 -Dnative -Dnative.surefire.skip
+	                  --trace-object-instantiation=org.apache.logging.slf4j.Log4jLogger,
+	                  --initialize-at-build-time=org.apache.logging.slf4j.Log4jLogger
+	                  --initialize-at-run-time=org.apache.logging.slf4j.Log4jLogger 
+	                  -H:Class=com.wldst.ruder.RuderApplication -H:TraceClassInitialization=true -H:+ReportExceptionStackTraces     
+	                  --no-fallback --add-opens  java.desktop/java.awt.font=ALL-UNNAMED --add-opens  java.base/java.text=ALL-UNNAMED --add-opens  java.base/java.lang.reflect=ALL-UNNAMED --add-opens  java.base/java.util=ALL-UNNAMED --add-opens  java.base/sun.nio.ch=ALL-UNNAMED --add-opens  java.base/java.lang=ALL-UNNAMED
+	                 </buildArgs>
+	             </configuration>
+	         </plugin>-->
+		
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<arguments>--enable-preview</arguments>
+					<jvmArguments>--add-opens  java.desktop/java.awt.font=ALL-UNNAMED --add-opens  java.base/java.text=ALL-UNNAMED --add-opens  java.base/java.lang.reflect=ALL-UNNAMED --add-opens  java.base/java.util=ALL-UNNAMED --add-opens  java.base/sun.nio.ch=ALL-UNNAMED --add-opens  java.base/java.lang=ALL-UNNAMED</jvmArguments>
+					<mainClass>com.wldst.ruder.RuderApplication</mainClass>
+					<!-- <classesDirectory>../classes </classesDirectory> -->
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.4.12</version>
+				<configuration>
+					<!-- 注意imageName一定要是符合正则[a-z0-9-_.]的，否则构建不会成功 -->
+
+					<!-- 详见：https://github.com/spotify/docker-maven-plugin Invalid repository 
+						                        name ... only [a-z0-9-_.] are allowed -->
+					<imageName>cruder</imageName>
+					<baseImage>java</baseImage>
+					<entryPoint>["java", "-jar", "/${project.build.finalName}.jar"]</entryPoint>
+					<resources>
+						              
+						<resource>
+							                    
+							<targetPath>/</targetPath>
+							<directory>${project.build.directory}</directory>
+							<include>${project.build.finalName}.jar</include>
+						</resource>
+						      
+					</resources>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<compilerArgs>--enable-preview</compilerArgs>
+				</configuration>
+			</plugin>
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-shade-plugin</artifactId> 
+				<executions> <execution> <phase>package</phase> <goals> <goal>shade</goal> 
+				</goals> <configuration> <transformers> <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"> 
+				<mainClass>com.yunshouhu.apkprotect.MainHelper</mainClass> </transformer> 
+				</transformers> </configuration> </execution> </executions> </plugin> <plugin> 
+				<groupId>com.github.wvengen</groupId> <artifactId>proguard-maven-plugin</artifactId> 
+				<version>2.0.11</version> <executions> <execution> <phase>package</phase> 
+				<goals> <goal>proguard</goal> </goals> </execution> </executions> <configuration> 
+				<obfuscate>true</obfuscate> <proguardInclude>${basedir}/proguard.cfg</proguardInclude> 
+				<attach>true</attach> <attachArtifactClassifier>proguard</attachArtifactClassifier> 
+				</configuration> </plugin> -->
+
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-release</id>
+			<name>Spring release</name>
+			<url>https://repo.spring.io/release</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>

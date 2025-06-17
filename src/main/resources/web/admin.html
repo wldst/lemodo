@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title th:text="${adminTitle}">layout 后台大布局 - Layui</title>
+  <link rel="stylesheet" th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+  <link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+  <div class="layui-header">
+    <div class="layui-logo" th:text="${adminTitle}">layui 后台布局</div>
+    <!-- 头部区域（可配合layui已有的水平导航） -->
+    <ul class="layui-nav layui-layout-left">
+      <li class="layui-nav-item"><i class="layui-icon layui-icon-heart-fill"></i><a href="">控制台</a></li>
+      <li class="layui-nav-item"><a href="javascript:;" onclick="openDomain('domain','领域管理','/view/domainDiv')">领域管理</a></li>
+      <li class="layui-nav-item"><i class="layui-icon">&#xe60c;</i><a href="">用户</a></li>
+      <li class="layui-nav-item">
+        <a href="javascript:;">其它系统</a>
+        <dl class="layui-nav-child">
+          <dd><a href="">邮件管理</a></dd>
+          <dd><a href="">消息管理</a></dd>
+          <dd><a href="">授权管理</a></dd>
+        </dl>
+      </li>
+    </ul>
+    <ul class="layui-nav layui-layout-right">
+      <li class="layui-nav-item">
+        <a href="javascript:;">
+          <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+          时空趋势
+        </a>
+        <dl class="layui-nav-child">
+          <dd><a href="">基本资料</a></dd>
+          <dd><a href="">安全设置</a></dd>
+        </dl>
+      </li>
+      <li class="layui-nav-item"><a href="">退了</a></li>
+    </ul>
+  </div>
+  
+  <div class="layui-side layui-bg-black">
+    <div class="layui-side-scroll">
+    
+    <ul class="layui-nav layui-nav-tree"  lay-filter="menuLeft">
+    <li class="layui-nav-item layui-nav-itemed  ">
+      <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+      <ul class="layui-nav layui-nav-tree"  lay-filter="test">
+        <li class="layui-nav-item layui-nav-itemed">
+          <a class="" href="javascript:;" onclick="openDomain('product','所有商品','[(${MODULE_NAME})]/view/domainDiv')">所有商品</a>
+          <dl class="layui-nav-child">
+            <dd><a href="javascript:;" onclick="openDomain('editor','test','/gw/graph/vue/search')">视图设计</a></dd>
+            <dd><a href="javascript:;" onclick="openDomain('searchDomain','searchDomain','/gw/graph/vue/searchDomain')">搜索对象</a></dd>
+            <dd><a href="javascript:;" onclick="openDomain('po','对象定义','[(${MODULE_NAME})]/view/poDiv')">简单对象定义</a></dd>
+            <dd><a href="javascript:;">领域对象</a></dd>
+            <dd><a href="javascript:;" onclick="openDomain('relation','关系定义','[(${MODULE_NAME})]/angular/bigDomainDiv')">关系定义</a></dd>
+            <dd><a href="javascript:;" onclick="openDomain('biz','业务对象设计','[(${MODULE_NAME})]/view/domainDiv')">业务对象设计</a></dd>
+          </dl>
+        </li>
+        <li class="layui-nav-item">
+          <a href="javascript:;">D3JsDemo</a>
+          <dl class="layui-nav-child">
+            <dd><a href="javascript:;">列表一</a></dd>
+            <dd><a href="javascript:;" onclick="openDomain('[(${MODULE_NAME})]/view/timeDiv')">时间线</a></dd>
+            <dd><a href="">超链接</a></dd>
+          </dl>
+        </li>
+        <li class="layui-nav-item"><a href="">云市场</a></li>
+        <li class="layui-nav-item"><a href="">发布商品</a></li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="layui-body">
+    <!-- 内容主体区域 -->
+    <div id="container" style="padding: 15px;">
+<div class="layui-tab layui-tab-brief" lay-filter="adminTab" lay-allowclose="true">
+  <ul class="layui-tab-title">
+    <!-- <li class="layui-this" lay-id="11">网站设置</li> -->
+  </ul>
+  <div class="layui-tab-content">
+    <!-- <div class="layui-tab-item layui-show"><div class="t2"></div></div> -->
+  </div>
+</div>
+</div>
+  </div>
+  
+  <div class="layui-footer">
+    <i class="layui-icon">&#xe60c;</i><!-- 底部固定区域 -->
+    ©QQ1721903353 微信:时空趋势
+  </div>
+</div>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+<script th:src="@{/static/layui/layui.js}"></script>
+<script th:src="@{/static/plugin/d3.js}" charset="utf-8"></script>
+<script th:src="@{/static/plugin/d3js/timeseries/timeseries.js}"></script>
+<script>
+var element;
+layui.config({
+	  dir: '/static/layui/' //layui.js 所在路径（注意，如果是script单独引入layui.js，无需设定该参数。），一般情况下可以无视
+	  ,version: false //一般用于更新模块缓存，默认不开启。设为true即让浏览器不缓存。也可以设为一个固定的值，如：201610
+	  ,debug: false //用于开启调试模式，默认false，如果设为true，则JS模块的节点会保留在页面
+	  ,base: '/static/layui/lay/modeules/' //设定扩展的Layui模块的所在目录，一般用于外部模块扩展
+	}).use('element', function(){
+  element = layui.element;
+  
+  function addTab(id,title,content){
+      //新增一个Tab项
+      element.tabAdd('demo', {
+        title: '新选项'+ (Math.random()*1000|0) //用于演示
+        ,content: '内容'+ (Math.random()*1000|0)
+        ,id: new Date().getTime() //实际使用一般是规定好的id，这里以时间戳模拟下
+      })
+    }
+  
+});
+
+function openDomain(tabId,title,genurl){
+	 var formData={};
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+		  dataType: "html",
+		  contentType: "text/html;charset=UTF-8",
+		  data: JSON.stringify(formData),
+	      success: function (d) {
+	    	  element.tabDelete('adminTab', tabId);
+	    	  element.tabAdd('adminTab', {
+	    	        title: title //用于演示
+	    	        ,content: d
+	    	        ,id: tabId //实际使用一般是规定好的id，这里以时间戳模拟下
+	    	      });
+	    	//切换到指定Tab项
+	          element.tabChange('adminTab', tabId); //切换到：用户管理
+	      }
+	    });
+	 
+}
+
+
+</script>
+</body>
+</html>

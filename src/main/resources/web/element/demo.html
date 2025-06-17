@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" th:href="@{/static/plugin/elementui/index.css}" >
+</head>
+<body>
+  <div id="app">
+    <el-button @click="visible = true">Button</el-button>
+    <el-dialog :visible.sync="visible" title="Hello world">
+      <p>Try Element</p>
+    </el-dialog>
+  </div>
+</body>
+  <!-- import Vue before Element -->
+  <script th:src="@{/static/plugin/vue/vue.min.js}"></script>
+  
+  <!-- import JavaScript -->
+  <script th:src="@{/static/plugin/elementui/index.js}"></script>
+  <script th:src="@{/static/plugin/axios/axios.min.js}"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: function() {
+        return { visible: false }
+      }
+    })
+  </script>
+</html>

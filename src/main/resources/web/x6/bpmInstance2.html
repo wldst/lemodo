@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <!-- <script th:href="@{/static/plugin/antv/x6.js}"></script> -->
+        <title th:utext="${name}"></title>
+        <style type="text/css">
+            #container {
+                width: 100%;
+                height: calc(100vh);
+            }
+            @keyframes ant-line {
+                        to {
+                            stroke-dashoffset: -1000;
+                        }
+                    }
+        </style>
+    </head>
+    <body>
+        <div id="container" style="position: fixed;"></div>
+    </body>
+<script src="https://cdn.jsdelivr.net/npm/@antv/x6/dist/x6.js"></script>
+<script th:src="@{/web/x6/shape.js}"></script>
+    <script type="text/javascript"> 
+
+
+        const graph = new X6.Graph({
+            container: document.getElementById('container'),
+            grid: {
+                size: 20, //网格大小
+                visible: true, //是否开启网格画布
+                type: 'dot', // 'dot' | 'fixedDot' | 'mesh'|     //网格样式
+                args: {
+                    color: '#75664D', // 网格线/点颜色  
+                    thickness: 1, // 网格线宽度/网格点大小
+                },
+            },
+            //对齐线是移动节点排版的辅助工具
+            snapline: true,
+            connecting: {
+                snap: true,
+                highlight: true,
+            },
+        })
+
+const data = {
+  // 节点
+  nodes: [
+    {
+      id: 'node1', // String，可选，节点的唯一标识
+      x: 40,       // Number，必选，节点位置的 x 值
+      y: 40,       // Number，必选，节点位置的 y 值
+      width: 80,   // Number，可选，节点大小的 width 值
+      height: 40,  // Number，可选，节点大小的 height 值
+      label: 'hello', // String，节点标签
+    },
+    {
+      id: 'node2', // String，节点的唯一标识
+      x: 160,      // Number，必选，节点位置的 x 值
+      y: 180,      // Number，必选，节点位置的 y 值
+      width: 80,   // Number，可选，节点大小的 width 值
+      height: 40,  // Number，可选，节点大小的 height 值
+      label: 'world', // String，节点标签
+    },
+  ],
+  // 边
+  edges: [
+    {
+      source: 'node1', // String，必须，起始节点 id
+      target: 'node2', // String，必须，目标节点 id
+    },
+  ],
+}; 
+
+const rect = new X6.Shape.Rect({
+  id: 'node3',
+  x: 40+100,
+  y: 40,
+  width: 100,
+  height: 40,
+  label: 'rect',
+  zIndex: 2,
+})
+ 
+const circle = new X6.Shape.Circle({
+  id: 'node4',
+  x: 280+80,
+  y: 200,
+  width: 60,
+  height: 60,
+  label: 'circle',
+  zIndex: 2,
+})
+ 
+const edge = new X6.Shape.Edge({
+  id: 'edge1',
+  source: rect,
+  target: circle,
+  zIndex: 1,
+})
+
+var graphData = JSON.parse('[(${data})]');
+graph.fromJSON(graphData.cells)
+ 
+      graph.addNode(rect)
+      graph.addNode(circle)
+      graph.addEdge(edge)
+
+    </script>
+</html>

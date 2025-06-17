@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title th:text="${adminTitle}">管理中心</title>
+  <link rel="stylesheet" th:href="@{/static/plugin/elementui/index.css}" >
+  <link rel="stylesheet" th:href="@{/static/plugin/nprogress/nprogress.css}" >
+</head>
+<body>
+<div id="app">
+ 
+</div>
+
+</body>
+<!-- import Vue before Element -->
+  <script  th:src="@{/static/plugin/vue/vue.min.js}"></script>
+  <!-- import JavaScript -->
+  <script  th:src="@{/static/plugin/elementui/index.js}"></script>
+  
+  <script type="module" src="https://unpkg.com/vue-router@3.5.4/dist/vue-router.min.js"></script>
+  <!-- <script type="module" th:src="@{/static/plugin/vue/router/vue-router.global.js}"></script> -->
+  <script type="module" th:src="@{/web/element/store/index.js}"></script>
+  <script type="module" th:src="@{/web/element/router/index.js}"></script>
+  <script type="module" th:src="@{/web/element/utils/permission.js}"></script>
+  <script type="module" th:src="@{/static/plugin/axios/axios.min.js}"></script>
+    <!-- import JavaScript -->
+  <script type="module" th:src="@{/static/plugin/elementui/index.js}"></script>
+  <script type="module" th:src="@{/static/plugin/nprogress/nprogress.js}"></script>
+  <script type="module" th:src="@{/static/plugin/elementui/index.js}"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/v-charts/lib/line.min.js"></script>
+  
+  
+  
+<template th:replace="|/element/components/header|::header"></template>
+<template th:replace="|/element/components/AppMain|::appmain"></template>
+  
+  
+  <script type="module">
+  Vue.use(
+		    (_vue, _opts) => {
+		        _vue.prototype.$test = () => {
+		            console.log('test')
+		        }
+		    }
+		)
+
+//import 'normalize.css/normalize.css'// A modern alternative to CSS resets
+
+import ElementUI from '@/static/plugin/elementui'
+//import locale from 'element-ui/lib/locale/lang/zh-CN' // lang i18n
+import VCharts from 'v-charts'
+
+import '@/web/element/styles/index.scss' // global css
+
+import '@/web/element/icons' // icon
+
+Vue.use(ElementUI, { locale })
+Vue.use(VCharts)
+
+Vue.config.productionTip = false
+
+new Vue({
+  el: '#app',
+  router,
+  store,
+  template: '<AppMain/>',
+  components: { AppMain }
+})
+</script>
+</html>

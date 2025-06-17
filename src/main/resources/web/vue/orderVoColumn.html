@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>[(${name})]字段</title>
+    <script th:src="@{/static/plugin/vue/vue.min.js}"></script>
+<script th:src="@{/static/plugin/vue/Sortable.min.js}"></script>
+<script th:src="@{/static/plugin/vue/vuedraggable.umd.min.js}"></script>
+    <script th:src="@{/static/plugin/axios/axios.min.js}"></script>
+    <style>
+     .button {
+  margin-top: 35px;
+}
+.flip-list-move {
+  transition: transform 0.5s;
+}
+.no-move {
+  transition: transform 0s;
+}
+.ghost {
+  opacity: 0.5;
+  background: #c8ebfb;
+}
+.list-group {
+  min-height: 20px;
+}
+.list-group-item {
+  cursor: move;
+}
+.list-group-item i {
+  cursor: pointer;
+}
+    </style>
+
+</head>
+<body>
+
+<div  id="app">
+      <dc></dc>
+  </div>
+<script>
+//拦截器
+axios.interceptors.request.use((config) => {
+  if (config.method === 'post' && axios.defaults.headers.post['Content-Type'] === 'multipart/form-data;') {
+    return config
+  }
+  if (config.method === 'post' && axios.defaults.headers.post['Content-Type'] === 'application/x-www-form-urlencoded') {
+    config.data = JSON.stringify(config.data)
+  } else {
+    config.data = JSON.stringify(config.data)
+  }
+  return config
+
+}, (error) => {
+  return Promise.reject(error)
+})
+
+
+axios.interceptors.request.use(
+  function(config) {
+    const { data, headers, cyptedData } = config;
+    // authHeaders(headers);
+    let newData;
+    if (!headers['Content-Type']) {
+      // newData = Object.assign({}, data);
+      headers['Content-Type'] = 'application/json;charset=UTF-8';
+    }
+    return { ...config, data: data };
+  },
+  function(error) {
+    return Promise.reject(error);
+  }
+);
+Vue.component('vuedraggable', window.vuedraggable)
+Vue.component('dc', {	 
+	  data: function(){
+		  return {
+			  isDragging: false,
+		      columnList:  [(${data})],
+		  }
+	  },
+	  computed: {
+	        // 计算数学，匹配搜索
+	        dragOptions: function() {
+		      return {
+		        animation: 0,
+		        group: "description",
+		        disabled: false,
+		        ghostClass: "ghost"
+		      };
+		    },			
+	    },  
+	    methods:{
+	    	getColumns: function() {
+				var cols=[];
+				var headers=[];
+				var vCols=[];
+				for(var ci in this.columnList){
+					headers[ci]=this.columnList[ci].columnName
+					cols[ci]=this.columnList[ci].columnCode
+					vCols[ci]=this.columnList[ci].vcolumn
+				}
+				      return {
+				        columns: cols,
+				        voColumns: vCols,
+				        header: headers
+				      };
+			},
+	    	save: function() {	
+	    		let data = this.getColumns();
+	    		data['id']=[(${id})];
+	        	axios
+	            .post('[(${MODULE_NAME})]/vo/[(${id})]/update',data)
+	            .then(response => (this.domains = response.data.data))
+	            .catch(function (error) { // 请求失败处理
+	              console.log(error);
+	            });
+	        	return this.domains;
+	        },
+	    },
+	  template: `
+		  <div  class="row">
+		    <div class="col-6">
+		      <h3>[(${name})]字段顺序调整</h3>
+		      <draggable v-model="columnList" 
+		      draggable=".item"
+		    		        @end="save"
+		      >
+		      <div v-for="element in columnList" :key="element.index" class="item">
+		      <label >{{element.index}} {{ element.columnCode }}: {{ element.columnName }}:{{ element.vcolumn }} </label>
+		      </div>
+		  </draggable>
+		    </div>
+		  </div>
+	  `
+	});
+
+var demo = new Vue({
+    el: '#app',
+    components:{
+    	draggable: window.vuedraggable,
+    },
+});
+</script>
+</body>
+</html>

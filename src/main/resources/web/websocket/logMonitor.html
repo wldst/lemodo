@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${logFile}</title>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<div id="log-container"
+		style="height: 450px; overflow-y: scroll; background: #333; color: #aaa; padding: 10px;">
+		<div></div>
+	</div>
+	<div id="closeWS"></div>
+</body>
+<script>
+var logWS = new WebSocket('ws://[[${server}]]/log');
+logWS.onmessage = function(event) {
+	// 接收服务端的实时日志并添加到HTML页面中
+	var divo = $("#log-container div");
+	var text = divo.text;
+	if(text.length>5000){
+		divo.text(text.substring(5000));
+	}
+	divo.append(event.data);
+    var scrollHeight = divo.prop("scrollHeight");
+    
+    var clientHeight = divo.height();
+	var hight=$(document).height()-clientHeight;
+    divo.scrollTop(hight,450);
+}
+
+/* $(window).scroll(function(){
+	   
+	　　var scrollHeight = $(document).height();
+	　　if(scrollTop + clientHeight == scrollHeight){
+	　　　　
+	　　}
+	}); */
+
+logWS.onopen = function () {
+	logWS.send('[[${logFile}]]');
+}
+function close(){
+	logWS.close();
+}
+$(document).ready(function() {
+});
+</script>
+</body>
+</html>

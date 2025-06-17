@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Title</title>
+    <script th:src="@{/static/plugin/jQuery/jquery-2.3.3.min.js}"></script>
+</head>
+<body>
+	<h3>监控服务</h3>
+	<label>数据库的IP和端口:</label><input type="text" id="ipport" name="ipprot" value="" required=true />
+	<label>数据库账号:</label><input type="text" id="user" name="user"   value="" /><br/>
+	<label>数据库密码:</label><input type="text" id="password" name="password" value="" />
+	<label>数据库名称:</label><input type="text" id="dbName" name="dbName" value="" />
+	<input type="button" class="u-btn save-btn" onclick="updateDbInfo();" value="更新数据库连接信息" />
+	<h3>服务器列表</h3>
+	<select id="database">
+		<option th:each="dbl:${dbList}" th:value="${dbl}" th:text="${dbl}"></option>
+	</select>
+	 <input type="button" class="u-btn save-btn" onclick="updateDataBase();" value="选定数据库" />
+	<h3>所选数据库的数据表</h3>
+	<select id="tableName">
+		<option th:each="l:${list}" th:value="${l}" th:text="${l}"></option>
+	</select>
+	 <input type="button" class="u-btn save-btn" onclick="selectTable();" value="选定表"/>
+   <input type="button" class="u-btn save-btn" onclick="updateQuery();" value="生成代码" />
+	 <form id="queryInfo" method="POST" >
+	 <div class="row m-sm no-padding">
+	    <table id="clomunList"
+	     class="table table-striped table-bordered table-hover dataTables-example">
+	     <thead>
+		     <tr>
+		       <th style="width: 10%">序号</th>
+		       <th style="width: 10%">名称</th>
+		       <th style="width: 10%">类型</th>
+		       <th style="width: 10%">排序</th>
+		       <th style="width: 10%">是否按时间断查询</th>
+		       <th style="width: 10%">是否模糊查询</th>
+		       <th>备注</th>
+		     </tr>
+	     </thead>
+	        <tbody id="tbody1">
+	       </tbody>
+        </table>
+    </div> 	
+    </form>
+   <h3>所选数据库的视图</h3>
+	<select id="tableName">
+		<option th:each="li:${views}" th:value="${li}" th:text="${li}"></option>
+	</select>
+   
+   <h3>当前数据库中表如下</h3>
+   <div id="tableList">
+		<div  th:each="l:${list}">
+			<span th:text="${l}"></span>
+		</div>
+	</div>
+	
+	 
+	
+<script>
+function updateDbInfo(){
+	 var genurl = "/ois/generator/updateDbInfo";
+	 var formData={};
+	 formData["user"]=$("#user").val();
+	 formData["password"]=$("#password").val();
+	 formData["dbName"]=$("#dbName").val();
+	 formData["ipPort"]=$("#ipport").val();
+	 $.post(genurl,formData,function(res){
+		  var result = eval(res);
+		});
+}
+function download(){
+	 var genurl = "/ois/generator/genCode";
+	 $.download(genurl,$("#tableName").val());
+}
+
+//文件下载
+jQuery.download = function(url,tableName){
+    jQuery('<form action="'+url+'" method="'+('get')+'">' +  // action请求路径及推送方法
+             '<input name="tableName" value="'+tableName.trim()+'"/>'+
+            '</form>')
+    .appendTo('body').submit().remove();
+};
+
+function updateDataBase(){
+ var genurl = "/ois/generator/updateDb";
+ var formData={};
+ formData["database"]=$("#database").val();
+ $.post(genurl,formData,function(res){
+	  var result = eval(res);
+	  if(result){
+		  updateDbiTables();
+	   }
+	});
+}
+
+
+function showList(dataArray){
+	var tables =  dataArray.split(',');
+    var html = ''; 
+    for(var index in clomuns){
+    	var tablei = tables[index];
+   			html+="<option value='"+tablei+"' >"+tablei+"</option>";
+        }
+    $("#tableName").html(html);
+    return html;
+}
+
+function updateDbiTables(){
+	 var showTable = "/ois/generator/showTable";
+	 $.get(showTable,function(res){
+		  var result = eval(res);
+		  showList(result.data);
+		  showList2(result.data);
+		});	
+}
+
+function showList(dataArray){
+	var tables =  dataArray.split(',');
+    var html = ''; 
+    for(var index in tables){
+    	var tablei = tables[index];
+   			html+="<option value='"+tablei+"' >"+tablei+"</option>";
+        }
+    $("#tableName").html(html);
+    return html;
+}
+
+function selectTable(){
+	 var genurl = "/ois/generator/showColumn";
+	 var formData={};
+	 formData["tableName"]=$("#tableName").val();
+	 $.post(genurl,formData,function(res){
+		  var result = eval(res);
+		  if(result){
+			  showColumnList(result.data);
+		   }
+		});
+}
+
+function showColumnList(dataArray){
+    var html = ''; 
+    html+=''
+    //var table= $("#clomunList");
+    for(var index in dataArray){
+    	var tablei = dataArray[index];
+    	var ctype = tablei.type;
+    	html+='<tr  class="text-center">'
+    	var num= parseInt(index)+1
+    	html+='    <td class="text-center"> <span >'+num+'</span></td>'
+    	html+='    <td class="text-center"> <span >'+tablei.name+' <span ></td>'
+    	html+='    <td class="text-center"><span >'+tablei.type+'</span></td>'
+    	html+='    <td class="text-center"> '
+    	if(ctype=="datetime"||ctype=='timestamp'){
+          		html+='<select onChange="changeSelect(this);" name="queryOrder__'+tablei.name+'">	<option value="DESC" >降序</option><option value="no" selected>不排序</option><option value="asc" selected>升序</option></select>'
+          	}else{
+       		html+='--'
+       	}
+    	html+='</td>'
+    	html+='    <td class="text-center"> '
+       	if(ctype=="datetime"||ctype=='timestamp'){
+       		html+='<select onChange="changeSelect(this);" name="queryDate2__'+tablei.name+'">	<option value="true" >是</option>	<option value="false" selected>否</option></select>'
+       	}else{
+       		html+='--'
+       	}
+        html+='</td>'
+        html+='    <td class="text-center"> '
+        if(ctype.indexOf("varchar")==0){
+        	ctype=ctype.replace("varchar(","")
+        	ctype=ctype.replace(")","")
+        	if(parseInt(ctype)>64){
+        		html+='<select onChange="changeSelect(this);" name="query__'+tablei.name+'">	<option value="true" >是</option>	<option value="false" selected>否</option></select>'
+        	}
+    	}else{
+    		html+='--'
+    	}
+        html+='</td>'
+        html+='    <td class="text-center">'+tablei.mark +'     </td>'
+        html+=' </tr>' 
+    	
+  // 	html+="<input value='"+tablei+"' >"+tablei.name+"</input>";
+        }
+     $("#tbody1").html(html); 
+    return html;
+}
+
+function showList2(dataArray){
+	var tables =  dataArray.split(',');
+    var html = ''; 
+    for(var index in tables){
+    	var tablei = tables[index];
+   	    html+="<span>"+tablei+"</span>";
+   	    if(index>1&&index%5==0){
+   	    	html+="<div/>"
+   	    }
+    }
+    $("#tableList").empty();
+    $("#tableList").html(html);
+    return html;
+}
+var query={}
+var queryOrder={}
+var queryDate2={}
+function changeSelect(data){
+	var name =data.name;
+	var keys = name.split("__");
+	var qname=keys[1];
+	if(keys[0]=="query"){
+		query[qname]=data.value;
+		console.log(query)
+	}
+	if(keys[0]=="queryOrder"){
+		queryOrder[qname]=data.value;
+		console.log(queryDate)
+		}
+	if(keys[0]=="queryDate2"){
+		queryDate2[qname]=data.value;
+		console.log(queryDate2)
+	}
+}
+function updateQuery(){
+	var genurl = "/ois/generator/updateQuery";
+	var formData={};
+	formData["query"]=query;
+	formData["queryOrder"]=queryOrder;
+	formData["queryDate2"]=queryDate2;
+	$.post(genurl,formData,function(res){
+		 download()
+		  var result = eval(res);
+			 
+		});
+}
+
+</script>
+</body>
+</html>

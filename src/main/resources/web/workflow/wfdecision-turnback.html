@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>任务打回</title>
+</head>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script language="javascript">
+	//流程动作执行
+	function performAction(){
+		var params={};
+		 
+		params['flowId']= '[(${workflow?.get("id")})]';
+		params['executeComment']=$('#executeComment').val();
+		params['turnBackTaskID']=$("#turnBackTaskID").find("option:selected").attr("value");
+		$.ajax({
+			url: '[(${MODULE_NAME})]/bpm/turnback/turnback',
+			type: 'POST', 
+			data: JSON.stringify(params), 
+			dataType : "json",
+	        contentType : "application/json;charset=UTF-8",
+			beforeSend: function () {
+				$("#BTN_SAVE").attr({"disabled":true});
+			},
+			success: function(result){
+				if (result.success) { // 操作成功
+					// 刷新数据列表
+					window.close();
+				} 
+			},
+			complete: function(e, xhr, settings) {
+				$("#BTN_SAVE").attr({"disabled":false});
+			}
+		});
+
+	}  
+	
+	function closeWin(){
+		window.close();
+	}
+</script>
+<body scroll="no">
+<form name="wfDecisionTurnbackForm" id="wfDecisionTurnbackForm" method="POST"> 
+<table width="100%" cellpadding="2" cellspacing="2" class="addtable" align="center">
+   <tr>
+      <td class="label" nowrap width="15%">任务选择：</td>
+      <td class="tdinput" th:if="${not #lists.isEmpty(completedTask)}">
+        <select id="turnBackTaskID" name="turnBackTaskID" >
+        <option th:each="ti : ${completedTask}" th:value="${ti?.get('id')}" th:utext="${ti?.get('title')}+':'+( ${ti?.get('executors')} ?: '' )"></option>
+	   </select>
+      </td>
+      <td class="tdinput" th:if="${#lists.isEmpty(completedTask)}"> 
+        无完成任务节点
+      </td>
+   </tr>
+   <tr >
+      <td class="label" nowrap width="15%">当前任务：</td>
+      <td class="tdinput" nowrap width="85%" th:utext="${currentTask?.get('title')}"> 
+          
+      </td>
+   </tr>
+
+   	<tr >
+			      <td class="label" nowrap width="15%">执行意见：</td>
+			      <td class="tdinput" nowrap width="85%"> 
+			         <textarea cols="60" rows="5" name="executeComment"></textarea>
+			      </td>
+	</tr>
+   <tr align="center">
+      <td height="45" nowrap colspan="2">
+		 <input type="button" name="BTN_SAVE" value="确认执行" class="input_button" onclick="performAction();">
+		 <input type="button" name="BTN_CLOSE" value="取消" class="input_button" onclick="closeWin();">
+      </td>
+   </tr>
+</table>      
+</form>
+<iframe name="operFrame" width="0" height="0"></iframe>
+</body>
+</html>

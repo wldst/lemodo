@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1">
+<title th:text="${adminTitle}">layout 后台大布局 - Layui</title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+
+<link rel="stylesheet" th:href='@{/static/plugin/fullcalendar/lib/main.css}' />
+
+</head>
+<body>
+	<div class="layui-layout">
+		<div class="layui-side layui-bg-gray">
+			<div class="layui-side-scroll">
+			<div class="demoTable">
+				<div class="layui-form-item" >
+					 <label  class= "layui-form-label" ></label> 
+					<div class="layui-input-inline">
+						<input name="name" class="layui-input" id="name" 
+						placeholder="请输入" autocomplete="off">
+						<input id="dataR" type="hidden"/>
+						<button class="layui-btn"  onclick="searchDomain()">
+							搜索<i class="layui-icon">&#xe615;</i>
+						</button>
+					</div>
+				</div>
+			    <!-- <div class="grid-demo grid-demo-bg1">
+			       <div class="grid-demo">
+			            <button class="layui-btn" lay-filter="searchDO"
+							data-type="reload">
+							搜索<i class="layui-icon">&#xe615;</i>
+						</button>
+				   </div>
+			    </div> -->
+		</div>
+		<ul id="dsList">
+		
+		</ul>
+			
+			</div>
+		</div>
+
+		<div class="layui-layout-body">
+			<!-- 内容主体区域 -->
+			<div id="container" style="padding: 15px;">
+				<div id='calendar'></div>
+			</div>
+		</div>
+	</div>
+
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:src='@{/static/plugin/fullcalendar/lib/main.js}'></script>
+	<script th:src='@{/static/plugin/fullcalendar/lib/locales-all.js}'></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+<script>
+function searchDomain(){
+	let sname = $("#name").val();
+	if(sname==null||sname==""){
+		return;
+	}
+	
+	var queryData= {
+            // our hypothetical feed requires UNIX timestamps
+            name: sname
+        };
+  	  $.ajax({
+            url: '[(${MODULE_NAME})]/cruder/MetaData/query',
+            dataType : "json",
+            type: "post",
+	        contentType : "application/json;charset=UTF-8",
+            data: JSON.stringify(queryData),
+            success: function(ret) { 
+            	$("#dsList").find("li").remove(); 
+                var data = ret.data;                
+                var currentTime = new Date();
+                var dataMap={};
+                for(var dd in data){
+              	  var eventEl = data[dd];
+              	  dataMap[eventEl.label]=eventEl;
+              	  $("#dsList").append(" <li dLabel="+eventEl.label+" id='li"+eventEl.label+"' class='layui-nav-item' onclick='changeDomain(this,\""+eventEl.label+"\")'><span>"+eventEl.name+"</span></li>");
+                }
+                $("#dataR").val(JSON.stringify(dataMap));
+            }
+        });
+	
+}
+
+function getDomainData(){
+	 
+	
+	var queryData= { 
+        };
+  	  $.ajax({
+            url: '[(${MODULE_NAME})]/cruder/MetaData/query',
+            dataType : "json",
+            type: "post",
+	        contentType : "application/json;charset=UTF-8",
+            data: JSON.stringify(queryData),
+            success: function(ret) { 
+            	$("#dsList").find("li").remove(); 
+                var data = ret.data;                
+                var currentTime = new Date();
+                var dataMap={};
+                for(var dd in data){
+              	  var eventEl = data[dd];
+              	  dataMap[eventEl.label]=eventEl;
+              	  $("#dsList").append(" <li dLabel="+eventEl.label+" class='layui-nav-item' onclick='changeDomain(\""+eventEl.label+"\")'><span>"+eventEl.name+"</span></li>");
+                }
+                $("#dataR").val(JSON.stringify(dataMap));
+            }
+        });
+	
+}
+
+function dateFormat(fmt, date) {
+    let ret="";
+    date=new Date(date);
+    const opt = {
+      'Y+': date.getFullYear().toString(), // 年
+      'm+': (date.getMonth() + 1).toString(), // 月
+      'd+': date.getDate().toString(), // 日
+      'H+': date.getHours().toString(), // 时
+      'M+': date.getMinutes().toString(), // 分
+      'S+': date.getSeconds().toString() // 秒
+    }
+    for (let k in opt) {
+      ret = new RegExp('(' + k + ')').exec(fmt)
+      if (ret) {
+        fmt = fmt.replace(
+          ret[1],
+          ret[1].length == 1 ? opt[k] : opt[k].padStart(ret[1].length, '0')
+        )
+      }
+    }
+    return fmt
+  }
+var cDomain;
+var lastSpan;
+function changeDomain(obj,data){
+	if(lastSpan){
+		lastSpan.removeClass('select');
+	}
+	lastSpan=$("#"+obj.id).find('span');
+	lastSpan.toggleClass("select");
+	if(data==null||data==""){
+		return;
+	}
+	var dataMap = JSON.parse($("#dataR").val())
+	cDomain=dataMap[data];
+	newCalendar(cDomain);
+}
+function newCalendar(cDomain) {
+	var calendarLabel="Todo";
+	 if(cDomain==null||cDomain==""){
+		 calendarLabel="Todo";
+	 }
+	 if(cDomain.label){
+		 calendarLabel=cDomain.label;
+	 }
+    var initialLocaleCode = 'zh-cn';
+    var localeSelectorEl = document.getElementById('locale-selector');
+    var calendarEl = document.getElementById('calendar');
+    var dataList;
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+      },
+     // initialDate: '2020-09-12',
+      locale: initialLocaleCode,
+      buttonIcons: false, // show the prev/next text
+      weekNumbers: true,
+      navLinks: true, // can click day/week names to navigate views
+      editable: true,
+      dayMaxEvents: true, // allow "more" link when too many events
+      events: function(info,callback){
+    	 var queryData= {
+              // our hypothetical feed requires UNIX timestamps
+              startTime: dateFormat('YYYY-mm-dd HH:MM:SS',info.startStr),
+              endTime: dateFormat('YYYY-mm-dd HH:MM:SS',info.endStr)
+          };
+    	  $.ajax({
+              url: '[(${MODULE_NAME})]/cruder/'+calendarLabel+'/query',
+              dataType : "json",
+              type: "post",
+  	          contentType : "application/json;charset=UTF-8",
+              data: JSON.stringify(queryData),
+              success: function(ret) {
+                  var events = [];
+                  var data = ret.data;
+                  dataList=data;
+                  var currentTime = new Date();
+                  for(var dd in data){
+                	  var eventEl = data[dd];
+                	  var bColor = null;
+                	  var ev = {                          
+                              id: eventEl['id'], // 日程id
+                              color: bColor,     // 背景色
+                              title: eventEl['name'],
+                              start: eventEl['startTime'], // will be parsed
+                              end: eventEl['endTime']      // 日程结束时间
+                          };
+                	  
+                	  
+                	  if(eventEl['name']==null||eventEl['name']==undefined){
+                		  if(cDomain){
+                			  var cols = cDomain.columns.split(",");
+                    		  var tt = "";
+                    		  var tn=0;
+                        	  for(var xx in cols){
+                        		  var cx = cols[xx];
+                        		  if(cx.toLowerCase().indexOf("id")>=0){
+                        			  continue;
+                        		  }
+                        		  if(cx.toLowerCase().indexOf("time")>=0){                        			  
+                        			  ev.start=eventEl[cx]
+                        			  tn++;
+                        			  continue;
+                        		  }
+                        		  if(cx.toLowerCase().indexOf("time")>=0&&tn!=0){                        			  
+                        			  ev.start=eventEl[cx]
+                        			  tn++;
+                        			  continue;
+                        		  }
+                        		  var va = eventEl[cx];
+                        		  if(tt.length<30&&va&&va.indexOf("{")<0&&va.indexOf("}")<0){
+                        			  if(tt!=""){
+                            			  tt+=",";
+                            		  }
+                            		  tt+= eventEl[cx];
+                        		  }
+                        	  }                    		  
+                    		  ev.title=tt
+                		  }                		  
+                	  }
+                	  if(eventEl['startTime']==null||eventEl['startTime']==undefined){
+                		  if(eventEl['createTime']&&ev.start==undefined){
+                			  ev.start=eventEl['createTime']                    		    
+                		  }
+                	  }
+                	  if(eventEl['endTime']==null||eventEl['endTime']==undefined){
+                		  if(eventEl['createTime']&&ev.end==undefined){
+                		  	ev.end=eventEl['createTime']
+                		  }
+                	  }
+                	  
+                  	if(currentTime < eventEl.startTime){
+                  		bColor = 'green';
+                  	}
+                  	if(currentTime >= eventEl.startTime && currentTime <= eventEl.endTime){
+                  		bColor = 'red';
+                  	}
+                  	if(currentTime > eventEl.endTime){
+                  		bColor = 'slategray ';
+                  	}
+                  	if(bColor!=null&&bColor!=""){
+                  		ev.color=bColor;
+                  	}
+                  	
+                    events.push(ev);
+                  }
+                  
+                  callback(events);
+              }
+          });
+      },
+   // dateClick接口：点击空白处的方法，此方法中的info是用户点击时间点的信息
+      dateClick: function(info) {
+      	// 获得info中的时间
+          var date = info.dateStr;
+          var form,layer,table;
+      	layui.config({
+			dir: '/static/layui/',
+              base: '/static/layui/lay/modules/'
+          }).use(['form','layer','layedit'], function(){
+      		  form = layui.form
+      		  ,layer = layui.layer;
+          layer.open({
+              type: 2,
+              anim: 0,
+              shade: 0,
+              title: "添加",
+              maxmin: true,
+              area: ['900px', '610px'],
+              btn:['关闭'],
+              yes:function(index,layero)
+              {
+              	var body = layer.getChildFrame('body', index);
+                  //index为当前层索引
+                layer.close(index)
+              },
+              cancel:function(){//右上角关闭毁回调
+            	  calendar.render()//location.reload();  // 刷新界面为新增的日程信息
+              },
+              zIndex: layer.zIndex //重点1
+              ,success: function(layero, index){
+                layer.setTop(layero); //重点2
+                var body = layer.getChildFrame('body', index);
+                var winName=layero.find('iframe')[0]['name'];
+	           	 var iframeWin = window[winName]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+	           	 // console.log(body.html()) //得到iframe页的body内容
+	           	 if(iframeWin){
+	           		 var formdata={};
+	           		if(date.indexOf(":")<0){
+	           			date=date+" 00:00:00";
+	                }
+	           		 formdata['startTime']=date;
+	           		formdata['endTime']=date;
+	           		 iframeWin.initForm(formdata)
+	           	 }
+              },
+              content: '[(${MODULE_NAME})]/layui/'+calendarLabel+'/form'
+          });
+          });
+      },
+      // eventClick接口：单击日历上的日程信息方法，方法内部所使用的逻辑与新增的基本一样
+      eventClick: function(event) {
+      	// 这是为了获得点被点击日程的id值，此id值被放在event对象的event对象中，有兴趣的同学可以打个断点看看里面都有什么~
+          var id = event.event.id;
+      	  var eventData;
+          for(var k in dataList){
+        	  if(id==dataList[k].id){
+        		  eventData=dataList[k];
+        	  }
+          }
+          var form,layer,table;
+        	layui.config({
+				dir: '/static/layui/',
+				base: '/static/layui/lay/modules/'
+			}).use(['form','layer','layedit'], function(){
+        		  form = layui.form
+        		  ,layer = layui.layer;
+            layer.open({
+                type: 2,
+                anim: 0,
+                shade: 0,
+                title: "日程信息",
+                maxmin: true,
+                area: ['900px', '610px'],
+                btn:['关闭'],
+                yes:function(index,layero)
+                {
+                	var body = layer.getChildFrame('body', index);
+                    //index为当前层索引
+                  layer.close(index)
+                },
+                cancel:function(){//右上角关闭毁回调
+                	calendar.render();  // 刷新界面为新增的日程信息
+                },
+                zIndex: layer.zIndex //重点1
+                ,success: function(layero, index){
+                  layer.setTop(layero); //重点2
+                  var body = layer.getChildFrame('body', index);
+                  var winName=layero.find('iframe')[0]['name'];
+  	           	 var iframeWin = window[winName]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+  	           	 // console.log(body.html()) //得到iframe页的body内容
+  	           	 if(iframeWin){
+  	           		 iframeWin.initForm(eventData)
+  	           	 }
+                },
+                content: '[(${MODULE_NAME})]/layui/'+calendarLabel+'/form'
+            });
+            });
+      }
+    });
+
+    calendar.render();
+  }
+  document.addEventListener('DOMContentLoaded',newCalendar('Todo'));
+  
+</script>
+	
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+    font-size: 14px;
+  }
+
+  #calendar {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 0 10px;
+  }
+  ul{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        }
+  ul li{
+            list-style: none;
+            margin: 0 auto;
+            }
+        li span { border: 1px solid blue; height: 60px; vertical-align: middle; display: table-cell; width: 100px;text-align:center; }
+        li span:hover{ 
+		background-color:yellow;
+			}
+.select{ 
+		background-color: #7cef74;
+}
+ .Bul,.Cul{
+    display:none;  // 初始时不显示
+}
+.Ali{
+    position:relative;
+}
+.Bul{
+    position:absolute;
+    top:0;   //二级菜单基于一级菜单定位，这使得菜单可以基于当前li的位置显示，解决了定位的问题
+}
+.Cul{
+    position:absolute;
+    top:0;   //三级菜单基于二级菜单定位
+}
+.Ali:hover .Bul{   //鼠标移入一级菜单选项时，二级菜单显示
+    display:block;
+}
+.Bli:hover .Cul{   //鼠标移入二级菜单选项时，三级菜单显示
+    display:block;
+}       
+        
+</style>
+</body>
+</html>

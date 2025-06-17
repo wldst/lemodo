@@ -1,0 +1,708 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>表单字段管理</title>
+<link rel="stylesheet"
+	href="/static/plugin/bootstrap/css/bootstrap.min.css" />
+<link href="/static/layui/css/layui.css" rel="stylesheet" />
+</head>
+<body>
+	<form class="layui-form" id="editFormField" lay-filter="editFormField">
+		<div class="layui-form-item">
+			<label class="layui-form-label">编码</label>
+			<div class="layui-input-inline">
+				<input name="id" class="layui-input" id="id" placeholder="请输入编码"
+					autocomplete="off">
+			</div>
+			<label class="layui-form-label">表单ID</label>
+			<div class="layui-input-inline">
+				<input name="formId" class="layui-input" id="formId"
+					placeholder="请输入表单ID" autocomplete="off">
+			</div>
+			<label class="layui-form-label">代码</label>
+			<div class="layui-input-inline">
+				<input name="code" class="layui-input" id="code" placeholder="请输入代码"
+					autocomplete="off">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">名称</label>
+			<div class="layui-input-inline">
+				<input name="name" class="layui-input" id="name" placeholder="请输入名称"
+					autocomplete="off">
+			</div>
+			<label class="layui-form-label">类型</label>
+			<div class="layui-input-inline">
+				<input name="type" class="layui-input" id="type" placeholder="请输入类型"
+					autocomplete="off">
+			</div>
+			<label class="layui-form-label">描述</label>
+			<div class="layui-input-inline">
+				<input name="desc" class="layui-input" id="desc" placeholder="请输入描述"
+					autocomplete="off">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">关联类</label>
+			<div class="layui-input-inline">
+				<input type="button" id="relatePo"
+					class="layui-btn layui-btn-primary " value="选择"
+					lay-event="selectWindow"></input>
+			</div>
+		    <label class="layui-form-label">对象</label>
+			<div class="layui-input-inline">
+				<input type="button" class="layui-btn layui-btn-primary"
+			    id="relateObj" value="关联对象" />
+			    <input type=hidden  id="selectObj" value="Po" />
+			</div>
+			<label class="layui-form-label">列：</label>
+			<div class="layui-input-inline">
+				<select name="relateCol" id="relateCol"  ></select>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<div class="layui-input-block">
+				<button class="layui-btn" lay-submit lay-filter="submit-form">提交</button>
+				<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+			</div>
+		</div>
+	</form>
+	<!-- <input type="button" class="layui-btn" th:id="|save${label}|"
+		value="保存" /> -->
+	<br />
+	<fieldset class="layui-elem-field layui-field-title"
+		style="margin-top: 50px;">
+		<legend>表单字段详情</legend>
+	</fieldset>
+	<div class="layui-input-inline" hidden=true>
+					<input id="instanceIdReload">
+	</div>
+	<div class="layui-tab layui-tab-brief"
+		lay-filter="FormFieldtabList" id="FormFieldtabList"></div>
+	
+	<script id="FormFielddetail" type="text/html">
+  <ul class="layui-tab-title" lay-filter="FormFieldTab" id="FormFieldTabHead">
+    <li class="layui-this" lay-id="1" >数据列表</li>
+<li lay-id="2">关系管理</li>
+  </ul>
+  <div class="layui-tab-content" id="FormFieldTabContent">
+    <div class="layui-tab-item layui-show"><div>
+		<div class="demoTable">
+			<form class="layui-form" action="">
+				<div class="layui-form-item"> 
+                    <label  class="layui-form-label" >名称</label>	
+                    <div class="layui-input-inline">		
+                        <input name="nameReload" class="layui-input" id="nameReload" placeholder="请输入名称" autocomplete="off" >	
+                    </div>
+                </div>
+				<div class="layui-row">
+				    <div class="layui-col-xs3"><div class="grid-demo grid-demo-bg1"><div class="grid-demo">
+				      <button class="layui-btn" lay-submit lay-filter="searchDO"
+								data-type="reload">
+								搜索<i class="layui-icon">&#xe615;</i>
+							</button>
+					   </div></div>
+				    </div>
+				    <div class="layui-col-xs3">
+				      
+				    </div>
+			  </div>
+			</form>
+		</div>
+		<table id="tableFormField" lay-filter="tableFormField"></table>
+	</div></div>
+  </div>
+</script>
+	<script src="/static/plugin/jQuery/jquery-2.2.3.min.js"></script>
+	<script src="/static/plugin/bootstrap/js/bootstrap.min.js"></script>
+	<script src="/static/layui/layui.js"></script>
+	<script src="/static/util.js"></script>
+	<script id="barDemo" type="text/html">
+<button type="button" class="layui-btn layui-btn-sm layui-btn-radius" lay-event="del">
+    <i class="layui-icon">&#xe640;</i>
+  </button><a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="documentOpt">档案</a>
+<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		
+</script>
+	<script type="text/javascript">
+var currentNode;
+var stepTable;
+
+ var layer,form,table,crudTable;
+ layui.config({ dir: '/static/layui/',version: false ,debug: false,base: '/static/layui/lay/modeules/'}).use(['form','table','element'], function(){
+ form = layui.form
+  ,table = layui.table
+  ,layer = layui.layer;
+ var element = layui.element;
+
+table.on('row(tableFormField)', function(obj){
+	  currentNode=obj.data;
+})
+window.openWindow = function (url,name){
+	var data=currentNode;
+	var width='65%';
+if(data.size>7){
+	width='80%';
+}
+	  layer.open({
+	      type: 2,
+	      anim: 0,
+	      shade: 0,
+	      title: name,
+	      area: [width, '55%'],
+	      btn:['关闭'],
+	      yes:function(index,layero)
+	      {
+	      	var body = layer.getChildFrame('body', index);
+			close()
+	          //index为当前层索引
+	        layer.close(index)
+	      },
+	      cancel:function(){//右上角关闭毁回调
+	     	 close()
+	     	 var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+	  		parent.layer.close(index); //再执行关闭
+	      },
+	      zIndex: layer.zIndex //重点1
+	      ,success: function(layero, index){
+	        layer.setTop(layero); //重点2
+	   	  var body = layer.getChildFrame('body', index);
+	   	 var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+	   	 iframeWin.initForm(data)
+	      },
+	      content: url
+	  });
+}
+var getTpl = $("#FormFielddetail").html();
+$("#FormFieldtabList").html(getTpl);
+
+	  stepTable = table.render({
+		    elem: '#tableFormField'
+		    ,method: 'POST' //方式
+		    ,url:'[(${MODULE_NAME})]/cruder/FormField/query'
+			,where: {
+				name: $('#nameReload').val(),
+				formId: $('#instanceIdReload').val()
+			 }
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,title: '数据表'
+		    ,id: 'tableFormField'
+		    ,cols: [ [
+		    	{type:'checkbox', fixed: 'left'}
+		    	
+		     		,{field:'id', title:'编码',sort: true}
+		    	
+		     		,{field:'formId', title:'表单ID',sort: true}
+		    	
+		     		,{field:'code', title:'代码',sort: true}
+		    	
+		     		,{field:'name', title:'名称',sort: true}
+		    	
+		     		,{field:'type', title:'类型',sort: true}
+		    	
+		     		,{field:'relatePo', title:'关联类',sort: true}
+		    	
+		     		,{field:'relateObj', title:'关联对象',sort: true}
+		    	
+		     		,{field:'relateCol', title:'对象列',sort: true}
+		    	
+		     		,{field:'desc', title:'描述',sort: true}
+		    	
+		    	
+		    		,{fixed: 'right', title:'操作', align:'center', toolbar: '#barDemo',unresize: false, width: 260}
+		    ] ]
+		    ,page: true
+		    ,done: fixRightTool
+		    ,parseData: parseTableData
+		  });
+	//表单取值
+	form.on('submit(editFormField)', function(data){
+		formSubmit();
+	 return false;
+	});
+	function formSubmit(){
+		 var formData={};
+		 
+		  formData['id']= $('#'+'id').val();
+		  formData['formId']= $('#'+'formId').val();
+		  formData['code']= $('#'+'code').val();
+		  formData['name']= $('#'+'name').val();
+		  formData['type']= $('#'+'type').val();
+		  formData['relatePo']= $('#'+'relatePo').val();
+		  formData['relateObj']= $('#'+'relateObj').val();
+		  formData['relateCol']= $('#'+'relateCol').val();
+		  formData['desc']= $('#'+'desc').val();
+		 
+		 formData['instanceId']=$('#instanceIdReload').val();
+		 var genurl = "[(${MODULE_NAME})]/cruder/FormField/save";
+		 
+		 $.ajax({
+		    type: "post",
+		    url: genurl,
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",      
+			data: JSON.stringify(formData),
+			success: function (d) {
+				if(!d.status){
+		  			   layer.alert(d.msg, {icon: 5})
+		  		   }else{
+		  			   layer.alert(d.msg, {icon: 6})
+		  			   refresh()
+		  		   }
+		           
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+		    });
+		}
+	  
+	  
+	  //监听提交
+	  form.on('submit(searchDO)', function(data){
+	        //执行重载
+	        stepTable.reload({
+	          page: {
+	            curr: 1 //重新从第 1 页开始
+	          }
+	          ,where: {
+	        	  name: $('#nameReload').val(),
+		          formId: $('#instanceIdReload').val()
+	          }
+	        });
+	    return true;
+	  });
+	  var endList={};
+	  var tabIds={};
+	  var rowi=null;	 
+	  //监听表格复选框选择
+	  table.on('checkbox(tableFormField)', function(obj){
+	    //console.log(obj) 
+	    $('#editFormField')[0].reset();
+	    
+		    if($('#'+'id').attr('type')=='checkbox'){
+		    	if(obj.data['id']=='on'){
+		    		$('#'+'id').prop('checked','checked');
+		    	}else  if(obj.data['id']=='off'){
+			    	$('#'+'id').prop('checked','');
+			    }
+		    }else{
+		    	$('#'+'id').val(obj.data['id']);
+		    }	    	
+		    if($('#'+'formId').attr('type')=='checkbox'){
+		    	if(obj.data['formId']=='on'){
+		    		$('#'+'formId').prop('checked','checked');
+		    	}else  if(obj.data['formId']=='off'){
+			    	$('#'+'formId').prop('checked','');
+			    }
+		    }else{
+		    	$('#'+'formId').val(obj.data['formId']);
+		    }	    	
+		    if($('#'+'code').attr('type')=='checkbox'){
+		    	if(obj.data['code']=='on'){
+		    		$('#'+'code').prop('checked','checked');
+		    	}else  if(obj.data['code']=='off'){
+			    	$('#'+'code').prop('checked','');
+			    }
+		    }else{
+		    	$('#'+'code').val(obj.data['code']);
+		    }	    	
+		    if($('#'+'name').attr('type')=='checkbox'){
+		    	if(obj.data['name']=='on'){
+		    		$('#'+'name').prop('checked','checked');
+		    	}else  if(obj.data['name']=='off'){
+			    	$('#'+'name').prop('checked','');
+			    }
+		    }else{
+		    	$('#'+'name').val(obj.data['name']);
+		    }	    	
+		    if($('#'+'type').attr('type')=='checkbox'){
+		    	if(obj.data['type']=='on'){
+		    		$('#'+'type').prop('checked','checked');
+		    	}else  if(obj.data['type']=='off'){
+			    	$('#'+'type').prop('checked','');
+			    }
+		    }else{
+		    	$('#'+'type').val(obj.data['type']);
+		    }	    	
+		    if($('#'+'relatePo').attr('type')=='checkbox'){
+		    	if(obj.data['relatePo']=='on'){
+		    		$('#'+'relatePo').prop('checked','checked');
+		    	}else  if(obj.data['relatePo']=='off'){
+			    	$('#'+'relatePo').prop('checked','');
+			    }
+		    }else{
+		    	$('#'+'relatePo').val(obj.data['relatePo']);
+		    }	    	
+		    if($('#'+'relateObj').attr('type')=='checkbox'){
+		    	if(obj.data['relateObj']=='on'){
+		    		$('#'+'relateObj').prop('checked','checked');
+		    	}else  if(obj.data['relateObj']=='off'){
+			    	$('#'+'relateObj').prop('checked','');
+			    }
+		    }else{
+		    	$('#'+'relateObj').val(obj.data['relateObj']);
+		    }	    	
+		    if($('#'+'relateCol').attr('type')=='checkbox'){
+		    	if(obj.data['relateCol']=='on'){
+		    		$('#'+'relateCol').prop('checked','checked');
+		    	}else  if(obj.data['relateCol']=='off'){
+			    	$('#'+'relateCol').prop('checked','');
+			    }
+		    }else{
+		    	$('#'+'relateCol').val(obj.data['relateCol']);
+		    }	    	
+		    if($('#'+'desc').attr('type')=='checkbox'){
+		    	if(obj.data['desc']=='on'){
+		    		$('#'+'desc').prop('checked','checked');
+		    	}else  if(obj.data['desc']=='off'){
+			    	$('#'+'desc').prop('checked','');
+			    }
+		    }else{
+		    	$('#'+'desc').val(obj.data['desc']);
+		    }	    	
+		 	    
+	    form.render();
+	    textEditorValue(obj.data);
+	    currentNode=obj.data;
+	    rowi=obj.data;
+	    if(tabIds!=null){
+	    	for(var tab in tabIds){
+	    		element.tabDelete('FormFieldtabList',  tabIds[tab]);
+	    	}
+	    }
+	    
+	  });
+	  function textEditorValue(data){
+		  
+	  }
+	  
+	  table.on('rowDouble(tableFormField)', function(obj){
+		    //console.log(obj) $('#editFormField')[0].reset();
+		    var width='65%';
+		    if(obj.data.size>7){
+		    	width='900px';
+		    }
+		    
+			layer.open({
+		      type: 2,
+		      anim: 0,
+		      shade: 0,
+		      maxmin: true,
+		      title: "编辑",
+		      area: [width, '55%'],
+		      btn:['关闭'],
+		      full: function(a, b) {
+		          	$(a).find('.layui-layer-content').css('height','100%');
+		          	$(a).find('iframe').css('height','100%');
+		          },
+		      restore: function(a, b) {
+		          	$(a).find('iframe').css('height','90%');
+		          	$(a).find('.layui-layer-content').css('height','90%');
+		          },
+		      yes:function(index,layero)
+		      {
+		      	var body = layer.getChildFrame('body', index);
+				close()
+		          //index为当前层索引
+		        layer.close(index)
+		      },
+		      cancel:function(){//右上角关闭毁回调
+		     	 close()
+		     	/*  var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+		  		parent.layer.close(index); //再执行关闭 */
+		      },
+		      zIndex: layer.zIndex //重点1
+		      ,success: function(layero, index){
+		        layer.setTop(layero); //重点2
+		   	  var body = layer.getChildFrame('body', index);
+		   	 var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+		   	 // console.log(body.html()) //得到iframe页的body内容
+		   	 iframeWin.initForm(obj.data)
+		   	// console.log(obj.data)
+		   	  //body.find('input').val('Hi，我是从父页来的')
+		      },
+		      content: "[(${MODULE_NAME})]/layui/FormField/form/"+obj.data.id
+		  });
+		    form.render();
+		    form.val('editFormField', obj.data);
+		    textEditorValue(obj.data);
+		    $('#poId').val($('#instanceId').val()); 
+		    currentNode=obj.data;
+	  });
+	  
+	  //监听工具条
+	  table.on('tool(tableFormField)', function(obj){
+	    var data = obj.data;
+	    if(obj.event === 'del'){
+	      layer.confirm('真的删除行么', function(index){
+	        obj.del();
+	        delDomain(obj)
+	        layer.close(index);
+	      });
+	    }
+	  });
+	  
+	  
+	  getByInstanceId();
+  
+//表单取值
+layui.$('#relationObj').on('click', function(data){
+ var select= $("#selectPo").val();
+ var selectPoName = $("#relationPo").val();
+ if(select==null||select==""){
+	 $("#selectPo").val("Po");
+	 select="Po"
+ }
+ layer.open({
+  type: 2,
+  anim: 0,
+  shade: 0,
+  title: "关联"+selectPoName,
+  area: ['95%', '95%'],
+  btn:['关闭'],
+  yes:function(index,layero)
+  {
+  	var body = layer.getChildFrame('body', index);
+  	var selected = body.find('#selectObj').val();
+    var selectedName = body.find('#selectObjName').val();
+        	
+  	$("#relationObj").val(selectedName);
+  	$("#selectObj").val(selected);
+		
+			 close()
+      //index为当前层索引
+      layer.close(index)
+  },
+  cancel:function(){//右上角关闭毁回调
+ 	 close()
+ 	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+		parent.layer.close(index); //再执行关闭
+  },
+  zIndex: layer.zIndex //重点1
+  ,success: function(layero, index){
+    layer.setTop(layero); //重点2
+	  var body = layer.getChildFrame('body', index);
+	 // var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+	 // console.log(body.html()) //得到iframe页的body内容
+	 //console.log(data)
+	  //body.find('input').val('Hi，我是从父页来的')
+  },
+  content: "[(${MODULE_NAME})]/objectRel/FormField/"+select
+});
+});
+
+function poFieldSelect(data){
+	  var genurl = "[(${MODULE_NAME})]/cruder/"+data+"/fieldList";
+		 var formData={}
+		 $.ajax({
+		    type: "post",
+		    url: genurl,
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",      
+			data: JSON.stringify(formData),
+			success: function (d) {
+				var fileds=d.data;
+				var vo= $("#relateCol");
+				vo.empty();
+				for(var i in fileds){
+					vo.append("<option value='"+fileds[i].code+"'>"+fileds[i].name+"</option>");
+				}
+				layui.form.render('select');
+		          
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		    }
+		  });
+}
+
+layui.$('#relateObj').on('click', function(data){
+	 var select= $("#selectPo").val();
+	 var selectPoName = $("#relatePo").val();
+	 if(select==null||select==""){
+		 $("#selectPo").val("Po");
+		 select="Po"
+	 }
+	 layer.open({
+     type: 2,
+     anim: 0,
+     shade: 0,
+     title: "关联"+selectPoName,
+     area: ['95%', '95%'],
+     btn:['关闭'],
+     yes:function(index,layero)
+     {
+     	var body = layer.getChildFrame('body', index);
+     	var selected = body.find('#selectObj').val();
+	    var selectedName = body.find('#selectObjName').val();
+	        	
+     	$("#relateObj").val(selectedName);
+     	$("#selectObj").val(selected);
+     	poFieldSelect(selected);	
+				 close()
+         //index为当前层索引
+         layer.close(index)
+     },
+     cancel:function(){//右上角关闭毁回调
+    	 close()
+    	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+ 		parent.layer.close(index); //再执行关闭
+     },
+     zIndex: layer.zIndex //重点1
+     ,success: function(layero, index){
+       layer.setTop(layero); //重点2
+  	  var body = layer.getChildFrame('body', index);
+     },
+     content: "[(${MODULE_NAME})]/md/select/"+select
+ });
+});
+
+layui.$('#relatePo').on('click', function(data){
+	  layer.open({
+      type: 2,
+      anim: 0,
+      shade: 0,
+      title: "选择",
+      area: ['70%', '80%'],
+      btn:['关闭'],
+      yes:function(index,layero)
+      {
+      	var body = layer.getChildFrame('body', index);
+      	var selected = body.find('#selectPo').val();
+      	var selectedName = body.find('#selectPoName').val();
+      	
+      	$("#type").val(selected);
+      	$("#isPo").val("true");
+			$("#relatePo").val(selectedName);
+				 close()
+          //index为当前层索引
+          layer.close(index)
+      },
+      cancel:function(){//右上角关闭毁回调
+     	 close()
+     	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+  		parent.layer.close(index); //再执行关闭
+      },
+      zIndex: layer.zIndex //重点1
+      ,success: function(layero, index){
+        layer.setTop(layero); //重点2
+   	  var body = layer.getChildFrame('body', index);
+   	 // var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+   	 // console.log(body.html()) //得到iframe页的body内容
+   	// console.log(data)
+   	  //body.find('input').val('Hi，我是从父页来的')
+      },
+      content: "[(${MODULE_NAME})]/vue/poSelect"
+  });
+});
+  
+layui.$('#relatePo').on('click', function(data){
+     layer.open({
+       	      type: 2,
+       	      anim: 0,
+       	      shade: 0,
+       	      maxmin: true,
+              title: '选择关联类',
+              area: ['100%', '100%'],
+              btn:['关闭'],
+              yes:function(index,layero) {
+             	    var body = layer.getChildFrame('body', index);
+             	    var selected = body.find('#selectObj').val();
+             	    var selectedName = body.find('#selectObjName').val();
+                    $('#relatePo').val(selected);
+         			close()
+         	      	          //index为当前层索引
+         	      	          layer.close(index)
+         	      },
+         	      cancel:function(){//右上角关闭毁回调
+         	      	     	close()
+         	      	     	var index = parent.layer.getFrameIndex(data.name);
+         	      	     	parent.layer.close(index);
+         	      },
+         	      zIndex: layer.zIndex //重点1
+         	      ,success: function(layero, index){
+         	      	 layer.setTop(layero); //重点2
+         	         var body = layer.getChildFrame('body', index);
+         	         var objId=body.find('#objId');
+         	         if(objId!=null&&currentNode!=null){
+         			if(currentNode.id!=undefined){
+         			   objId.val(currentNode.id);
+         			}else if(currentNode.code!=undefined){
+         	        	   objId.val(currentNode.code);
+         			}
+         		}
+         	      },
+      content: '[(${MODULE_NAME})]/manage/Po/Po'
+      	     });
+      	    });
+
+});
+
+function getByInstanceId(){
+      //执行重载
+      stepTable.reload({
+        page: {
+          curr: 1 //重新从第 1 页开始
+        }
+        ,where: {
+        	formId: $('#instanceId').val()
+        }
+      });
+}
+
+function delDomain(po){
+	 var genurl = "[(${MODULE_NAME})]/cruder/FormField/del";
+	 var vm=$("#tableFormField");
+	 var formData=po.data;
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(formData),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+	    });
+}
+
+function delRel(label,id){	
+	 var genurl = "[(${MODULE_NAME})]/cruder/FormField/rel/"+label+"/del";
+	 var formData={};
+	 formData["endId"]=id;
+	 formData["startId"]=currentNode.id;
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",      //
+	        data: JSON.stringify(formData),
+	        success: function (d) {
+	           layer.alert(d.msg, {icon: 6})
+	           refresh()
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+	 });
+}
+
+function refresh(){
+	getByInstanceId();
+}
+</script>
+</body>
+</html>

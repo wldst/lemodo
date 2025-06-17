@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大模型驱动的流程设计器</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50, #4a69bd);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(to right, #ff6b6b, #4ecdc4, #556270);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #555;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-section {
+            flex: 2;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #3498db;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f5ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            font-size: 1.3rem;
+        }
+
+        .description-box {
+            margin-bottom: 25px;
+        }
+
+        .description-box p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .input-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 16px;
+            resize: none;
+            transition: border-color 0.3s;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .examples {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .examples ul {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        .examples li {
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .primary-btn {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.35);
+        }
+
+        .secondary-btn {
+            background: #ecf0f1;
+            color: #7f8c8d;
+        }
+
+        .secondary-btn:hover {
+            background: #d5dbdb;
+            color: #555;
+        }
+
+        .save-btn {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: linear-gradient(to right, #27ae60, #219653);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(46, 204, 113, 0.35);
+        }
+
+        .graph-container {
+            flex: 1;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            position: relative;
+        }
+
+        #graph {
+            width: 100%;
+            height: 100%;
+        }
+
+        .status {
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            font-size: 14px;
+            color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(52, 152, 219, 0.3);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            z-index: 10;
+            border-radius: 8px;
+        }
+
+        .ai-icon {
+            font-size: 48px;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+
+        .save-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .save-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .save-modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #e74c3c;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .save-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .data-preview {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow: auto;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-size: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        @media (max-width: 992px) {
+            .app-container {
+                flex-direction: column;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>大模型驱动的流程设计器 - 增强版</h1>
+        <p class="subtitle">使用自然语言描述您的业务流程，AI将自动生成流程图，支持完整流程数据保存功能</p>
+    </header>
+
+    <div class="app-container">
+        <div class="input-section">
+            <h2 class="section-title"><i class="fas fa-pen-alt"></i> 流程描述</h2>
+            <div class="description-box">
+                <p>请用自然语言描述您想要设计的业务流程，例如：</p>
+                <p>"创建一个用户注册流程：开始 -> 输入用户名和密码 -> 验证信息 -> 如果验证成功，则创建用户并显示成功消息；否则显示错误信息 -> 结束"</p>
+            </div>
+
+            <div class="input-area">
+                    <textarea id="process-description" placeholder="描述您的流程...">创建一个电商订单处理流程：
+1. 开始
+2. 用户提交订单
+3. 检查库存
+   - 如果库存充足，进入支付流程
+   - 如果库存不足，通知用户并结束
+4. 支付处理
+   - 支付成功：生成发货单
+   - 支付失败：通知用户
+5. 发货处理
+6. 用户确认收货
+7. 结束</textarea>
+
+                <div class="examples">
+                    <p>示例流程描述：</p>
+                    <ul>
+                        <li>创建一个用户登录流程：开始 -> 显示登录表单 -> 用户输入凭证 -> 验证凭证 -> 如果成功，进入主页；否则显示错误 -> 结束</li>
+                        <li>设计一个请假审批流程：员工提交申请 -> 部门经理审批 -> 如果同意，HR备案；否则通知员工 -> 结束</li>
+                    </ul>
+                </div>
+
+                <div class="controls">
+                    <button class="primary-btn" id="generate-btn">
+                        <i class="fas fa-magic"></i> AI生成流程图
+                    </button>
+                    <button class="save-btn" id="save-btn">
+                        <i class="fas fa-save"></i> 保存流程图
+                    </button>
+                    <button class="secondary-btn" id="reset-btn">
+                        <i class="fas fa-redo"></i> 重置
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <h2 class="section-title"><i class="fas fa-project-diagram"></i> 流程图展示</h2>
+            <div class="graph-container">
+                <div id="graph"></div>
+                <div class="loading" id="loading" style="display: none;">
+                    <div class="ai-icon"><i class="fas fa-robot"></i></div>
+                    <p>AI正在设计您的流程图...</p>
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            <div class="status">
+                <div id="status-text">就绪 - 输入流程描述并点击"AI生成流程图"</div>
+                <div>AntV X6 渲染引擎 | 支持完整数据保存</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 保存模态框 -->
+    <div class="save-modal" id="save-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-save"></i> 保存流程图</h3>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label for="flow-name">流程图名称</label>
+                <input type="text" id="flow-name" class="form-control" placeholder="输入流程图名称" value="我的业务流程">
+            </div>
+
+            <div class="form-group">
+                <label for="flow-description">描述</label>
+                <textarea id="flow-description" class="form-control" rows="3" placeholder="输入流程图描述">由AI生成的业务流程流程图</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>保存的数据预览</label>
+                <div class="data-preview" id="data-preview"></div>
+            </div>
+
+            <div class="save-actions">
+                <button class="secondary-btn" id="copy-btn">
+                    <i class="fas fa-copy"></i> 复制数据
+                </button>
+                <button class="save-btn" id="download-btn">
+                    <i class="fas fa-download"></i> 下载JSON
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知 -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i> 流程图数据已复制到剪贴板！
+    </div>
+
+    <footer>
+        <p>大模型驱动的流程设计器 | 基于AntV X6实现 | 支持完整流程数据保存功能</p>
+    </footer>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/babel-polyfill/7.12.1/polyfill.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@antv/x6/dist/x6.js"></script>
+<script th:src="@{/web/x6/shape.js}"></script>
+<script type="text/javascript">
+    // 页面元素
+    const descriptionInput = document.getElementById('process-description');
+    const generateBtn = document.getElementById('generate-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const graphContainer = document.getElementById('graph');
+    const loadingElement = document.getElementById('loading');
+    const statusText = document.getElementById('status-text');
+    const saveModal = document.getElementById('save-modal');
+    const closeModal = document.getElementById('close-modal');
+    const flowNameInput = document.getElementById('flow-name');
+    const flowDescInput = document.getElementById('flow-description');
+    const dataPreview = document.getElementById('data-preview');
+    const copyBtn = document.getElementById('copy-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const notification = document.getElementById('notification');
+
+    // 图实例
+    let graph = null;
+
+    // 初始化图
+    function initGraph() {
+        if (graph) {
+            graph.dispose();
+        }
+
+        graph = new X6.Graph({
+            container: graphContainer,
+            grid: {
+                size: 10,
+                visible: true,
+            },
+            background: {
+                color: '#f9fbfd',
+            },
+            panning: {
+                enabled: true,
+                modifiers: 'shift',
+            },
+            mousewheel: {
+                enabled: true,
+                modifiers: 'ctrl',
+                minScale: 0.5,
+                maxScale: 2,
+            },
+            connecting: {
+                router: 'orth',
+                connector: {
+                    name: 'rounded',
+                    args: {
+                        radius: 8,
+                    },
+                },
+                anchor: 'center',
+                connectionPoint: 'anchor',
+                allowBlank: false,
+                snap: {
+                    radius: 20,
+                },
+            },
+            highlighting: {
+                magnetAdsorbed: {
+                    name: 'stroke',
+                    args: {
+                        attrs: {
+                            fill: '#5F95FF',
+                            stroke: '#5F95FF',
+                        },
+                    },
+                },
+            },
+        });
+
+        // 注册自定义节点
+        // X6.Node.registry.register('process', X6.Node);
+        X6.Node.registry.register('decision', X6.Node, {
+            markup: [
+                {
+                    tagName: 'polygon',
+                    selector: 'body',
+                    attrs: {
+                        points: '0,10 10,0 20,10 10,20'
+                    }
+                },
+                {
+                    tagName: 'text',
+                    selector: 'label'
+                }
+            ],
+            attrs: {
+                body: {
+                    fill: '#FFF9E6',
+                    stroke: '#FFC53D',
+                    strokeWidth: 2,
+                    refPoints: '0,10 10,0 20,10 10,20'
+                },
+                label: {
+                    fontSize: 12,
+                    fill: '#333',
+                    refX: '50%',
+                    refY: '50%',
+                    textAnchor: 'middle',
+                    textVerticalAnchor: 'middle'
+                }
+            }
+        });
+
+        return graph;
+    }
+
+    // 模拟大模型API响应
+    function mockAIAssistant(description) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                // 这里模拟大模型生成的结构化数据
+                const workflow = {
+                    nodes: [
+                        { id: 'start', type: 'start', label: '开始' },
+                        { id: 'submit', type: 'process', label: '用户提交订单' },
+                        { id: 'check', type: 'decision', label: '检查库存' },
+                        { id: 'payment', type: 'process', label: '支付处理' },
+                        { id: 'ship', type: 'process', label: '发货处理' },
+                        { id: 'confirm', type: 'process', label: '用户确认收货' },
+                        { id: 'end', type: 'end', label: '结束' },
+                        { id: 'notify', type: 'process', label: '通知用户库存不足' }
+                    ],
+                    connections: [
+                        { source: 'start', target: 'submit' },
+                        { source: 'submit', target: 'check' },
+                        { source: 'check', target: 'payment', label: '库存充足' },
+                        { source: 'check', target: 'notify', label: '库存不足' },
+                        { source: 'payment', target: 'ship', label: '支付成功' },
+                        { source: 'payment', target: 'notify', label: '支付失败' },
+                        { source: 'ship', target: 'confirm' },
+                        { source: 'confirm', target: 'end' },
+                        { source: 'notify', target: 'end' }
+                    ]
+                };
+
+                resolve(workflow);
+            }, 2000);
+        });
+    }
+
+    // 转换为X6数据格式
+    function convertToX6Data(workflow) {
+        // 布局参数
+        const nodeWidth = 120;
+        const nodeHeight = 60;
+        const horizontalSpacing = 180;
+        const verticalSpacing = 100;
+
+        // 节点位置计算
+        const positions = {
+            'start': { x: 100, y: 100 },
+            'submit': { x: 300, y: 100 },
+            'check': { x: 500, y: 100 },
+            'payment': { x: 700, y: 50 },
+            'ship': { x: 900, y: 100 },
+            'confirm': { x: 1100, y: 100 },
+            'end': { x: 1300, y: 100 },
+            'notify': { x: 700, y: 200 }
+        };
+
+        return {
+            nodes: workflow.nodes.map(node => {
+                const pos = positions[node.id] || { x: 100, y: 100 };
+                return {
+                    id: node.id,
+                    shape: getShapeByType(node.type),
+                    x: pos.x,
+                    y: pos.y,
+                    width: nodeWidth,
+                    height: nodeHeight,
+                    label: node.label,
+                    attrs: getNodeAttrs(node.type)
+                };
+            }),
+            edges: workflow.connections.map((conn, idx) => ({
+                id: `edge-${idx}`,
+                source: { cell: conn.source },
+                target: { cell: conn.target },
+                labels: conn.label ? [{ text: conn.label }] : undefined,
+                attrs: {
+                    line: {
+                        stroke: '#5F95FF',
+                        strokeWidth: 2,
+                        targetMarker: {
+                            name: 'block',
+                            size: 8
+                        }
+                    }
+                },
+                router: {
+                    name: 'manhattan',
+                    args: {
+                        padding: 10
+                    }
+                }
+            }))
+        };
+    }
+
+    // 根据节点类型获取图形
+    function getShapeByType(type) {
+        const shapes = {
+            'start': 'circle',
+            'end': 'circle',
+            'process': 'rect',
+            'decision': 'polygon'
+        };
+        return shapes[type] || 'rect';
+    }
+
+    // 节点样式配置
+    function getNodeAttrs(type) {
+        const baseStyle = {
+            body: {
+                stroke: '#5F95FF',
+                fill: '#EFF4FF',
+                strokeWidth: 2
+            },
+            label: {
+                fontSize: 12,
+                fill: '#333'
+            }
+        };
+
+        const typeStyles = {
+            'start': {
+                body: {
+                    ...baseStyle.body,
+                    fill: '#FF6A00',
+                    stroke: '#FF6A00'
+                },
+                label: {
+                    ...baseStyle.label,
+                    fill: 'white'
+                }
+            },
+            'end': {
+                body: {
+                    ...baseStyle.body,
+                    fill: '#FF6A00',
+                    stroke: '#FF6A00'
+                },
+                label: {
+                    ...baseStyle.label,
+                    fill: 'white'
+                }
+            },
+            'decision': {
+                body: {
+                    ...baseStyle.body,
+                    stroke: '#FFC53D',
+                    fill: '#FFF9E6',
+                    refPoints: '0,10 10,0 20,10 10,20'
+                }
+            }
+        };
+
+        return typeStyles[type] || baseStyle;
+    }
+
+    // 渲染流程图
+    function renderWorkflow(workflowData) {
+        const graph = initGraph();
+        const x6Data = convertToX6Data(workflowData);
+        graph.fromJSON(x6Data);
+        graph.centerContent();
+        graph.zoomToFit({ padding: 50 });
+
+        // 添加节点悬停效果
+        graph.on('node:mouseenter', ({ node }) => {
+            node.attr('body/stroke', '#1890ff');
+            node.attr('label/fill', '#1890ff');
+        });
+
+        graph.on('node:mouseleave', ({ node }) => {
+            const type = node.shape;
+            const attrs = getNodeAttrs(type);
+            node.attr('body/stroke', attrs.body.stroke);
+            node.attr('label/fill', attrs.label.fill);
+        });
+
+        return graph;
+    }
+
+    // 获取完整流程图数据
+    function getFlowchartData() {
+        if (!graph) return null;
+
+        const graphData = graph.toJSON();
+        const flowchartData = {
+            meta: {
+                name: flowNameInput.value || "未命名流程图",
+                description: flowDescInput.value || "由AI生成的业务流程流程图",
+                created: new Date().toISOString(),
+                version: "1.0"
+            },
+            graph: graphData
+        };
+
+        return flowchartData;
+    }
+
+    // 显示通知
+    function showNotification(message) {
+        notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        notification.classList.add('show');
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+
+    // 事件监听
+    generateBtn.addEventListener('click', async () => {
+        const description = descriptionInput.value.trim();
+        if (!description) {
+            alert('请输入流程描述');
+            return;
+        }
+
+        // 显示加载状态
+        generateBtn.disabled = true;
+        loadingElement.style.display = 'flex';
+        statusText.textContent = 'AI正在分析您的流程描述...';
+
+        try {
+            // 模拟调用大模型API
+            const workflowData = await mockAIAssistant(description);
+
+            // 更新状态
+            statusText.textContent = '流程生成成功！正在渲染...';
+
+            // 渲染流程图
+            renderWorkflow(workflowData);
+
+            // 更新状态
+            statusText.textContent = '流程图渲染完成';
+        } catch (error) {
+            console.error('生成流程时出错:', error);
+            statusText.textContent = '生成失败: ' + error.message;
+            alert('生成流程图时出错，请稍后重试');
+        } finally {
+            generateBtn.disabled = false;
+            loadingElement.style.display = 'none';
+        }
+    });
+
+    saveBtn.addEventListener('click', () => {
+        if (!graph || graph.getNodes().length === 0) {
+            alert('请先生成流程图');
+            return;
+        }
+
+        const flowchartData = getFlowchartData();
+        if (!flowchartData) return;
+
+        // 更新数据预览
+        dataPreview.textContent = JSON.stringify(flowchartData, null, 2);
+
+        // 显示模态框
+        saveModal.classList.add('active');
+    });
+
+    resetBtn.addEventListener('click', () => {
+        descriptionInput.value = '';
+        if (graph) {
+            graph.clearCells();
+        }
+        statusText.textContent = '已重置 - 请输入新的流程描述';
+    });
+
+    closeModal.addEventListener('click', () => {
+        saveModal.classList.remove('active');
+    });
+
+    copyBtn.addEventListener('click', () => {
+        const flowchartData = getFlowchartData();
+        if (!flowchartData) return;
+
+        const jsonString = JSON.stringify(flowchartData, null, 2);
+
+        // 复制到剪贴板
+        navigator.clipboard.writeText(jsonString).then(() => {
+            showNotification('流程图数据已复制到剪贴板！');
+        }).catch(err => {
+            console.error('复制失败:', err);
+            showNotification('复制失败，请手动复制数据');
+        });
+    });
+
+    downloadBtn.addEventListener('click', () => {
+        const flowchartData = getFlowchartData();
+        if (!flowchartData) return;
+
+        const jsonString = JSON.stringify(flowchartData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${flowchartData.meta.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+
+        // 清理
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            showNotification('流程图数据已下载！');
+        }, 100);
+    });
+
+    // 关闭模态框的点击外部区域功能
+    saveModal.addEventListener('click', (e) => {
+        if (e.target === saveModal) {
+            saveModal.classList.remove('active');
+        }
+    });
+
+    // 页面加载时初始化
+    window.addEventListener('DOMContentLoaded', () => {
+        initGraph();
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="header">
+<template id="vue-header">
+    <div id="header" class="app-header app-header-inverse">
+       Header
+    </div>
+</template>
+<script>
+    const VueHeader = {
+        template: '#vue-header',
+        components: {
+        },
+        data() {
+            return {
+                activeLang: ''
+            }
+        },
+        created() {},
+        methods: {
+            // «–ªª”Ô—‘
+            changeLang() {
+                console.log(`”Ô—‘«–ªª: ${this.activeLang}`)
+                i18n.locale = this.activeLang
+            },
+        }
+    }
+</script>
+</div>
+</html>

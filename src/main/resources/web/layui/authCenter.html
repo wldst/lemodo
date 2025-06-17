@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{voice::voiceHeader(${name})}">
+</head>
+<body>
+<div class="layui-tab-item" th:replace="~{divTemp::voiceHTML}"></div>
+	<!-- lay-allowclose="false" -->
+	<input hidden=true id="id" name="id">
+	<div class="layui-tab layui-tab-brief"
+		th:lay-filter="|${label}tabList|" th:id="|${label}tabList|"></div>
+<div th:insert="~{voice::voiceHTML}"></div>
+<div th:insert="~{voice::voiceJS}"></div>
+<script th:id="|${label}detail|" type="text/html">
+  <ul class="layui-tab-title" th:lay-filter="|${label}Tab|" th:id="|${label}TabHead|">
+    <li class="layui-this" lay-id="1" >操作记录</li>
+  </ul>
+  <div class="layui-tab-content" th:id="|${label}TabContent|">
+    <div class="layui-tab-item layui-show" th:insert="~{divTemp :: authList}">
+	</div>
+  </div>
+</script>
+
+<script id="toolbarDemo" type="text/html">
+<button class="layui-btn layui-btn-sm"  lay-event="detail">详情</button>
+[(${toolbarOpt})]
+</script>
+<!-- 表格行toolbar模板 -->
+<script id="tb2" type="text/html">
+    <button class="layui-btn layui-btn-xs dropdownBtn">
+        <span>操作</span>
+        <i class="layui-icon layui-icon-triangle-d"></i>
+    </button>
+</script>
+	<script id="barDemo" type="text/html">
+[(${opt})]
+		
+</script>
+[(${tempalteContent})]
+
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var guidData;
+var dropDown;
+var propNum=0;
+var formUrl="[(${MODULE_NAME})]/layui/[(${label})]/form";
+var deleteUrl = "[(${MODULE_NAME})]/cruder/[(${label})]/del";
+var label = '[(${label})]';
+[(${layUse})]
+	var getTpl = $("#[(${label})]detail").html();
+	$("#[(${label})]tabList").html(getTpl);
+	table.on('row(table[(${label})])', function(obj){
+		  currentNode=obj.data;
+	})
+	var tableUrl = '[(${MODULE_NAME})]/cruder/[(${label})]/search';
+	var queryUrl = "[(${query3Url})]";
+	var tableData=parseTableData;
+	if(queryUrl!=""){
+		tableUrl=queryUrl;
+		tableData=parse3TableData;
+		formUrl="[(${MODULE_NAME})]/layui/[(${label})]/form3";
+		deleteUrl="[(${delete3Url})]";
+	}
+	 table.on("sort(table[(${label})])", function () {
+		 var droop = [(${dropDwonItem})];
+		  if(droop){
+		 dropDown.render({
+			    elem: '.dropdownBtn'
+			    ,data: droop
+			    ,click: function(data, othis){
+			      var elem = $(this.elem)
+			      ,listId = elem.data('id'); //表格列表的预埋数据
+			      layer.msg('得到表格列表的 id：'+ listId +'，下拉菜单 id：'+ data.id);
+			    }
+			  });
+		  }
+	  });
+	  crudTable = table.render({
+		    elem: '#table[(${label})]'
+		    ,cellMinWidth: 80
+		    ,method: 'POST' //方式
+		    ,url: tableUrl
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,toolbar: '#toolbarDemo'
+		    ,title: '命令表'
+		    /* ,totalRow: true */
+		    ,id: 'table[(${label})]'
+		    ,cols: [ [
+			    	{type:'checkbox',width: 60,unresize: false, fixed: 'left'}
+			    	[# th:each="ci : ${cols}"]
+			     	,{field:'[(${ci.field})]', [(${ci.width})] title:'[(${ci.name})]'[(${ci.templat})],sort: true}	    	
+			    	[/]
+					,{fixed: 'right', align:'center',title:'操作', toolbar: '#tb2',unresize: false, width: 260}
+			] ]
+		    ,page: true
+		    ,done: tableDone
+		    ,parseData: tableData
+	  });
+	  
+	  function tableDone(res, curr, count){
+		  var droop = [(${dropDwonItem})];
+		  if(droop){
+		 dropDown.render({
+			    elem: '.dropdownBtn'
+			    ,data: droop
+			    ,click: function(data, othis){
+			        //表格列表的预埋数据
+			        [(${activeFun})]
+			      //layer.msg('得到表格列表的 id：'+ listId +'，下拉菜单 id：'+ data.id);
+			    }
+			  });
+			$("table").css("width", "100%"); 
+		  fixRightTool(res, curr, count);
+	   }
+	  }
+	  
+	  //监听提交
+	  form.on('submit(searchDO)', function(data){
+		[(${getSearchValue})]
+		
+		//执行重载
+		crudTable.reload({
+		  page: {
+		    curr: 1 //重新从第 1 页开始
+		  }
+		  ,where: searchForm
+		});
+	    return false;
+	  });
+	  [(${renderSearchForm})]
+  var endList={};
+  var tabIds={};
+  var rowi=null;	
+  
+  table.on('rowDouble(table[(${label})])', function(obj){
+    //console.log(obj) $('#edit[(${label})]')[0].reset();
+    currentNode=obj.data;
+    var width='65%';
+    if(obj.data.size>7){
+    	width='900px';
+    }
+	    
+	layer.open({
+      type: 2,
+      anim: 0,
+      shade: 0,
+      title: "编辑",
+      maxmin: true,
+      area: [width, '55%'],
+      btn:['关闭'],
+      yes:function(index,layero)
+      {
+      	var body = layer.getChildFrame('body', index);
+		close()
+          //index为当前层索引
+        layer.close(index)
+      },
+      cancel:function(){//右上角关闭毁回调
+     	 close()
+     	 var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+  		parent.layer.close(index); //再执行关闭
+      },
+      zIndex: layer.zIndex //重点1
+      ,success: function(layero, index){
+        layer.setTop(layero); //重点2
+   	  var body = layer.getChildFrame('body', index);
+        var winName=layero.find('iframe')[0]['name'];
+   	 var iframeWin = window[winName]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+   	 // console.log(body.html()) //得到iframe页的body内容
+   	 if(iframeWin){
+   		 iframeWin.initForm(obj.data)
+   	 }
+   	// console.log(obj.data)
+   	  //body.find('input').val('Hi，我是从父页来的')
+      },
+      content: formUrl+"/"+obj.data.id
+  });
+	    
+   $('#poId').val($('#poIdReload').val()); 
+   currentNode=obj.data;
+});
+  
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+  
+  //监听工具条
+  table.on('tool(table[(${label})])', function(obj){
+    var data = obj.data;
+    [(${activLogic})]    
+  });
+  
+//监听编辑
+  table.on('edit(table[(${label})])', function(obj){
+    var value = obj.value //得到修改后的值
+    ,data = obj.data //得到所在行所有键值
+    ,field = obj.field; //得到字段
+    var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/save";
+    data[field]=value;
+    
+    $.ajax({
+       type: "post",
+       url: genurl,
+   	dataType : "json",
+   	contentType : "application/json;charset=UTF-8",      
+   	data: JSON.stringify(data),
+   	success: function (d) {   		
+   		if(!d.status){
+			   layer.alert(d.msg, {icon: 5})
+		   }else{
+			   layer.alert(d.msg, {icon: 6})
+			   layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
+		   }
+        	},
+    error:function (d) {
+           layer.alert(d.msg, {icon: 5})
+    }
+   });  
+    
+  });
+  
+  
+  
+//头工具栏事件
+  table.on('toolbar(table[(${label})])', function(obj){
+      var checkStatus = table.checkStatus(obj.config.id);
+      var data = rowi;
+	    if(obj.event === 'detail'){
+	    	 objectManage(data);
+	    }
+	    [(${toolBarActiveLogic})]
+  });
+  
+  function objectManage(data){
+	  layer.open({
+          type: 2,
+          anim: 0,
+          shade: 0,
+          title: data.name,
+          maxmin: true,
+          area: ['100%', '100%'],
+          btn:['关闭'],
+          yes:function(index,layero)
+          {
+				 close()
+              //index为当前层索引
+              layer.close(index)
+          },
+          cancel:function(){//右上角关闭毁回调
+         	 close()
+         	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+      		parent.layer.close(index); //再执行关闭
+          },
+          zIndex: layer.zIndex //重点1
+          ,success: function(layero, index){
+            layer.setTop(layero); //重点2
+         	  var body = layer.getChildFrame('body', index);
+         	 var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+         	 // console.log(body.html()) //得到iframe页的body内容
+         	 iframeWin.initForm(data)
+          },
+          content: "[(${MODULE_NAME})]/layui/[(${label})]/"+data.id+"/detail"
+      });
+  }
+  
+   
+	
+  [(${layField})]
+  
+function initChidForm(body){
+		  [# th:each="ci : ${cols}"]
+	 	    body.find('#'+'[(${ci.field})]').val( currentNode['[(${ci.field})]']);
+		  [/]
+}
+
+[(${toolFun})]
+function refresh(){
+	crudTable.reload( { //表格的id
+	    page: {
+	        curr: 1 //重新从第 1 页开始
+	    }
+	  });
+}
+</script>
+</body>
+</html>

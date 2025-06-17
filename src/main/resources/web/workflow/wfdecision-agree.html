@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>流程任务审批</title>
+</head>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script language="javascript">
+	//流程动作执行
+	function performAction(){
+		var nextTask= '[(${nextTask?.get("title")})]';
+		if (nextTask != null){
+			
+			if ('[(${currentTask?.get("isAutoNode")}]'=='N' ){
+				var checkedCount = $(":checked").length;//getSelectedCheckBox(document.wfDecisionAgreeForm,"executorIDs");
+				if (checkedCount <= 0){
+					alert("没有选择执行人！");
+					return;
+				}
+			}
+		}
+		var params={};
+		params['flowId']=$('#flowId').val();
+        var values = $('input[type="checkbox"]:checked').map(function(){
+            return $(this).val();
+        }).get();
+        let exs = ''
+        for(let i=0;i<values.length;i++){
+            if(i>0){
+                exs+=','
+            }
+            exs+=values[i];
+        }
+        params['executorIDs']=exs;
+		params['executeComment']=$('#executeComment').val();
+					
+		$.ajax({
+			url: '[(${MODULE_NAME})]/bpm/agree/agree',
+			type: 'POST', 
+			data: JSON.stringify(params), 
+			dataType : "json",
+	        contentType : "application/json;charset=UTF-8",
+			beforeSend: function () {
+				$("#BTN_SAVE").attr({"disabled":true});
+			},
+			success: function(result){
+				if (result.code==200) { // 操作成功
+					// 刷新数据列表
+					window.returnValue = result.success;
+                    if(result.data.value){
+                        alert(result.data.value)
+                    }
+				}else{
+                    if(result.data.value){
+                        alert(result.data.value)
+                    }
+                }
+			},
+			complete: function(e, xhr, settings) {
+				$("#BTN_SAVE").attr({"disabled":false});
+			}
+		});
+
+	}         
+</script>
+<body scroll="no">
+<form name="wfDecisionAgreeForm"  id="wfDecisionAgreeForm" method="POST">    
+<input type="hidden" name="flowId" id="flowId" th:value="${flowId}">
+
+
+<table width="100%" cellpadding="2" cellspacing="2" class="addtable" align="center">
+	<tr >
+      <td class="label" nowrap width="15%">当前任务：</td>
+      <td class="tdinput" nowrap width="85%" th:utext="${currentTask?.get('title')}">
+         
+      </td>
+   </tr>
+   <tr >
+      <td class="label" nowrap width="15%">当前任务到达时间：</td>
+      <td class="tdinput" nowrap width="85%" th:utext="${taskComeDatetime}">
+         
+      </td>
+   </tr>
+   <tr >
+      <td class="label" nowrap width="15%">下一任务：</td>
+      <td class="tdinput" nowrap width="85%" th:utext="${nextTask?.get('title')}">
+      </td>
+   </tr>
+    <tr th:if="autoExecuteFlag != WFEConstants.DB_BOOLEAN_TRUE" >
+      <td class="label" nowrap width="15%">执 行 人：</td>
+      <td class="tdinput" nowrap width="85%">
+      
+       <input type="checkBox" name="executorIDs" id="executorIDs" th:each="ci:${taskUsers}" th:value="${ci.userId}" th:text="${ci.username}" checked  readonly/>
+       </td>
+   </tr>
+   <tr >
+      <td class="label" nowrap width="15%">执行意见：</td>
+      <td class="tdinput" nowrap width="85%"> 
+         <textarea cols="60" rows="5" name="executeComment" id="executeComment"></textarea>
+      </td>
+   </tr>
+   <tr align="center">
+      <td height="45" nowrap colspan="2">         
+         <input type="button" name="BTN_SAVE" id="BTN_SAVE" value="确认执行" 
+            class="input_button" onclick="performAction();">
+         <input type="button" name="BTN_CLOSE" id="BTN_CLOSE" value="取消" 
+            class="input_button" onclick="art.dialog.close();">
+      </td>
+   </tr>
+</table>     
+</form>
+</body>
+</html>

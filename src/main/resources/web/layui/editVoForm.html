@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head >
+	<title th:text="|${name}|"></title>
+	<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+
+</head>
+<body>
+	
+	<form class="layui-form" th:id="|edit${id}|"
+		th:lay-filter="|edit${id}|" th:utext="|${formContent}|"></form>
+
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+[(${layUse})]
+
+	  //监听提交	  
+	  form.on('submit(edit[[${id}]])', function(data){
+	formSubmit();
+ return false;
+});
+	  //表单取值
+//layui.$('#save'+[[${id}]]).on('click', formSubmit);
+	  
+ function formSubmit(){
+  var formData={};
+  [# th:each="ci : ${colCodes}"]
+  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+  [/]
+ 
+ var genurl = "[(${MODULE_NAME})]/
+	vo/[(${id})]/save";
+ 
+ $.ajax({
+    type: "post",
+    url: genurl,
+	dataType : "json",
+	contentType : "application/json;charset=UTF-8",      
+	data: JSON.stringify(formData),
+	success: function (d) {
+		if(!d.status){
+			   layer.alert(d.msg, {icon: 5})
+		   }else{
+			   layer.alert(d.msg, {icon: 6})
+		   }
+     	},
+		error:function (d) {
+        	layer.alert(d.msg, {icon: 5})
+    	}
+    });
+  }
+form.render('select');
+
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+  
+  layui.define(['form'], function(exports){
+	  exports('formVal', function(data){
+		  form.val('edit[(${id})]', data);
+	  });
+	});
+ 
+  [(${layField})]
+
+function initForm(data){
+	  [# th:each="ci : ${cols}"]
+	  $(document.getElementById('[(${ci.field})]')).val(data['[(${ci.field})]']);
+	  [/]
+		  [(${codeInit})]
+}
+</script>
+</body>
+</html>

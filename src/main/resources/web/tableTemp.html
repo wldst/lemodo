@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}对象管理|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+
+<!-- <div th:fragment="searchVoList">
+		<div class="demoTable">
+			<form class="layui-form" action="">
+				<div class="layui-form-item" th:utext="|${searcForm}|">
+					<label class="layui-form-label">名称：</label>
+				    <div class="layui-input-inline">
+							<input name="name" class="layui-input" id="nameReload"
+								placeholder="请输入领域对象名称" autocomplete="off" lay-verify="name">
+							<input name="poIdReload" hidden=true class="layui-input"
+								id="poIdReload">
+					</div>
+				</div>
+				<div class="layui-row">
+			    <div class="layui-col-xs3">
+			    </div>
+			    <div class="layui-col-xs3">
+			    </div>
+			    <div class="layui-col-xs3"><div class="grid-demo grid-demo-bg1"><div class="grid-demo">
+			      <button class="layui-btn" lay-submit lay-filter="searchDO"
+							data-type="reload">
+							搜索<i class="layui-icon">&#xe615;</i>
+						</button>
+				   </div></div>
+			    </div>
+			    <div class="layui-col-xs3">
+			      
+			    </div>
+			  </div>
+			</form>
+		</div>
+		<table th:id="|table${voId}|" th:lay-filter="|table${voId}|"></table>
+	</div> -->
+
+	<div th:fragment="searchList">
+		<div class="demoTable">
+			<form class="layui-form" action="">
+				<div class="layui-form-item" th:utext="|${searcForm}|">
+					<label class="layui-form-label">名称：</label>
+				    <div class="layui-input-inline">
+							<input name="name" class="layui-input" id="nameReload"
+								placeholder="请输入领域对象名称" autocomplete="off" lay-verify="name">
+							<input name="poIdReload" hidden=true class="layui-input"
+								id="poIdReload">
+					</div>
+				</div>
+				<div class="layui-row">
+				    <div class="layui-col-xs3"><div class="grid-demo grid-demo-bg1"><div class="grid-demo">
+				      <button class="layui-btn" lay-submit lay-filter="searchDO"
+								data-type="reload">
+								搜索<i class="layui-icon">&#xe615;</i>
+							</button>
+					   </div></div>
+				    </div>
+				    <div class="layui-col-xs3">
+				      
+				    </div>
+			  </div>
+			</form>
+		</div>
+		<table th:id="|table${tableName}|" th:lay-filter="|table${tableName}|"></table>
+	</div>
+	
+	<div th:fragment="searchPoList">
+		<div class="demoTable">
+			<form class="layui-form" action="">
+				<div class="layui-form-item" th:utext="|${searcForm}|">
+					<label class="layui-form-label">名称：</label>
+				    <div class="layui-input-inline">
+							<input name="name" class="layui-input" id="nameReload"
+								placeholder="请输入领域对象名称" autocomplete="off" lay-verify="name">
+					</div>
+					<div class="layui-input-inline" hidden=true>
+						<input name="idReload" id="idReload">
+						<input name="poIdReload" id="poIdReload" >
+					</div>
+				</div>
+				<div class="layui-row">
+				    <div class="layui-col-xs3"><div class="grid-demo grid-demo-bg1"><div class="grid-demo">
+				      <button class="layui-btn" lay-submit lay-filter="searchDO"
+								data-type="reload">
+								搜索<i class="layui-icon">&#xe615;</i>
+							</button>
+					   </div></div>
+				    </div>
+				    <div class="layui-col-xs3">
+				      
+				    </div>
+			  </div>
+			</form>
+		</div>
+		<table th:id="|table${tableName}|" th:lay-filter="|table${tableName}|"></table>
+	</div>
+	
+	<div th:fragment="searchTreeList">
+		<h3>
+			<label th:text="'查询'+${name}"></label>
+		</h3>
+		<div class="demoTable">
+			<form class="layui-form" action="">
+				<div class="layui-form-item">
+					<label class="layui-form-label">名称：</label>
+					<div class="layui-input-inline">
+						<input name="name" class="layui-input" id="nameReload"
+							placeholder="请输入领域对象名称" autocomplete="off" lay-verify="name">
+						<input name="poIdReload" hidden=true class="layui-input"
+							id="poIdReload">
+					</div>
+				</div>
+			</form>
+   <div class="layui-row">
+    <div class="layui-col-xs3">
+    </div>
+    <div class="layui-col-xs3">
+    </div>
+    <div class="layui-col-xs3">
+    </div>
+    <div class="layui-col-xs3">
+      <div class="grid-demo">
+      <button class="layui-btn" lay-submit lay-filter="searchDO"
+				data-type="reload">
+				搜索<i class="layui-icon">&#xe615;</i>
+			</button>
+	   </div>
+    </div>
+  </div>
+		</div>
+		<div class="layui-row">
+			<div class="layui-col-md2">
+					<ul th:id="|${tableName}tree|" class="ztree layui-tab-more"></ul>
+			</div>
+			<div class="layui-col-md10">
+				<table th:id="|table${tableName}|" th:lay-filter="|table${tableName}|"></table>
+			</div>
+		</div>
+	</div>
+
+	<div th:fragment="formTemp">
+		<form class="layui-form" th:id="|staticForm${tableName}|"
+			th:lay-filter="|staticForm${tableName}|">
+			<div th:each="ci,ciStat : ${cols}" th:switch="(${ciStat.count}%4)"
+				th:class="(${ciStat.count}%4==0) ? 'layui-form-item' : 'layui-inline'">
+				<div th:case='0' class="layui-inline">
+					<label class="layui-form-label" th:text="${ci.name}"></label>
+					<div class="layui-input-inline" th:text="${ci.value}"></div>
+				</div>
+				<div th:case='*'>
+					<label class="layui-form-label" th:text="${ci.name}"></label>
+					<div class="layui-input-block" th:text="${ci.value}"></div>
+				</div>
+
+			</div>
+		</form>
+	</div>
+</body>
+</html>

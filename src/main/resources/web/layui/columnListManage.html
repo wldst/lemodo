@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title text="|${name}列管理|"></title>
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<form class="layui-form" id="editColumn"
+		th:lay-filter="|edit${label}|">
+			<div class="layui-form-item">				
+				<label class="layui-form-label">列编码：</label>
+				<div class="layui-input-inline">
+					<input name="columnCode" class="layui-input" id="columnCode"
+					placeholder="请输入 业务对象的英文名,此字段是业务对象的唯一标识符"	autocomplete="off" required>
+				</div>
+				<label class="layui-form-label">列名：</label>
+				<div class="layui-input-inline">
+					<input name="columnName" class="layui-input" id="columnName"
+						placeholder="请输入 列名" autocomplete="off" lay-verify="name" required>
+				</div>
+				<label class="layui-form-label">列类型：</label>
+				<div class="layui-input-inline">
+					<input name="columnType" class="layui-input" id="columnType"
+					placeholder="请输入 业务对象的英文名,此字段是业务对象的唯一标识符"	autocomplete="off" >
+				</div>
+			</div>
+			<div class="layui-form-item">				
+				<label class="layui-form-label">数据类型：</label>
+				<div class="layui-input-inline">
+					<input type="button" class="layui-btn layui-btn-primary"
+					id="relatePo" value="关联类" />
+					<input type=hidden 
+					id="selectPo" value="Po" />
+				</div>
+				<label class="layui-form-label">对象：</label>
+				<div class="layui-input-inline">
+					<input type="button" class="layui-btn layui-btn-primary"
+				    id="relateObj" value="关联对象" />
+				    <input type=hidden  id="selectObj" value="Po" />
+				</div>
+				<label class="layui-form-label">列：</label>
+				<div class="layui-input-inline">
+					<select name="relateCol"
+				    id="relateCol"  ></select>
+				</div>
+			</div>
+		</form>
+		<input type="button" class="layui-btn" onclick="saveDomain();"
+		value="保存" />
+	<br />
+	<table id="columnList" ></table>
+	
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+	layui.use('table', function(){
+	  var table = layui.table;
+	  var tabledata='[(${data})]';
+	  if(!tabledata){
+		  tabledata="";
+	  }
+	  //展示已知数据
+	  table.render({
+	    elem: '#columnList'
+	    ,cols: [[ //标题栏
+	    	{type:'checkbox', fixed: 'left'}
+	    	,{field: 'index', title: '序号', width: 50}
+	    	,{field: 'columnName', title: '列名', width: 200}
+	      ,{field: 'columnCode', title: '列编码', minWidth: 200}
+	      ,{field: 'columnType', title: '列类型', minWidth: 80}
+	      ,{field: 'nullAble', title: '是否为空', width: 100}
+	      ,{field: 'columnSize', title: '列大小', width: 100,sort: true}	      
+	      ,{fixed: 'right', align:'center', title:'操作',toolbar: '#barDemo',unresize: false}
+	    ]]
+	    ,url:'[(${MODULE_NAME})]/cruder/[(${label})]/search'
+    	,done: fixRightTool
+	    ,parseData: parseTableData
+	    ,skin: 'line' //表格风格
+	    ,even: true
+	    ,page: true //是否显示分页
+	    ,limits: [30, 50, 100]
+	    ,limit: 30 //每页默认显示的数量
+	  });
+	  
+	  function poFieldSelect(data){
+		  var genurl = "[(${MODULE_NAME})]/cruder/"+data+"/fieldList";
+			 var formData={}
+			 $.ajax({
+			    type: "post",
+			    url: genurl,
+				dataType : "json",
+				contentType : "application/json;charset=UTF-8",      
+				data: JSON.stringify(formData),
+				success: function (d) {
+					var fileds=d.data;
+					var vo= $("#relateCol");
+					vo.empty();
+					for(var i in fileds){
+						vo.append("<option value='"+fileds[i].code+"'>"+fileds[i].name+"</option>");
+					}
+					layui.form.render('select');
+			          
+		      	},
+		 		error:function (d) {
+			        layer.alert(d.msg, {icon: 5})
+			    }
+			  });
+	  }
+	  
+	layui.$('#relateObj').on('click', function(data){
+		 var select= $("#selectPo").val();
+		 var selectPoName = $("#relatePo").val();
+		 if(select==null||select==""){
+			 $("#selectPo").val("Po");
+			 select="Po"
+		 }
+		 layer.open({
+	      type: 2,
+	      anim: 0,
+	      shade: 0,
+	      title: "关联"+selectPoName,
+	      area: ['95%', '95%'],
+	      btn:['关闭'],
+	      yes:function(index,layero)
+	      {
+	      	var body = layer.getChildFrame('body', index);
+	      	var selected = body.find('#selectObj').val();
+		    var selectedName = body.find('#selectObjName').val();
+		        	
+	      	$("#relateObj").val(selectedName);
+	      	$("#selectObj").val(selected);
+	      	poFieldSelect(selected);	
+					 close()
+	          //index为当前层索引
+	          layer.close(index)
+	      },
+	      cancel:function(){//右上角关闭毁回调
+	     	 close()
+	     	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+	  		parent.layer.close(index); //再执行关闭
+	      },
+	      zIndex: layer.zIndex //重点1
+	      ,success: function(layero, index){
+	        layer.setTop(layero); //重点2
+	   	  var body = layer.getChildFrame('body', index);
+	      },
+	      content: "[(${MODULE_NAME})]/md/select/"+select
+	  });
+	});
+	  
+	  layui.$('#relatePo').on('click', function(data){
+		  layer.open({
+	        type: 2,
+	        anim: 0,
+	        shade: 0,
+	        title: "选择",
+	        area: ['95%', '95%'],
+	        btn:['关闭'],
+	        yes:function(index,layero)
+	        {
+	        	var body = layer.getChildFrame('body', index);
+	        	var selected = body.find('#selectPo').val();
+	        	var selectedName = body.find('#selectPoName').val();
+	        	if(selected){
+	        		$("#selectPo").val(selected);
+	        		$("#relatePo").val(selectedName);
+	        	}else{
+	        		$("#selectPo").val("Po");
+	        		$("#relatePo").val("实体");
+	        	}
+	        	
+				//$("#selectPoName").text(selectedName);
+				
+				close()
+	            //index为当前层索引
+	            layer.close(index)
+	        },
+	        cancel:function(){//右上角关闭毁回调
+	       	 close()
+	       	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+	    		parent.layer.close(index); //再执行关闭
+	        },
+	        zIndex: layer.zIndex //重点1
+	        ,success: function(layero, index){
+	          layer.setTop(layero); //重点2
+	     	  var body = layer.getChildFrame('body', index);
+	        },
+	        content: "[(${MODULE_NAME})]/vue/poSelect"
+	    });
+	});
+	  
+	//表单取值 
+		form.on('submit(edit[(${label})])', function(data){
+			formSubmit();
+		 return false;
+		});
+		function formSubmit(){
+			 var formData={};
+			 formData['code']=$('#columnCode').val();
+			 formData['name']=$('#columnName').val();
+			 formData['type']=$('#columnType').val();
+			 formData['relatePo']=$('#relatePo').val();
+			 formData['relateObj']=$('#relateObj').val();
+			 formData['relateCol']=$('#relateCol').val();
+			 
+			 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/save";
+			 
+			 $.ajax({
+			    type: "post",
+			    url: genurl,
+				dataType : "json",
+				contentType : "application/json;charset=UTF-8",      
+				data: JSON.stringify(formData),
+				success: function (d) {
+					if(!d.status){
+			  			   layer.alert(d.msg, {icon: 5})
+			  		   }else{
+			  			   layer.alert(d.msg, {icon: 6})
+			  			   refresh()
+			  		   }
+		      	},
+		 		error:function (d) {
+			        layer.alert(d.msg, {icon: 5})
+			        refresh()
+			    }
+			    });
+			}
+	  
+	});
+	</script>
+</body>
+</html>

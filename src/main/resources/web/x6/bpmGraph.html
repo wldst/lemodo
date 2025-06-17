@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="x6.js"></script>
+        <title>X6流程图</title>
+        <style type="text/css">
+            #container {
+                width: 100%;
+                height: calc(100vh);
+            }
+            @keyframes ant-line {
+                        to {
+                            stroke-dashoffset: -1000;
+                        }
+                    }
+        </style>
+    </head>
+    <body>
+        <div id="container" style="position: fixed;"></div>
+    </body>
+<script src="https://cdn.jsdelivr.net/npm/@antv/x6/dist/x6.js"></script>
+    <script type=" text/javascript">
+        const male = 'images/1.png'
+
+        X6.Graph.registerNode(
+            'org-node', {
+                width: 180,
+                height: 60,
+                markup: [{
+                        tagName: 'rect',
+                        selector: 'body',
+                    },
+                    {
+                        tagName: 'image',
+                        selector: 'avatar',
+                    },
+                    {
+                        tagName: 'text',
+                        selector: 'rank',
+                    },
+                    {
+                        tagName: 'text',
+                        selector: 'name',
+                    },
+                ],
+                attrs: {
+                    body: {
+                        refWidth: '100%',
+                        refHeight: '100%',
+                        fill: '#FFFFFF',
+                        stroke: '#000000',
+                        strokeWidth: 2,
+                        rx: 10,
+                        ry: 10,
+                        pointerEvents: 'visiblePainted',
+                    },
+                    avatar: {
+                        width: 48,
+                        height: 48,
+                        refX: 8,
+                        refY: 6,
+                    },
+                    rank: {
+                        refX: 0.9,
+                        refY: 0.2,
+                        fontFamily: 'Courier New',
+                        fontSize: 14,
+                        textAnchor: 'end',
+                        //textDecoration: 'underline',
+                    },
+                    name: {
+                        refX: 0.9,
+                        refY: 0.6,
+                        fontFamily: 'Courier New',
+                        fontSize: 14,
+                        fontWeight: '800',
+                        textAnchor: 'end',
+                    },
+                },
+            },
+            true,
+        )
+        const graph = new X6.Graph({
+            container: document.getElementById('container'),
+            grid: {
+                size: 20, //网格大小
+                visible: true, //是否开启网格画布
+                type: 'dot', // 'dot' | 'fixedDot' | 'mesh'|     //网格样式
+                args: {
+                    color: '#75664D', // 网格线/点颜色  
+                    thickness: 1, // 网格线宽度/网格点大小
+                },
+            },
+            //对齐线是移动节点排版的辅助工具
+            snapline: true,
+            connecting: {
+                snap: true,
+                highlight: true,
+            },
+        })
+
+        function member(x, y, rank, name, image, background, textColor) {
+            return graph.addNode({
+                width: 180, // Number，可选，节点大小的 width 值
+                height: 60, // Number，可选，节点大小的 height 值
+                x:x,
+                y:y,
+                shape: 'org-node',
+                attrs: {
+                    body: {
+                        fill: background,
+                        stroke: 'none',
+                    },
+                    avatar: {
+                        opacity: 0.7,
+                        'xlink:href': image,
+                    },
+                    rank: {
+                        text: rank,
+                        fill: '#000',
+                        wordSpacing: '-5px',
+                        letterSpacing: 0,
+                    },
+                    name: {
+                        text: name,
+                        fill: '#000',
+                        fontSize: 13,
+                        fontFamily: 'Arial',
+                        letterSpacing: 0,
+                    },
+                },
+            })
+        }
+        const node1 = member(200, 160, '张三', '已审批(同意)', male, 'green');
+        const node2 = member(460, 160, '王五', '已审批(驳回)', male, 'yellow');
+        const node3 = member(720, 160, '李四', '正在审批中', male, 'red');
+        const node4 = member(980, 160, '王麻子', '未审批', male, '#f2f2f2');
+        const edge1 = new X6.Shape.Edge({
+            id: 'edge1',
+            source: node1,
+            target: node2,
+            router: {
+                name: 'er',
+                args: {
+                      offset: 'center',
+                    },
+            },
+            attrs: {
+                line: {
+                    stroke: '#000',
+                    strokeDasharray: 5,
+                                targetMarker: 'classic',
+                                style: {
+                                    animation: 'ant-line 30s infinite linear',
+                                },   
+                },
+            },
+        })
+        const edge2 = new X6.Shape.Edge({
+            id: 'edge2',
+            source: node2,
+            target: node3,
+            router: {
+                name: 'er',
+                args: {
+                      offset: 'center',
+                      
+                    },
+            },
+            attrs: {
+                line: {
+                    stroke: '#000',
+                    strokeDasharray: 5,
+                                targetMarker: 'classic',
+                                style: {
+                                    animation: 'ant-line 30s infinite linear',
+                                },   
+                },
+            },
+        })
+        const edge3 = new X6.Shape.Edge({
+            id: 'edge3',
+            source: node3,
+            target: node4,
+            router: {
+                name: 'er',
+                args: {
+                      offset: 'center',
+                    },
+            },
+            attrs: {
+                line: {
+                    stroke: '#000',
+                    strokeDasharray: 5,
+                                targetMarker: 'classic',
+                                style: {
+                                    animation: 'ant-line 30s infinite linear',
+                                },   
+                },
+            },
+        })
+        graph.addEdge(edge1)
+        graph.addEdge(edge2)
+        graph.addEdge(edge3)
+    </script>
+</html>

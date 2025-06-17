@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8' />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+	<link rel="stylesheet" th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+	<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+    <link rel="stylesheet" th:href='@{/static/plugin/fullcalendar/core/main.css' rel='stylesheet' />
+</head>
+<body>
+<div class="layui-fluid">
+	<div class="layui-card">
+		<div class="layui-card-body">
+            <div id='calendar'></div><!-- 此处就是放置日历界面的div，注意id的使用 -->
+		</div>
+	</div>
+</div>
+
+<script>
+    layui.use(['fullCalendar'], function() { // layUI加载fullCalendar插件
+        var fullCalendar = layui.fullCalendar; // layUI声明使用fullCalendar插件并创建其对象
+            fboot = layui.fboot,
+            $ = layui.jquery; // layUI声明使用jquery
+        fullCalendar.init("calendar", { //根据id初始化日历的div
+            plugins: ['dayGrid','interaction','timeGrid'],
+            header: {  //定义日历表的表头有哪些信息、按钮
+            	left: 'prev,next,today',  // 此处是前翻、后翻、返回到当前时间，前翻后翻可用于年月周日等不同的时间视图
+                center: 'title',  // 定义为title出现的是当前的时间或者时间段，年月周日四种视图均有所差异
+                right: 'dayGridMonth,timeGridWeek,timeGridDay' // 此处是定义日历右边有几种时间视图，代码中的分别定义了月、周、日三种视图的按钮，定义好后点击就会出现相应的视图
+              },
+            defaultView: 'dayGridMonth',  //默认显示视图：dayGridMonth、timeGridWeek、timeGridDay
+            allDaySlot : false, // 不单独显示全天的头框，有兴趣的可以试一下，此属性默认为true
+            //unselectAuto: true, // 是否单击页面上的其他位置将导致清除当前选择，此属性默认为true
+            navLinks: true, //确定日期名称和周名称是否可单击，此属性默认为false，设置为true后月视图日历上的时间可被点击直接进入日视图
+            editable: true, //确定是否可以修改日历上的事件，此属性默认为false。
+            //selectable: false, // 允许用户通过单击并拖动来突出显示多个日期或时间段，默认false
+            eventLimit: true, // 限制一天显示的事件数。其余的将出现在popover中，默认： false
+            
+            // events接口：加载日历并将当前日历的起止时间传给后台，经后台处理后得到在起止时间段内所有日程
+            events: function(info,callback){
+                fboot.get('/oa/schedule/scheduleList', { // 后台路径
+                    data: {
+                    	// info是fullcalendar封装的关于日历的信息对象，可直接调用，里面有此视图的开始结束时间
+                        start: info.startStr, 
+                        end: info.endStr
+                    },
+                    // 后台获取的是一个list集合，里面存放的是一条条日程信息
+                    success: function(resp) {
+                    	// 创建events数组对象，目的是：放入fullcalendar设定好的数据展示模式（还有json形式的等，不一定非要使用数组类型的）
+                        var events = []; //
+                        
+                        // 此段是根据当前时间与每条数据的开始结束时间相匹对，以此来赋予背景颜色
+                        var currentTime = new Date();
+                        resp.map(function(eventEl) { // .map会将resp中的元素逐条处理，就像Java后台中的forEach方法
+                        	var bColor = null;
+                        	if(currentTime < eventEl.startTime){
+                        		bColor = 'green';
+                        	}
+                        	if(currentTime >= eventEl.startTime && currentTime <= eventEl.endTime){
+                        		bColor = 'red';
+                        	}
+                        	if(currentTime > eventEl.endTime){
+                        		bColor = 'slategray ';
+                        	}
+                        // 往events数组中放入fullcalender展示数据所需要的数据格式
+                        events.push({
+                                title: eventEl.title,// 日程标题
+                                start: eventEl.startTime,// 日程开始时间
+                                end: eventEl.endTime,// 日程结束时间
+                                id: eventEl.id, // 日程id
+                                color: bColor, // 背景色
+                              });
+                        })
+                        // 数据装载完成后，回调events方法
+                        callback(events);
+                    }
+                });
+            },
+            // dateClick接口：点击空白处的方法，此方法中的info是用户点击时间点的信息
+            dateClick: function(info) {
+            	// 获得info中的时间
+                var date = info.dateStr;
+                fboot.modalForm('添加', '/oa/schedule/add', { // 联系后台，获得一个填写新增的表单页
+                    formId: 'oaSchedule',
+                    option: { area: ['670px', '410px'] },
+                    param: {date: date},
+                    callback: function(closeModal, formData) {// 表单点击保存后获得表单中的所有信息
+                        fboot.post('/oa/schedule', {  // 保存数据到数据库的后台方法路径
+                            data: formData,  // 传递到后台的数据
+                            success: function() {
+                                layer.closeAll('page'); // 保存成功后关闭弹出层的表单
+                                location.reload();  // 刷新界面为新增的日程信息
+                            }
+                        });
+                    }
+                });
+            },
+            // eventClick接口：单击日历上的日程信息方法，方法内部所使用的逻辑与新增的基本一样
+            eventClick: function(event) {
+            	// 这是为了获得点被点击日程的id值，此id值被放在event对象的event对象中，有兴趣的同学可以打个断点看看里面都有什么~
+                var id = event.event.id;
+                fboot.modalForm('日程信息', '/oa/schedule/edit', {
+                    formId: 'oaSchedule',
+                    option: { area: ['670px', '455px'] },
+                    param: {id: id},
+                    callback: function(closeModal, formData) {
+                        fboot.put('/oa/schedule/' + id, {
+                            data: formData,
+                            success: function(result) {
+                                layer.closeAll('page');
+                                layer.msg('操作成功！');
+                                location.reload();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+</script>

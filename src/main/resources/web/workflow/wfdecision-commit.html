@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>流程任务提交画面</title>
+</head>
+
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script language="javascript">
+   //任务提交
+   function performAction(){
+	   var nextTask="[(${nextTask.get('id')})]";
+      
+         if (nextTask == null){
+	      	if (confirm("当前为流程最后一个任务，是否结束该流程？")){
+			  execWf();
+			}
+         }else{
+	         var selectItemObj = $("#executorIDs").val();
+	         if (selectItemObj.length <= 0){
+	            alert("没有选择下一任务执行人,请选择！");
+	            return;
+	         }
+	         if (confirm("是否执行当前流程操作动作？")){
+	            execWf();
+	         }
+         }
+   }
+   
+   function execWf()
+	  {
+		 
+		  var params ={};
+		  params["flowId"]=[(${workflow?.get('id')})];
+		  //params["executorIDs"]=$('input[type="checkbox"]:checked');
+		  var values = $('input[type="checkbox"]:checked').map(function(){
+			  return $(this).val();
+		  }).get();
+		  let exs = ''
+		  for(let i=0;i<values.length;i++){
+			  if(i>0){
+				  exs+=','
+			  }
+			  exs+=values[i];
+		  }
+		  params['executorIDs']=exs;
+		  params["executeComment"]=$("#executeComment").val();
+	        $.ajax({
+		        url: '[(${MODULE_NAME})]/bpm/commit/commit',
+	        	type: 'POST', 
+	        	data: JSON.stringify(params), 
+	        	dataType: 'json', 
+	        	contentType : "application/json;charset=UTF-8",
+	        	beforeSend: function () {
+					$("#BTN_SAVE").attr({"disabled":true});
+		        },
+	        	success: function(result){
+					alert(result.msg);
+				    if (result.success) { // 操作成功
+			    		// 刷新数据列表
+			    		$("#BTN_SAVE").attr({"disabled":true});
+				    }else{
+				    	$("#BTN_SAVE").attr({"disabled":false});
+				    } 
+	        	},
+	        	complete: function(e, xhr, settings) {
+					$("#BTN_SAVE").attr({"disabled":false});
+	        	}
+	        });
+	  }
+
+</script>
+<body scroll="no">
+<form name="wfDecisionPerformForm" id="wfDecisionPerformForm" method="POST">
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0" class="toolbar" id="toolbar_toolbar_null" name="toolbar">
+ 		         <tr>
+		      		<td valign="top" style="padding-left:0px">
+				         <FIELDSET>
+				         <LEGEND>流程信息</LEGEND>
+				         <table width="100%" cellpadding="2" cellspacing="2" 
+				               class="addtable" align="center" >
+				               <tr >
+							      <td class="label" nowrap width="15%">下一任务：</td>
+							      <td class="tdinput" nowrap width="85%" th:utext="${nextTask?.get('title')}">
+							      </td>
+							   </tr>
+							    <tr th:if="autoExecuteFlag != WFEConstants.DB_BOOLEAN_TRUE" >
+							      <td class="label" nowrap width="15%">执 行 人：</td>
+							      <td class="tdinput" nowrap width="85%" >
+							      
+							       <input type="checkBox" name="executorIDs" id="executorIDs"  th:each="ci:${taskUsers}" th:value="${ci.userId}" th:text="${ci.username}" checked  readonly/>
+							       </td>
+							   </tr>
+				         </table>
+				         </FIELDSET> 
+		         	</td>
+		         </tr>
+	<tr>
+         <td>
+	         <FIELDSET>
+	         <LEGEND>执行意见</LEGEND>
+	         <table width="100%" cellpadding="2" cellspacing="2" class="addtable" align="center">
+	            <tr >
+	               <td class="label" nowrap width="15%">执行意见：</td>
+	               <td class="tdinput" nowrap width="85%"> 
+	                  <textarea cols="60" rows="5" id="executeComment" name="executeComment"></textarea>
+	               </td>
+	            </tr>
+	         </table>
+	         </FIELDSET>
+      </td>
+   </tr>
+   <tr align="center">
+      <td height="45" nowrap colspan="2">         
+         <input type="button" name="BTN_SAVE" id="BTN_SAVE" value="确认执行" class="input_button" onclick="performAction();">
+         <input type="button" name="BTN_CLOSE"  id="BTN_CLOSE" value="取消" class="input_button" onclick="art.dialog.close();">
+      </td>
+   </tr>
+</table>   
+</form>
+<iframe name="operFrame" width="0" height="0"></iframe> 
+</body>
+</html>

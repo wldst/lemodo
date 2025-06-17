@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+	<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+	<link th:href="@{/static/css/login.css}" rel="stylesheet" />
+	<link rel="shortcut icon" href="#"/>
+</head>
+<body onkeydown="enterkey()">
+ 
+<div class="login-main">
+    <header class="layui-elip">登录</header>
+    <form class="layui-form">
+        <div class="layui-input-inline">
+            <input type="text" id="username" name="username" required lay-verify="required" placeholder="用户名" autocomplete="off"
+                   class="layui-input">
+        </div>
+        <div class="layui-input-inline">
+            <input type="password" id="password" name="password" required lay-verify="required" placeholder="密码" autocomplete="off"
+                   class="layui-input">
+        </div>
+        <div class="layui-input-inline login-btn">
+            <button type="submit" lay-submit lay-filter="login" class="layui-btn">登录</button>
+        </div>
+        <hr/>
+        <div class="layui-input-inline">
+            <button type="button" class="layui-btn layui-btn-primary">QQ登录</button>
+        </div>
+        <div class="layui-input-inline">
+            <button type="button" class="layui-btn layui-btn-normal">微信登录</button>
+        </div>
+        <p><a th:href="@{register}" class="fl">立即注册</a><a href="javascript:;" class="fr">忘记密码？</a></p>
+    </form>
+</div>
+ 
+ 	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+<script type="text/javascript">
+	function enterkey() {
+		e = event.keyCode;
+		if (e == 13 || e == 32) {
+			// do something.
+			formSubmit();
+			event.returnValue = false; // 取消此事件的默认操作
+		}
+	} 
+
+	var $, form, layer;
+	layui.use([ 'form', 'layer', 'jquery' ], function() {
+
+		// 操作对象
+		form = layui.form;
+		$ = layui.jquery;
+		layer = layui.layer;
+
+		form.on('submit(login)',function (data) {
+			
+			var formData = {};
+			formData['username'] = $('#username').val();
+			formData['password'] = $('#password').val();
+			//需要进行加密
+		    $.ajax({
+		        url:'[(${MODULE_NAME})]/adminctrl/login',
+		        dataType : "json",
+				contentType : "application/json;charset=UTF-8",      //
+				data: JSON.stringify(formData),
+		        type:'post',
+		        success : function(d) {
+					window.location.href = "[(${MODULE_NAME})]/desktop";
+				},
+				error : function(d) {
+					layer.alert(d.msg, {
+						icon : 5
+					})
+					//layer.msg('登录名或密码错误');
+				}
+		    })
+		    return false;
+		})
+
+	});
+
+	function formSubmit() {
+		form.verify();
+		var formData = {};
+		formData['username'] = $('#username').val();
+		formData['password'] = $('#password').val();
+
+		var genurl = "[(${MODULE_NAME})]/adminctrl/login";
+
+		$.ajax({
+			type : "post",
+			url : genurl,
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",
+			data : JSON.stringify(formData),
+			success : function(d) {
+				layer.alert(d.msg, {
+					icon : 6
+				})
+				window.location.href = "[(${MODULE_NAME})]/desktop";
+			},
+			error : function(d) {
+				layer.alert(d.msg, {
+					icon : 5
+				})
+				//layer.msg('登录名或密码错误');
+			}
+		});
+	}
+</script>
+</body>
+</html>

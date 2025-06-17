@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+  	<meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" name="viewport"/>
+    <meta content="yes" name="apple-mobile-web-app-capable"/>
+    <meta content="black" name="apple-mobile-web-app-status-bar-style"/>
+    <meta content="telephone=no" name="format-detection"/>
+    <link rel="stylesheet" th:href="@{/static/meeting/css/ydui.css?rev=@@hash}"/>
+    <link rel="stylesheet" th:href="@{/static/meeting/css/demo.css}"/>
+    <link th:href="@{/static/css/message/messenger.css}" rel="stylesheet">
+	<link th:href="@{/static/css/message/messenger-theme-future.css}"	rel="stylesheet">
+	<link th:href="@{/static/css/message/messenger-theme-flat.css}"	rel="stylesheet">
+    <script th:src="@{/static/meeting/js/ydui.flexible.js}"></script>
+    <script th:src="@{/static/meeting/js/jquery.min.js}"></script>
+    <script th:src="@{/static/meeting/js/ydui.js}"></script>
+    <script th:src="@{/static/js/message/messenger.min.js}"></script>
+	<script th:src="@{/static/js/message/messenger-theme-future.js}"></script>
+	<script th:src="@{/static/js/message/messenger-theme-flat.js}"></script>
+	<script th:src="@{/static/js/common/common.js}" charset="utf-8" type="text/javascript"></script>
+    <title>会议室预定</title>
+</head>
+<body>
+<section class="g-flexview">
+    <header class="m-navbar">
+     	<span onclick="backTo();" class="navbar-item"><i class="back-ico"></i></span>
+        <div class="navbar-center" style="font-size: 18px;">添加会议室管理员</div>
+    </header>
+
+    <section class="g-scrollview">
+    <form id="addForm"  method="post">
+
+    	
+    	<div class="m-celltitle">管理员姓名:</div>
+    	<div class="m-cell">
+            <div class="cell-item">
+                <div class="cell-right">
+                     <input class="cell-textarea" name="username" id="username" value=""  placeholder="请输入管理姓名，如：张三"></input>
+                </div>
+            </div>
+        </div>
+        <div class="m-celltitle">管理员帐号:</div>
+    	<div class="m-cell">
+            <div class="cell-item">
+                <div class="cell-right">
+                    <input class="cell-textarea" name="userAccount" id="userAccount" value=""  placeholder="请输入管理员PMIS帐号"></input>
+                </div>
+            </div>
+        </div>
+    	 <div class="m-celltitle">管理部门:</div>
+    	<div class="m-cell">
+            <div class="cell-item">
+                <div class="cell-right">
+                    <input class="cell-textarea" name="dept" id="dept" value=""  placeholder="请输入管理部门，如：一体化事业部"></input>
+                </div>
+            </div>
+        </div>
+	</form>
+    </section>
+<button id="addBoost"  class="btn-block btn btn-primary">保存</button>
+</section>
+<script type="text/javascript" >
+    var userId ='[[${userId}]]'
+
+</script>
+<script type="text/javascript">
+var dialog = YDUI.dialog;
+	//返回上一页
+	function backTo() {
+		history.go(-1);
+	}
+	$("#addBoost").on('click', function () {
+	    var username = $("#username").val();
+		if(username == ""){
+			dialog.alert("请输入管理员姓名！");
+			return;
+		}
+		var userAccount = $("#userAccount").val();
+		if(userAccount == ''){
+			dialog.alert("请输入管理员PMIS帐号！");
+			return;
+		}
+		var dept = $("#dept").val();
+		if(dept == ''){
+			dialog.alert("请输入管理部门！");
+			return;
+		}
+
+		var params = {
+				"userName":username,
+				"userAccount":userAccount,
+				"deptName":dept,
+                "roleCode":'manager',
+                "userId":userId
+		};
+		$("#addBoost").attr("disabled",true);
+		ajaxRequest('[(${MODULE_NAME})]/cruder/MeetManager/save',params, 'POST', '', resultFunc);
+	});
+	//回掉函数
+	function resultFunc(res) {
+		dialog.alert(res.msg);
+		$("#addBoost").removeAttr("disabled");
+	}
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="layout">
+<template id="layout">
+  <div class="app-wrapper" :class="classObj">
+    <sidebar class="sidebar-container"></sidebar>
+    <div class="main-container">
+      <navbar></navbar>
+      <app-main></app-main>
+    </div>
+  </div>
+</template>
+<template th:replace="|/element/components/sidebar|::sidebar"></template>
+<template th:replace="|/element/components/navbar|::navbar"></template>
+<template th:replace="|/element/components/appmain|::appmain"></template>
+<script type="module">
+import ResizeMixin from './mixin/ResizeHandler'
+
+const layout = {
+  template: '#layout',
+  name: 'layout',
+  components: {
+    Navbar,
+    Sidebar,
+    AppMain
+  },
+  mixins: [ResizeMixin],
+  computed: {
+    sidebar() {
+      return this.$store.state.app.sidebar
+    },
+    device() {
+      return this.$store.state.app.device
+    },
+    classObj() {
+      return {
+        hideSidebar: !this.sidebar.opened,
+        withoutAnimation: this.sidebar.withoutAnimation,
+        mobile: this.device === 'mobile'
+      }
+    }
+  }
+}
+</script>
+
+<style rel="stylesheet/scss" lang="scss" scoped>
+  @import "src/styles/mixin.scss";
+  .app-wrapper {
+    @include clearfix;
+    position: relative;
+    height: 100%;
+    width: 100%;
+  }
+</style>
+
+</div>
+</html>

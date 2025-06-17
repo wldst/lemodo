@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>广场</title>
+    <link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+</head>
+<body >
+
+<div class="container">
+	<div class="row">
+		<div class="col-lg-4">
+			<ul class="list-group">
+					<li class="list-group-item active" value="xx">
+					</li>
+			</ul>
+		</div>
+		 <div class="col-lg-8">
+			<div class="form-group">
+			    <h5 id="chatBoxName">广场</h5>
+			    <textarea id="message_content" class="form-control" readonly="readonly" cols="50"
+			              rows="20"></textarea>
+			</div>	
+		</div>	
+	</div>
+	<div class="row">
+	<div class="col-lg-4">
+	<div class="form-group">
+		    <!-- <label for="in_user_name">⽤户姓名 &nbsp;</label>-->
+		    <input id="in_user_name" type="hidden" th:value="${userName}" class="form-control"/> 
+		    <!-- <label for="in_user_name">房间名 &nbsp;</label> -->
+		    <input id="in_room_id" type="hidden" value="square" class="form-control">
+		    <!--<button id="user_join" onclick="verificationValue()" class="btn btn-success">加入聊天室</button>-->
+		    <button id="user_exit" onclick="outRoom()" class="btn btn-warning">下线</button>
+		</div>
+	</div>
+	<div class="col-lg-8">
+	<div class="form-group">
+		    <label for="in_room_msg">群发消息 &nbsp;</label>
+		    <input id="in_room_msg"  class="form-control"/></br>
+		    <button id="user_send_all" onclick="sendInfo()" class="btn btn-info">发送消息</button>
+		</div>
+	</div>
+	</div>
+</div>
+<script>
+    var sockets={};
+    var webSocketUrl = 'wss://'+window.location.host+'/websocket/';//websocketi连接地址
+    var userName = "[(${userName})]";//用户名
+    var socket;//websocket连接
+    //创建websocket连接
+    function createWebSocketConnect(roomId) {
+        if (!socket||socket.readyState != socket.OPEN) {//避免重复连接
+            console.log(roomId);
+            socket = new WebSocket(webSocketUrl + roomId);
+            socket.onopen = function () {
+                console.log("websocket已连接");
+                $("#message_content").append(":<br/>");
+                socket.send(userName+":上线了");
+            };
+            socket.onmessage = function (e) {
+                //服务端发送的消息
+                $("#message_content").append(e.data + '\n');
+            };
+            socket.onclose = function () {
+                $("#message_content").append(userName+":<br/>");
+                socket.send(userName + "已经退出系统");
+            }
+            sockets[roomId]=socket;
+        }
+    }
+
+    //验证用户名和房间号是否填写
+    function verificationValue() {
+        roomId = $("#in_room_id").val();
+        userName = $("#in_user_name").val();
+        if (roomId === "" || userName === "") {
+            alert("请填写用户名并填写要加入的房间号");
+            return;
+        }
+        createWebSocketConnect(roomId, userName);
+    }
+    verificationValue();
+
+    //群发消息
+    function sendInfo() {
+        let msg = $('#in_room_msg').val();
+        var roomId = $("#in_room_id").val();
+    	var socket = sockets[roomId];
+        if (socket) {
+            socket.send(userName + ":" + msg)
+        }
+    }
+
+    //离开房间
+    function outRoom() {
+    	var roomId = $("#in_room_id").val();
+    	var socket = sockets[roomId];
+        if (socket) {
+            socket.send(userName + "下线了");
+            socket.close();
+            $("#message_content").append(userName + "下线了");
+        }
+    }
+    var chatBoxs = {};
+    function readChatBox(){ 
+    		var genurl = "[(${MODULE_NAME})]/cruder/chatBox/query";
+    		var formData={};
+    		$.ajax({
+    		     type: "post",
+    		     url: genurl,
+    		     dataType : "json",
+    		     contentType : "application/json;charset=UTF-8",      //
+    		     data: JSON.stringify(formData),
+    		     success: function (d) {
+    		    	// console.log(d);
+    		    	 var list = d.data;
+    		    	 $(".list-group").empty();
+    		    	 $("#tableData").empty();
+    		    	 for(var x in list){
+    		    		var xx =list[x];
+    		    		chatBoxs[xx.code]=xx;
+    		    		$(".list-group").append("<li class=\"list-group-item\" id="+xx.code+" onclick=\"readMessage('"+xx.code+"')\">"+xx.name+"</li>");
+    		    	 }
+    		     }
+    		});
+    }
+    
+    function readMessage(data){ 
+    	 
+    	$("#in_room_id").val(data);
+    	var socket = sockets[data];
+    	if(!socket){
+    		verificationValue();
+    	}
+    	var cb = chatBoxs[data];
+    	if(cb){
+    		$("#chatBoxName").html(cb.name);
+    	}
+    	
+		var genurl = "[(${MODULE_NAME})]/
+	message/chatBox/"+data+"/getLog";
+		var formData={};
+		formData["code"]=data;
+
+		$.ajax({
+		     type: "post",
+		     url: genurl,
+		     dataType : "json",
+		     contentType : "application/json;charset=UTF-8",      //
+		     data: JSON.stringify(formData),
+		     success: function (d) {
+		    	 var list = d.data;
+		    	 for(var x in list){
+		    		var xx =list[x];
+		    		$("#message_content").append(xx.content+"<br/>");
+		    	 }
+		     }
+		});
+	}
+    readChatBox();
+</script>
+<style>
+li:hover{ 
+		background-color:yellow;
+			}
+</style>
+</body>
+</html>

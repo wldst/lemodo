@@ -1,0 +1,62 @@
+<html>
+<head>
+<title>视频会议室自助预定</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=0.2,maximum-scale=2, user-scalable=yes">
+<link th:href="@{/static/plugin/jqueryweui/lib/weui.css}" rel="stylesheet">
+<link th:href="@{/static/plugin/jqueryweui/css/jquery-weui.css}" rel="stylesheet">
+
+<script th:src="@{/static/plugin/jqueryweui/lib/jquery-2.1.4.js}"></script>
+
+</head>
+
+<body>
+ <div class="weui-cells__title">重要会议申请列表</div>
+<div class="weui-form-preview">
+  <div class="weui-form-preview__hd">
+    <label class="weui-form-preview__label">参会领导</label>
+    <em class="weui-form-preview__value">${detailsmap.participantsLeader}</em>
+  </div>
+  <div class="weui-form-preview__bd">
+    <div class="weui-form-preview__item">
+      <label class="weui-form-preview__label">是否需要指导或支持:</label>
+      <span class="weui-form-preview__value">${detailsmap.isHelp=="true"?"是":"否"}</span>
+    </div>
+    <div class="weui-form-preview__item">
+      <label class="weui-form-preview__label">申请人:</label>
+      <span class="weui-form-preview__value">${detailsmap.MUSERNAME}</span>
+    </div>
+    <div class="weui-form-preview__item">
+      <label class="weui-form-preview__label">申请部门:</label>
+      <span class="weui-form-preview__value">${detailsmap.USERDEPT}</span>
+    </div>
+    <div class="weui-form-preview__item">
+      <label class="weui-form-preview__label">会议名称:</label>
+      <span class="weui-form-preview__value">${detailsmap.MCONTENT}</span>
+    </div>
+      <div class="weui-form-preview__item">
+      <label class="weui-form-preview__label">召开时间：</label>
+      <span class="weui-form-preview__value">${detailsmap.MDATE}</span>
+    </div>
+    <div class="weui-form-preview__item">
+      <label class="weui-form-preview__label">会议人数:</label>
+      <span class="weui-form-preview__value">${detailsmap.MEETINGNUM}</span>
+    </div>
+    <div class="weui-form-preview__item">
+      <label class="weui-form-preview__label">会议物资:</label>
+      <span class="weui-form-preview__value">${detailsmap.wuzi==null?"":detailsmap.wuzi}</span>
+    </div>
+  </div>
+  <div class="weui-form-preview__ft">
+    <a type="submit" class="weui-form-preview__btn weui-form-preview__btn_primary" href="javascript:back()">返回</a>
+  </div>
+</div>
+</body>
+<script type="text/javascript">
+	function back(){
+		history.go(-1);
+	}
+</script>
+<script th:src="@{/static/plugin/jqueryweui/js/jquery-weui.js}"></script>
+<script th:src="@{/web/meetingRoom/meetinglist.js}"></script>
+<script th:src="@{/static/js/common/common.js}" charset="utf-8" type="text/javascript"></script>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}SQL|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<!-- lay-allowclose="false" -->
+	<input hidden=true id="id" name="id">
+	<div class="layui-tab layui-tab-brief"
+		th:lay-filter="|${tableName}tabList|" th:id="|${tableName}tabList|"></div>
+<script th:id="|${tableName}detail|" type="text/html">
+    <div class="layui-tab-item layui-show" th:insert="~{divTemp :: searchList}">
+	</div>
+</script>
+<script id="toolbarDemo" type="text/html">
+<button class="layui-btn layui-btn-sm"  lay-event="detail">详情</button>
+[(${toolbarOpt})]
+</script>
+
+	<script id="barDemo" type="text/html">
+[(${opt})]
+		
+</script>
+[(${tempalteContent})]
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var label = '[(${tableName})]';
+[(${layUse})]
+	var getTpl = $("#[(${tableName})]detail").html();
+	$("#[(${tableName})]tabList").html(getTpl);
+	table.on('row(table[(${tableName})])', function(obj){
+		  currentNode=obj.data;
+	})
+
+	var tableUrl = '[(${MODULE_NAME})]/table/[(${tableName})]/query';
+	var tableData=parseTableData;
+	if(queryUrl!=""){
+		tableUrl=queryUrl;
+		tableData=parse3TableData;
+	}
+	
+	  crudTable = table.render({
+		    elem: '#table[(${tableName})]'
+		    ,cellMinWidth: 80
+		    ,method: 'POST' //方式
+		    ,url: tableUrl
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,toolbar: '#toolbarDemo'
+		    ,title: '用户数据表'
+		    /* ,totalRow: true */
+		    ,id: 'table[(${tableName})]'
+		    ,cols: [ [
+			    	{type:'checkbox', fixed: 'left'}
+			    	[# th:each="ci : ${cols}"]
+			     	,{field:'[(${ci.field})]', [(${ci.width})] title:'[(${ci.name})]'[(${ci.templat})],sort: true}	    	
+			    	[/]
+					,{fixed: 'right', align:'center',title:'操作', toolbar: '#barDemo',unresize: false, width: 260}
+			] ]
+		    ,page: true
+		    ,done: fixRightTool
+		    ,parseData: tableData
+	  });
+	  
+	  //监听提交
+	  form.on('submit(searchDO)', function(data){
+		[(${getSearchValue})]
+		
+		//执行重载
+		crudTable.reload({
+		  page: {
+		    curr: 1 //重新从第 1 页开始
+		  }
+		  ,where: searchForm
+		});
+	    return false;
+	  });
+	  [(${renderSearchForm})]
+  var endList={};
+  var tabIds={};
+  var rowi=null;	
+  
+  
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+  
+
+  
+	function addTab(tabId,title,content){
+		element.tabDelete('[(${tableName})]tabList', tabId);
+		//新增一个Tab项
+		element.tabAdd('[(${tableName})]tabList', {
+		        title: title 
+		        ,content: content 
+		        ,id: tabId 
+		})
+		// 
+	}
+
+	function objectRelation(po){
+		 var genurl = "[(${MODULE_NAME})]/table/[(${tableName})]/tabList";
+		 
+		 $.ajax({
+		      type: "post",
+		      url: genurl,
+		        dataType : "json",
+		        contentType : "application/json;charset=UTF-8",      //
+		        data: JSON.stringify(po),
+		        success: function (d) {
+					if(d.data) {
+						var tabs = d.data.tabList;
+						if (tabs.length > 0) {
+							var tabSelectedId = null;
+							for (var tab in tabs) {
+								if (tabSelectedId == null) {
+									tabSelectedId = tabs[tab].tabId;
+								}
+								addTab(tabs[tab].tabId, tabs[tab].tabTitle, tabs[tab].tabContent);
+								tabIds[tab] = tabs[tab].tabId;
+							}
+							element.tabChange('[(${tableName})]tabList', tabSelectedId)
+						}
+
+						endList = d.data.relationEnd;
+						$("#[(${tableName})]ExistRelation").html(d.data.existRelation);
+						form.render('select');
+					}
+		      	},
+		 		error:function (d) {
+			    }
+		    });
+	}
+  [(${layField})]
+
+[(${toolFun})]
+function refresh(){
+	crudTable.reload( { //表格的id
+	    page: {
+	        curr: 1 //重新从第 1 页开始
+	    }
+	  });
+}
+</script>
+</body>
+</html>

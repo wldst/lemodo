@@ -1,0 +1,78 @@
+<!--
+  Copyright (c) 2006-2013, JGraph Ltd
+  
+  Dynamic toolbar example for mxGraph. This example demonstrates changing the
+  state of the toolbar at runtime.
+-->
+<html>
+<head>
+	<title>画布功能</title>
+<meta charset="UTF-8">
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+<link rel="stylesheet" th:href="@{/static/css/menu.css}" />
+<!-- Sets the basepath for the library if not in same directory -->
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+<script th:src="@{/static/layui/layui.all.js}"></script>
+	
+	<script type="text/javascript">
+		mxBasePath = '[[@{/static/plugin/mxGraph/src}]]';
+		var editorPath = '[[@{/static/plugin/mxGraph/editors/}]]';
+		editorImagePath = '[[@{/static}]]';
+		function domainDefine(att){
+			var url="[(${MODULE_NAME})]/graph/define/";
+			if(att==null){
+				openLayer(url,"新节点定义","define");
+			}else{
+				openLayer(url,att.name,att.label);
+			}
+		}
+		function domainInfo(att){
+			var url="[(${MODULE_NAME})]/graph/info/";
+			if(att==null){
+				url="[(${MODULE_NAME})]/graph/define/";
+				openLayer(url,"新节点定义","define");
+			}else{
+				openLayer(url,att.name,att.label);
+			}
+		}
+		function objectManage(att){
+			var url="[(${MODULE_NAME})]/manage/";
+			openLayer(url,att.name,att.label);
+		}
+		function interfaceManage(atti){
+			var url="[(${MODULE_NAME})]/interface/";
+			openLayer(url,atti.name,atti.label);
+		}
+	</script>
+	
+	<script type="text/javascript" th:src="@{/static/plugin/mxGraph/src/js/mxClient.js}"></script>
+	<script type="text/javascript" th:src="@{/static/plugin/mxGraph/layerUtil.js}"></script>
+	<script type="text/javascript" th:src="@{/static/plugin/mxGraph/contexticons.js}"></script>
+	<script type="text/javascript" th:src="@{/static/plugin/mxGraph/box.js}"></script>
+	<script type="text/javascript" th:src="@{/static/plugin/mxGraph/menu.js}"></script>
+	<script type="text/javascript" th:src="@{/static/plugin/mxGraph/hoverStyle.js}"></script>
+	<script type="text/javascript" th:src="@{/static/plugin/mxGraph/graphApi.js}"></script>
+	<!-- Example code -->
+	
+</head>
+
+<!-- Calls the main function after the page has loaded. Container is dynamically created. -->
+<body onload="main(document.getElementById('graphContainer'))">
+	<div class="layui-row">
+		<div class="layui-col-md10">
+			<div id="graphContainer"
+				style="border: solid 1px black;overflow:hidden;cursor:default;">
+			</div>
+		</div>
+		<!-- <div class="layui-col-md2">
+			<div id="properties"
+				style="border: solid 1px black; padding: 10px;">
+			</div>
+		</div> -->
+		</div>
+	
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/plugin/jQuery/themes/default/easyui.css}" rel="stylesheet" type="text/css">
+<link th:href="@{/static/plugin/jQuery/themes/icon.css}" rel="stylesheet" type="text/css">
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+
+<link th:href="@{/static/plugin/jscript/dialog/skins/iblue.css}" rel="stylesheet" type="text/css">
+<link th:href="@{/static/plugin/jscript/dialog/skins/discuz.css}" rel="stylesheet" type="text/css">
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script th:src="@{/static/layui/layui.js}"></script>
+<script th:src="@{/static/plugin/jscript/dialog/lhgdialog.min.js}" type="text/javascript"></script>
+<title>流程实例执行一览</title>
+</head>
+<script language="javascript">
+function disableControll(flag) {
+	$('#performButton').attr({'disabled':flag});
+	$('#agreeButton').attr({'disabled':flag});
+	$('#disagreeButton').attr({'disabled':flag});
+	$('#callbackButton').attr({'disabled':flag});
+	$('#forwardButton').attr({'disabled':flag});
+	$('#reloopButton').attr({'disabled':flag});
+	$('#turnbackButton').attr({'disabled':flag});
+}
+var form,layer;
+function clickBtn(data){
+	
+	var btnUrl= "[(${MODULE_NAME})]/
+	bpm/"+data+"/init/"+[(${workflow.get('id')})];
+	 
+	layui.use(['form','layer'], function(){		
+		var width='600px';
+		var higth='500px';
+		layer = layui.layer;
+		layer.open({
+		type: 2,
+		anim: 0,
+		shade: 0,
+		title: "编辑",
+		maxmin: true,
+		area: [width, higth],
+		btn:['关闭'],
+		yes:function(index,layero)
+		{
+			var body = layer.getChildFrame('body', index);
+		close()
+		  //index为当前层索引
+		layer.close(index)
+		},
+		cancel:function(){//右上角关闭毁回调
+			 close()
+			/*  var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+			parent.layer.close(index); //再执行关闭 */
+		},
+		zIndex: layer.zIndex //重点1
+		,success: function(layero, index){
+			layer.setTop(layero); //重点2
+		},
+		content: btnUrl
+		});
+	});
+}
+</script>
+<body>
+<h3 >当前流程信息</h3>
+<div id="p" class="easyui-panel" title="当前流程信息" style="height:60px; width: 500px;" data-options="tools:'#tt'">
+<table id="tcltasktab" class="easyui-datagrid" data-options="nowrap:false">
+				<thead> 
+				<tr height="22" align="center" class="tablelist_head_bg">
+					<th data-options="field:'name',width:120,align:'center',resizable:false">任务名</th>
+					<th data-options="field:'taskStatus',width:60,align:'center',resizable:false">任务状态</th>
+					<th data-options="field:'itemid2',width:60,align:'center',resizable:false">执行人</th>
+					<th data-options="field:'itemid3',width:130,align:'center',resizable:false">到达时间</th>
+					<th data-options="field:'itemid4',width:60,align:'center',resizable:false">执行状态</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr align="center" style="cursor: hand">
+					<td  th:text="${currentTask?.get('title')}">
+					</td>
+					<td th:text="${currentTask?.get('taskStatusName')}">
+					</td>
+					<td th:text="${currentTask?.get('executorName')}">
+					</td>
+					<td th:text="${taskComeDatetime}">
+					</td>
+					<td>
+						<font colorStr th:text="${currentTask?.get('executorStatusName')}"></font>
+					</td>
+				</tr>
+				<tr>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+				</tr>
+			</tbody>
+			</table>
+</div>
+<h3 >流程履历信息一览</h3>
+<div id="p1" class="easyui-panel" title="流程履历信息一览" style="width: 500px;height: 200px;overflow: hidden" >
+        <table id="yspTaskTab" class="easyui-datagrid" fit="true">
+			<thead>
+			<tr>
+				<th data-options="field:'itemid',width:40,align:'center',resizable:false">序号</th>
+				<th data-options="field:'taskName',width:180,align:'center',resizable:false">任务名</th>
+				<th data-options="field:'itemid2',width:70,align:'center',resizable:false">执行人</th>
+				<th data-options="field:'itemid6',width:120,align:'center',resizable:false">办理时间</th>
+				<th data-options="field:'itemid4',width:70,align:'center',resizable:false">执行动作</th>
+				<th data-options="field:'itemid5',width:200,align:'center',resizable:false">执行意见</th>
+			</tr>
+			</thead>
+			<tbody th:if="historyList ne null">
+			<tr align="center" th:each="hi,hiStat:${historyList}" >
+				<td th:text="${hiStat.count}"></td>
+				<td  th:text="${hi.get('taskName')}"></td>
+				<td  th:text="${hi.get('empName')}"></td>
+				<td  th:text="${hi.get('createTime')}"></td>
+				<td  th:text="${hi.get('decision')}"></td>
+				<td>
+				<span style="color:black;" th:utext="${hi.get('opinion')}" >				 
+				</span>
+				</td>
+		    </tr>
+			</tbody>
+		</table>
+</div>
+
+<div id="tt">
+ <a th:if="${commitFlag}" id="commitButton" lay-event="performButton"
+			class="layui-btn layui-btn-danger layui-btn-xs" type="button" th:utext="${performName}"
+			onclick="clickBtn('commit')" />
+ <a th:if="${agreeFlag}" id="agreeButton" lay-event="agreeButton" 
+ class="layui-btn layui-btn-primary layui-btn-xs"
+			type="button" th:utext="${agreeName}" onclick="clickBtn('agree')"/>
+ <a th:if="${disagreeButton}" id="disagreeButton" lay-event="disagreeButton"
+			class="layui-btn layui-btn-primary layui-btn-xs" type="button" th:utext="${disagreeName}"
+			onclick="clickBtn('disagree')" />
+ <a th:if="${callbackFlag}" id="callbackButton" lay-event="callbackButton"
+			class="layui-btn layui-btn-primary layui-btn-xs" type="button" th:utext="${callbackName}"
+			onclick="clickBtn('callback')" />
+<a th:if="${forwardFlag}" id="forwardButton" lay-event="forwardButton"
+			class="layui-btn layui-btn-primary layui-btn-xs" type="button" th:utext="${forwardName}"
+			onclick="clickBtn('forward')" />
+<a th:if="${reloopFlag}" id="reloopButton" lay-event="reloopButton"
+			class="layui-btn layui-btn-primary layui-btn-xs" type="button" th:utext="${reloopName}"
+			onclick="clickBtn('reloop')" /> 
+<a th:if="${turnbackFlag}" id="turnbackButton" lay-event="turnbackButton"
+			class="layui-btn layui-btn-primary layui-btn-xs" type="button" th:utext="${turnbackName}"
+			onclick="clickBtn('turnback')" />
+</div>
+
+</body>
+
+</html>

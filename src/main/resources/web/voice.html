@@ -1,0 +1,337 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="voiceHeader(title)">
+<meta charset="UTF-8">
+	<title th:text="${title}"></title>
+	
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+<link th:href="@{/static/layui/dist/dropdown/dropdown.css}" rel="stylesheet" />
+<style type="text/css">
+.desktop-menu { position: absolute; width: 150px; height: auto; background-color: rgb(255, 255, 255); border: #CCC 1px solid; display: none; border-radius: 5px; z-index: 219930725; }
+.desktop-menu ul { margin: 0px; padding: 0px; }
+.desktop-menu ul li { list-style: none; line-height: 30px; height: 30px; margin: 3px 0px; padding: 0px; font-size: 13px; }
+.desktop-menu ul li a { text-decoration: none; display: block; font-family: ΢���ź�; padding: 0px 5px 0 30px; height: 100%; color: #333; outline: none; }
+.desktop-menu ul li a:hover { background-color: #DDD; }
+.desktop-menu ul hr { margin: 1px 0px; height: 0px; border: 0px; border-bottom: #CCC 1px solid; }
+</style>
+	
+</head>
+
+<head th:fragment="voiceHeader0(title)">
+<meta charset="UTF-8">
+	<title th:text="${title}"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+<link th:href="@{/static/layui/dist/dropdown/dropdown.css}" rel="stylesheet" />
+<style type="text/css">
+.desktop-menu { position: absolute; width: 150px; height: auto; background-color: rgb(255, 255, 255); border: #CCC 1px solid; display: none; border-radius: 5px; z-index: 219930725; }
+.desktop-menu ul { margin: 0px; padding: 0px; }
+.desktop-menu ul li { list-style: none; line-height: 30px; height: 30px; margin: 3px 0px; padding: 0px; font-size: 13px; }
+.desktop-menu ul li a { text-decoration: none; display: block; font-family: ΢���ź�; padding: 0px 5px 0 30px; height: 100%; color: #333; outline: none; }
+.desktop-menu ul li a:hover { background-color: #DDD; }
+.desktop-menu ul hr { margin: 1px 0px; height: 0px; border: 0px; border-bottom: #CCC 1px solid; }
+</style>
+	
+</head>
+
+<body> 
+<div th:fragment="voiceHTML">
+	<div class="desktop-menu" id="desktop-menu">  
+            <ul >
+            <li><a href="javascript:;" class="small-click" onclick ="opt('startRecord')">开始</a></li>  
+            <li><a href="javascript:;" class="small-click" onclick="opt('endRecord')">结束</a></li>
+            </ul> 
+          <iframe src="" scrolling="no" frameborder="0" id="mainFrameVoice" style="width:5px;height:5px;"></iframe>               
+	</div>
+</div>
+
+<div th:fragment="voiceJS">
+
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script type="text/javascript">
+		 var focusId=null;
+		 setInterval("myFunction()", 1);
+		
+		 function myFunction() {
+		     if (document.hasFocus()) {
+		     	var axId = document.activeElement.id;
+		 		if(axId!="luyin"&&axId!="mainFrameVoice"&&axId!=""){
+		 		 focusId=axId;
+		 		//x.innerHTML = "语音输入目标"+"id="+document.activeElement.id;
+		 		}
+		     } else {
+		       //  x.innerHTML = "语音输入"+"id="+document.activeElement.id;
+		     }
+		 }
+		 var frame = document.getElementById("mainFrameVoice");
+		 var textId=null;
+		 function getiframeMsg(event){
+		 	if(event){
+		 		 const res = event.data;
+		 		    console.log(event)
+		 		    const x = $("#"+res.inputId).attr("type");
+		 		    console.log(x)
+		 		    if(x=="input"){
+		 		    	$("#"+res.inputId).val(res.msg);
+		 		    }
+		 		   if(x=="textarea"){
+		 		    	$("#"+res.inputId).val($("#"+res.inputId).val()+res.msg);
+		 		    }
+		 	}
+		 }
+		 // vue向iframe传递信息
+		 function opt(optCmd){
+			 if(focusId==null||focusId==""){
+				 return;
+			 }
+		     const iframeWindow = document.getElementById("mainFrameVoice").contentWindow;
+		     iframeWindow.postMessage({ 
+		       cmd:optCmd,
+		       inputId: focusId
+		     },'*')
+		   }
+
+		 window.addEventListener('message',getiframeMsg())
+
+
+		 function openIframe() {
+		  var frame = document.getElementById("mainFrameVoice");
+		  frame.src="https://localhost:9443/lemodo/voice/index.html?inputId="+focusId;
+		   $("#mainFrameVoice").show();
+		 }
+
+		 window.addEventListener('message', function(e) {
+		     $("#"+e.data.inputId).val(e.data.msg);
+		 })
+
+		 $('input,textarea,#LAY_layedit_1,#LAY_layedit_2,#LAY_layedit_3').on("contextmenu",function(e){
+		 	openIframe()
+		 			return false;
+		 });
+		 $('input').on("click",function(e){
+		  	 $(".desktop-menu").hide(); 
+			 	return false;
+		});
+		$('.layui-form-label,label').on("click",function(e){
+			  	 $(".desktop-menu").hide(); 
+		 	return false;
+		 });
+		
+		 $("input,textarea,#LAY_layedit_1,#LAY_layedit_2,#LAY_layedit_3").on("contextmenu",
+		         function(a) {
+		             var x = a.clientX,
+		             y = a.clientY,
+		             desktopmenu = $(".desktop-menu");
+		             var b = document.body.clientWidth,
+		             height = document.body.clientHeight;
+		             x = (x + desktopmenu.width()) >= b ? b - desktopmenu.width() - 15 : x;
+		             y = (y + desktopmenu.height()) >= height - 40 ? height - desktopmenu.height() - 15 : y;
+		             desktopmenu.css({
+		                 "top": y,
+		                 "left": x
+		             }).show()
+		         });
+	</script>
+</div>
+
+<div th:fragment="voiceInputJS">
+
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	 <script type="text/javascript">
+		 var focusId=null;
+		 setInterval("myFunction()", 1);
+		
+		 function myFunction() {
+		     if (document.hasFocus()) {
+		     	var axId = document.activeElement.id;
+		 		if(axId!="luyin"&&axId!="mainFrameVoice"&&axId!=""){
+		 		 focusId=axId;
+		 		//x.innerHTML = "语音输入目标"+"id="+document.activeElement.id;
+		 		}
+		     } else {
+		       //  x.innerHTML = "语音输入"+"id="+document.activeElement.id;
+		     }
+		 }
+		 var frame = document.getElementById("mainFrameVoice");
+		 var textId=null;
+		 function getiframeMsg(event){
+		 	if(event){
+		 		 const res = event.data;
+		 		    console.log(event)
+		 		    const x = $("#"+res.inputId).attr("type");
+		 		    console.log(x)
+		 		    if(x=="input"){
+		 		    	$("#"+res.inputId).val(res.msg);
+		 		    }
+		 		   if(x=="textarea"){
+		 		    	$("#"+res.inputId).val($("#"+res.inputId).val()+res.msg);
+		 		    }
+		 	}
+		 }
+		 // vue向iframe传递信息
+		 function opt(optCmd){
+			 if(focusId==null||focusId==""){
+				 return;
+			 }
+		     const iframeWindow = document.getElementById("mainFrameVoice").contentWindow;
+		     iframeWindow.postMessage({ 
+		       cmd:optCmd,
+		       inputId: focusId
+		     },'*')
+		   }
+
+		 window.addEventListener('message',getiframeMsg())
+
+
+		 function openIframe() {
+		  var frame = document.getElementById("mainFrameVoice");
+		  frame.src="https://localhost:9443/lemodo/voice/index.html?inputId="+focusId;
+		   $("#mainFrameVoice").show();
+		 }
+
+		 window.addEventListener('message', function(e) {
+		     $("#"+e.data.inputId).val(e.data.msg);
+		 })
+
+		 $('input,textarea,#LAY_layedit_1,#LAY_layedit_2,#LAY_layedit_3').on("contextmenu",function(e){
+		 	openIframe()
+		 			return false;
+		 });
+		 $('input').on("click",function(e){
+		  	 $(".desktop-menu").hide(); 
+			 	return false;
+		});
+		$('.layui-form-label').on("click",function(e){
+			  	 $(".desktop-menu").hide(); 
+		 	return false;
+		 });
+		
+		 $("input,textarea,#LAY_layedit_1,#LAY_layedit_2,#LAY_layedit_3").on("contextmenu",
+		         function(a) {
+		             var x = a.clientX,
+		             y = a.clientY,
+		             desktopmenu = $(".desktop-menu");
+		             var b = document.body.clientWidth,
+		             height = document.body.clientHeight;
+		             x = (x + desktopmenu.width()) >= b ? b - desktopmenu.width() - 15 : x;
+		             y = (y + desktopmenu.height()) >= height - 40 ? height - desktopmenu.height() - 15 : y;
+		             desktopmenu.css({
+		                 "top": y,
+		                 "left": x
+		             }).show()
+		         });
+	</script>
+</div>
+
+<div th:fragment="voiceLayAllJS">
+
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/layui/layui.all.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	 <script type="text/javascript">
+		 var focusId=null;
+		 setInterval("myFunction()", 1);
+		
+		 function myFunction() {
+		     if (document.hasFocus()) {
+		     	var axId = document.activeElement.id;
+		 		if(axId!="luyin"&&axId!="mainFrameVoice"&&axId!=""){
+		 		 focusId=axId;
+		 		//x.innerHTML = "语音输入目标"+"id="+document.activeElement.id;
+		 		}
+		     } else {
+		       //  x.innerHTML = "语音输入"+"id="+document.activeElement.id;
+		     }
+		 }
+		 var frame = document.getElementById("mainFrameVoice");
+		 var textId=null;
+		 function getiframeMsg(event){
+		 	if(event){
+		 		 const res = event.data;
+		 		    console.log(event)
+		 		    const x = $("#"+res.inputId).attr("type");
+		 		    console.log(x)
+		 		    if(x=="input"){
+		 		    	$("#"+res.inputId).val(res.msg);
+		 		    }
+		 		   if(x=="textarea"){
+		 		    	$("#"+res.inputId).val($("#"+res.inputId).val()+res.msg);
+		 		    }
+		 	}
+		 }
+		 // vue向iframe传递信息
+		 function opt(optCmd){
+			 if(focusId==null||focusId==""){
+				 return;
+			 }
+		     const iframeWindow = document.getElementById("mainFrameVoice").contentWindow;
+		     iframeWindow.postMessage({ 
+		       cmd:optCmd,
+		       inputId: focusId
+		     },'*')
+		   }
+
+		 window.addEventListener('message',getiframeMsg())
+
+
+		 function openIframe() {
+		  var frame = document.getElementById("mainFrameVoice");
+		  frame.src="https://localhost:9443/lemodo/voice/index.html?inputId="+focusId;
+		   $("#mainFrameVoice").show();
+		 }
+
+		 window.addEventListener('message', function(e) {
+		     $("#"+e.data.inputId).val(e.data.msg);
+		 })
+
+		 $('input,textarea,#LAY_layedit_1,#LAY_layedit_2,#LAY_layedit_3').on("contextmenu",function(e){
+		 	openIframe()
+		 			return false;
+		 });
+		 $('input').on("click",function(e){
+		  	 $(".desktop-menu").hide(); 
+			 	return false;
+		});
+		$('.layui-form-label').on("click",function(e){
+			  	 $(".desktop-menu").hide(); 
+		 	return false;
+		 });
+		
+		 $("input,textarea,#LAY_layedit_1,#LAY_layedit_2,#LAY_layedit_3").on("contextmenu",
+		         function(a) {
+		             var x = a.clientX,
+		             y = a.clientY,
+		             desktopmenu = $(".desktop-menu");
+		             var b = document.body.clientWidth,
+		             height = document.body.clientHeight;
+		             x = (x + desktopmenu.width()) >= b ? b - desktopmenu.width() - 15 : x;
+		             y = (y + desktopmenu.height()) >= height - 40 ? height - desktopmenu.height() - 15 : y;
+		             desktopmenu.css({
+		                 "top": y,
+		                 "left": x
+		             }).show()
+		         });
+	</script>
+</div>
+
+</body>
+</html>

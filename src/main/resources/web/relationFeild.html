@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}选择|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+<h3>
+		<label th:text="|${name}编辑|"></label>
+	</h3>
+	<form class="layui-form" th:id="|edit${label}|"
+		th:lay-filter="|edit${label}|">
+		<div th:each="ci,ciStat : ${cols}" th:switch="(${ciStat.count}%4)"
+			th:class="(${ciStat.count}%4==0) ? 'layui-form-item' : 'layui-inline'">
+			<div th:case='0' class="layui-inline">
+				<label class="layui-form-label" th:text="${ci.name}"></label>
+				<div class="layui-input-inline">
+					<input th:name="${ci.field}" th:id="${ci.field}"
+						class="layui-input" th:placeholder="|请输入 ${ci.name}|"
+						autocomplete="off">
+				</div>
+			</div>
+			<div th:case='*'>
+				<label class="layui-form-label" th:text="${ci.name}"></label>
+				<div class="layui-input-block">
+					<input th:name="${ci.field}" th:id="${ci.field}"
+						class="layui-input" th:placeholder="|请输入 ${ci.name}|"
+						autocomplete="off">
+				</div>
+			</div>
+
+		</div>
+	</form>
+	<input type="button" class="layui-btn" th:id="|save${label}|"
+		value="保存" />
+	<h3>
+		<label th:text="'查询'+${name}"></label>
+	</h3>
+	<div class="demoTable">
+		<form class="layui-form" action="">
+			<div class="layui-form-item">
+				<label class="layui-form-label">名称：</label>
+				<div class="layui-input-inline">
+					<input name="name" class="layui-input" id="nameReload"
+						placeholder="请输入领域对象名称" autocomplete="off">
+						
+				</div>
+				<!-- <label class="layui-form-label">编码：</label> -->
+				<div class="layui-input-inline" hidden=true>
+					<input name="name" class="layui-input" id="idReload"
+						placeholder="请输入领域对象名称" autocomplete="off">
+				</div>
+			</div>
+		</form>
+		<button class="layui-btn" lay-submit lay-filter="searchDO"
+					data-type="reload">
+					搜索<i class="layui-icon">&#xe615;</i>
+		</button>
+	</div>
+	<table th:id="|table${label}|"  th:lay-filter="|table${label}|"></table>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+
+	<script th:inline="javascript" type="text/javascript">
+var layr,form,table,crudTable;
+layui.use(['form', 'laydate','table'], function(){
+	  form = layui.form
+	  ,table = layui.table
+	  ,layer = layui.layer;
+	  
+	  crudTable = table.render({
+		    elem: '#table[(${label})]'
+		    ,method: 'POST' //方式
+		    ,url:'[(${MODULE_NAME})]/cruder/[(${label})]/search'
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,title: '数据表'
+		    ,totalRow: true
+		    ,id: 'table[(${label})]'
+		    ,cols: [ [
+		    	{type:'checkbox', fixed: 'left'}
+		    	[# th:each="ci : ${cols}"]
+		     		,{field:'[(${ci.field})]', title:'[(${ci.name})]',sort: true}
+		    	[/]
+		    ] ]
+		    ,page: true
+		    ,parseData: parseTableData
+		  });
+	  
+	//表单取值
+	  layui.$('#save'+[[${label}]]).on('click', function(){
+		  var formData={};
+		  [# th:each="ci : ${colCodes}"]
+		  formData['[(${ci})]']= $('#'+'[(${ci})]').val();
+		  [/]
+		 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/save";
+		 
+		 $.ajax({
+		    type: "post",
+		    url: genurl,
+			dataType : "json",
+			contentType : "application/json;charset=UTF-8",      
+			data: JSON.stringify(formData),
+			success: function (d) {
+				if(!d.status){
+					   layer.alert(d.msg, {icon: 5})
+				 }else{
+					 layer.alert(d.msg, {icon: 6})
+		           refresh()}
+	      	},
+	 		error:function (d) {
+		        layer.alert(d.msg, {icon: 5})
+		        refresh()
+		    }
+		    });
+		});
+	  //监听提交
+	  form.on('submit(searchDO)', function(data){
+		  var nameReload = $('#nameReload').val();
+		  var idReload = $('#idReload').val();
+	        //执行重载
+	        crudTable.reload({
+	          page: {
+	            curr: 1 //重新从第 1 页开始
+	          }
+	          ,where: {
+	              name: nameReload,
+	              objectId: idReload
+	          }
+	        });
+	    return true;
+	  });
+	  function queryByObjectId(){
+		  var idReload = $('#idReload').val();
+	        //执行重载
+	        crudTable.reload({
+	          page: {
+	            curr: 1 //重新从第 1 页开始
+	          }
+	          ,where: {
+	              objectId: idReload
+	          }
+	        });
+	  }
+	  queryByObjectId();
+  //监听表格复选框选择
+  table.on('row(table[(${label})])', function(obj){
+    //console.log(obj)
+    form.val('edit[(${label})]', obj.data);
+  });
+});
+
+function refresh(){
+	crudTable.reload( { //表格的id
+	    page: {
+	        curr: 1 //重新从第 1 页开始
+	    }
+	  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<html>
+<head>
+<title>视频会议室自助预定</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=0.2,maximum-scale=2, user-scalable=yes">
+<link th:href="@{/static/plugin/jqueryweui/lib/weui.css}" rel="stylesheet">
+<link th:href="@{/static/plugin/jqueryweui/css/jquery-weui.css}" rel="stylesheet">
+<script th:src="@{/static/plugin/jqueryweui/lib/jquery-2.1.4.js}"></script>
+</head>
+
+<body>
+        <div class="weui-cells__title">重要会议申请列表</div>
+        <div class="weui-cells" id="meetinglist">
+        </div>
+</body>
+<script type="text/javascript">
+        var curUserId = '[[${userId}]]';
+        var basePath = '[[${MODULE_NAME}]]';
+</script>
+<script th:src="@{/static/plugin/jqueryweui/js/jquery-weui.js}"></script>
+<script th:src="@{/web/meetingRoom/meetinglist.js}"></script>
+<script th:src="@{/static/js/common/common.js}" charset="utf-8" type="text/javascript"></script>
+</html>

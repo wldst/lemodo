@@ -1,0 +1,113 @@
+<%
+/**
+ *  流程任务跳转画面
+ *  2007-03-27
+ *  yangyn
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=GBK" pageEncoding="GBK"%>
+<%@ include file="../../tag.inc" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.aostaryh.pmis.common.utils.TextUtil" %>
+<%@ page import="com.aostaryh.workflow.beans.WfSimpleTask" %>
+<%@ page import="com.aostaryh.workflow.util.WFEConstants" %>
+
+<%
+String bizDataID = request.getParameter("bizDataID");
+   String bizTabName = request.getParameter("bizTabName");
+   String templateMark = request.getParameter("templateMark");
+   String taskComeDatetime = request.getParameter("taskComeDatetime");
+   
+   SimpleTask currentTask = (SimpleTask)request.getAttribute("currentTask");
+   SimpleTask reloopTask = (SimpleTask)request.getAttribute("reloopTask");
+%>
+<html>
+<head>
+<title>流程任务跳转画面</title>
+<jsp:include flush="false"  page="../../header.jsp"></jsp:include>
+</head>
+<script language="javascript">
+   //确认执行
+   function performAction(){      
+      if (confirm("是否执行当前流程操作动作？")){
+        var params=$("#wfDecisionReloopForm").serialize();
+			alert(params);
+	        $.ajax({
+		        url: '${contextPath}/wfReloopForm/reloop.so', 
+	        	type: 'POST', 
+	        	data: params, 
+	        	dataType: 'json', 
+	        	beforeSend: function () {
+					$("#BTN_SAVE").attr({"disabled":true});
+		        },
+	        	success: function(result){
+					alert(result.message);
+				    if (result.success) { // 操作成功
+			    		// 刷新数据列表
+						window.returnValue = result.success;
+						art.dialog.close();
+				    } 
+	        	},
+	        	complete: function(e, xhr, settings) {
+					$("#BTN_SAVE").attr({"disabled":false});
+	        	}
+	        });
+      }
+
+
+	  
+   }   
+</script>
+
+<body scroll="no">
+<form name="wfDecisionReloopForm" id="wfDecisionReloopForm" method="POST">
+<input type="hidden" name="reloopTaskID" id="reloopTaskID" value='<%=reloopTask != null?String.valueOf(reloopTask.getID()):""%>'>
+<input type="hidden" name="bizDataID" id="bizDataID" value="<%=TextUtil.nvl(bizDataID)%>">
+<input type="hidden" name="bizTabName" id="bizTabName" value="<%=TextUtil.nvl(bizTabName)%>">
+<input type="hidden" name="templateMark" id="templateMark" value="<%=TextUtil.nvl(templateMark)%>">
+<input type="hidden" name="taskComeDatetime" id="taskComeDatetime" value="<%=taskComeDatetime%>">
+
+<table width="100%" cellpadding="2" cellspacing="2" class="addtable" align="center">
+   <tr >
+      <td class="label" nowrap width="15%">跳转到任务：</td>
+      <td class="tdinput" nowrap width="85%"> 
+         <%
+            if (reloopTask != null){
+         %>
+         <%=reloopTask.getTaskName()%>【<%=WFEConstants.convertWfTaskStatusZh(reloopTask.getTaskStatus())%>】
+         <%
+            }
+         %>
+      </td>
+   </tr>
+   <tr >
+      <td class="label" nowrap width="15%">当前任务：</td>
+      <td class="tdinput" nowrap width="85%"> 
+         <%
+            if (currentTask != null){
+         %>
+         <%=currentTask.getTaskName()%>
+         <%
+            }
+         %>
+      </td>
+   </tr>
+   <tr >
+      <td class="label" nowrap width="15%">执行意见：</td>
+      <td class="tdinput" nowrap width="85%"> 
+         <textarea cols="60" rows="5" name="executeComment"></textarea>
+      </td>
+   </tr>
+   <tr align="center">
+      <td height="45" nowrap colspan="2">         
+         <input type="button" name="BTN_SAVE" value="确认执行" 
+            class="input_button" onclick="performAction();">
+         <input type="button" name="BTN_CLOSE" value="取消" 
+            class="input_button" onclick="art.dialog.close();">
+      </td>
+   </tr>
+</table>      
+</form>  
+<iframe name="operFrame" width="0" height="0"></iframe> 
+</body>
+</html>

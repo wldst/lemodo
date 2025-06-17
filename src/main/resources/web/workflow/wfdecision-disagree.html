@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+   <title>流程任务审批</title>
+</head>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+
+
+</head>
+<script language="javascript">
+   //流程动作执行
+   function performAction(){
+
+	  var checkedCount = $(":checked").length;
+      if (checkedCount <= 0){
+         alert("没有选择执行人！");
+         return;
+      }
+      if ($("#executeComment").val()==''){
+          alert("请输入执行意见！");
+          return;
+      }
+
+      var params={};
+      params['flowId']=$('#flowId').val();
+      params['nextTaskId']=$("#nextTask").val();
+      var values = $('input[type="checkbox"]:checked').map(function(){
+         return $(this).val();
+      }).get();
+      let exs = ''
+      for(let i=0;i<values.length;i++){
+         if(i>0){
+            exs+=','
+         }
+         exs+=values[i];
+      }
+      params['executorIDs']=exs;
+      params['executeComment']=$('#executeComment').val();
+      $.ajax({
+          url: "[(${MODULE_NAME})]/
+	bpm/disAgree/disagree',
+          type: 'POST',
+          data: JSON.stringify(params),
+         dataType : "json",
+         contentType : "application/json;charset=UTF-8",
+          beforeSend: function () {
+              $("#BTN_SAVE").attr({"disabled":true});
+          },
+          success: function(result){
+              alert(result.msg);
+              if (result.code==200) {
+                  window.returnValue = true;
+                  window.close();
+              }
+          },
+          complete: function(e, xhr, settings) {
+              $("#BTN_SAVE").attr({"disabled":false});
+          }
+      });
+   }
+
+   function changeSelect(data){
+      var name =data.name;
+      var value = data.value;
+      var params={};
+      params['flowId']=$('#flowId').val();
+      params['taskId']=value;
+      $.ajax({
+         url: "[(${MODULE_NAME})]/
+	bpm/disAgree/preExcutors',
+         type: 'POST',
+         data: JSON.stringify(params),
+         dataType : "json",
+         contentType : "application/json;charset=UTF-8",
+         success: function(result){
+            if (result.data) {
+               window.returnValue = result.success;
+               $("#taskUserSelect").empty()
+               for(var i=0;i<result.data.length;i++){
+                  var ei=result.data[i];
+                  $("#taskUserSelect").append("<input type='checkbox' name='executorIDs' id='executorIDs' value='"+ei.userId+"' checked='checked' text='"+ei.userName+"' >"+ei.userName+"</input>");
+               }
+            }
+         },
+         complete: function (e, xhr, settings) {
+            $("#BTN_SAVE").attr({"disabled": false});
+         }
+      });
+   }
+</script>
+<body scroll="no">
+<form name="wfDecisionAgreeForm" id="wfDecisionAgreeForm" method="POST">
+   <input type="hidden" name="flowId" id="flowId" th:value="${flowId}">
+<table width="100%" cellpadding="2" cellspacing="2" class="addtable" align="center">
+   <tr >
+      <td class="label" nowrap width="15%">打回到任务：</td>
+      <td class="tdinput" nowrap width="85%" >
+         <select name="nextTask" id="nextTask" onChange="changeSelect(this);">
+            <option th:each="ci:${preTasks}" th:value="${ci.id}" th:text="${ci.title}"></option>
+         </select>
+      </td>
+   </tr>
+   <tr >
+      <td class="label" nowrap width="15%">当前任务：</td>
+      <td class="tdinput" nowrap width="85%" th:utext="${currentTask?.get('title')}">
+      </td>
+   </tr>
+    <tr >
+      <td class="label" nowrap width="15%">执 行 人：</td>
+
+       <td class="tdinput" nowrap width="85%" id="taskUserSelect">
+          <input type="checkBox" name="executorIDs" id="executorIDs" th:each="ci:${taskUsers}" th:value="${ci.userId}" th:text="${ci.username}" checked />
+       </td>
+   </tr>
+   <tr >
+      <td class="label" nowrap width="15%">执行意见：</td>
+      <td class="tdinput" nowrap width="85%"> 
+         <textarea cols="60" rows="5" id="executeComment" name="executeComment"></textarea>
+      </td>
+   </tr>
+   <tr align="center">
+      <td height="45" nowrap colspan="2">
+         <input type="button" name="BTN_SAVE" value="确认执行"
+                class="input_button" onclick="performAction();">
+         <input type="button" name="BTN_CLOSE" value="取消"
+                class="input_button" >
+      </td>
+   </tr>
+</table>     
+</form>
+
+<iframe name="operFrame" width="0" height="0"></iframe> 
+</body>
+</html>

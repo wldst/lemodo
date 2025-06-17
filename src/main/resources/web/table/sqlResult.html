@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}SQL查询结果|"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<!-- lay-allowclose="false" -->
+	<input hidden=true id="id" name="id">
+	<div class="layui-tab layui-tab-brief"
+		th:lay-filter="|${domainId}tabList|" th:id="|table${domainId}tabList|"></div>
+<script th:id="|table${domainId}detail|" type="text/html">
+    <div class="layui-tab-item layui-show" th:insert="~{divTemp :: tablePageData}">
+	</div>
+</script>
+<script id="toolbarDemo" type="text/html">
+[(${toolbarOpt})]
+</script>
+
+	<script id="barDemo" type="text/html">
+[(${opt})]
+		
+</script>
+[(${tempalteContent})]
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var label = 'table[(${domainId})]';
+[(${layUse})]
+	var getTpl = $("#table[(${domainId})]detail").html();
+	$("#table[(${domainId})]tabList").html(getTpl);
+	table.on('row(table[(${domainId})])', function(obj){
+		  currentNode=obj.data;
+	})
+	var tableData=parseTableData;
+	
+	  crudTable = table.render({
+		    elem: '#table[(${domainId})]'
+		    ,cellMinWidth: 80
+		    ,method: 'POST' //方式
+		    ,url: '[(${MODULE_NAME})]/dbmanage/query/[(${domainId})]/data'
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,toolbar: '#toolbarDemo'
+		    ,title: '用户数据表'
+		    /* ,totalRow: true */
+		    ,id: 'table[(${domainId})]'
+		    ,cols: [ [
+			    	[# th:each="ci : ${cols}"]
+			     	,{field:'[(${ci.field})]', [(${ci.width})] title:'[(${ci.name})]'[(${ci.templat})],sort: true}	    	
+			    	[/]
+			] ]
+		    ,page: true
+		    ,done: fixRightTool
+		    ,parseData: tableData
+	  });
+
+	  [(${renderSearchForm})]
+  var endList={};
+  var tabIds={};
+  var rowi=null;	
+
+  
+  function textEditorValue(data){
+	  [(${textEditorValue})]
+  }
+  //监听工具条
+  table.on('tool(table[(${domainId})])', function(obj){
+    var data = obj.data;
+    [(${activLogic})]    
+  });
+  
+//头工具栏事件
+  table.on('toolbar(table[(${domainId})])', function(obj){
+      var checkStatus = table.checkStatus(obj.config.id);
+      var data = rowi;
+	    if(obj.event === 'detail'){
+	    	 objectManage(data);
+	    }
+	    [(${toolBarActiveLogic})]
+  });
+  
+  function objectManage(data){
+	  layer.open({
+          type: 2,
+          anim: 0,
+          shade: 0,
+          title: data.name,
+          maxmin: true,
+          area: ['100%', '100%'],
+          btn:['关闭'],
+          yes:function(index,layero)
+          {
+				 close()
+              //index为当前层索引
+              layer.close(index)
+          },
+          cancel:function(){//右上角关闭毁回调
+         	 close()
+         	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+      		parent.layer.close(index); //再执行关闭
+          },
+          zIndex: layer.zIndex //重点1
+          ,success: function(layero, index){
+            layer.setTop(layero); //重点2
+         	  var body = layer.getChildFrame('body', index);
+         	 var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+         	 // console.log(body.html()) //得到iframe页的body内容
+         	 iframeWin.initForm(data)
+          },
+          content: "[(${MODULE_NAME})]/layui/[(${domainId})]/"+data.id+"/detail"
+      });
+  }
+  [(${layField})]
+
+[(${toolFun})]
+</script>
+</body>
+</html>

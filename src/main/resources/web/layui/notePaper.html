@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title th:text="|${name}|"></title>
+</head>
+<body>
+	<textarea class="layui-textarea notepaper" th:utext="|${content}|"></textarea>
+	<button id="closeTask" >关闭任务</button>
+	<button id="detail" >详情</button>
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+<script th:src="@{/static/layui/layui.js}"></script>
+<script th:inline="javascript" type="text/javascript">	  
+var form,layer,table;
+	layui.config({
+		dir: '/static/layui/',
+        base: '/static/layui/lay/modules/'
+    }).use(['form','layer','layedit'], function(){
+		  form = layui.form
+		  ,layer = layui.layer;
+//表单取值
+$('#closeTask').on('click', closeTask);
+	  
+ function closeTask(){
+	 var genurl = "[(${MODULE_NAME})]/desktop/[(${label})]/[(${id})]/close";
+	 var formData={};
+	 formData['id']='[(${id})]';
+	 formData['status']='close';
+	 
+	 $.ajax({
+	    type: "post",
+	    url: genurl,
+		dataType : "json",
+		contentType : "application/json;charset=UTF-8",      
+		data: JSON.stringify(formData),
+		success: function (d) {
+			layer.alert(d.msg, {icon: 6})
+			window.close()
+	     	},
+		error:function (d) {
+			layer.alert(d.msg, {icon: 5})
+	    }
+    });
+  }
+ 
+ //表单取值
+$('#detail').on('click', detail);
+ 
+function detail(){ 
+      layer.open({
+          type: 2,
+          anim: 0,
+          shade: 0,
+          title: "添加",
+          maxmin: true,
+          area: ['900px', '610px'],
+          btn:['关闭'],
+          yes:function(index,layero)
+          {
+          	var body = layer.getChildFrame('body', index);
+              //index为当前层索引
+            layer.close(index)
+          },
+          cancel:function(){//右上角关闭毁回调
+        	  calendar.render()//location.reload();  // 刷新界面为新增的日程信息
+          },
+          zIndex: layer.zIndex //重点1
+          ,success: function(layero, index){
+            layer.setTop(layero); //重点2
+            var body = layer.getChildFrame('body', index);
+            var winName=layero.find('iframe')[0]['name'];
+           	 var iframeWin = window[winName]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+           	 // console.log(body.html()) //得到iframe页的body内容
+           	 if(iframeWin){
+           		 var formData={};
+           		formData['id']='[(${id})]';
+           		 iframeWin.initForm(formData)
+           	 }
+          },
+          content: '[(${MODULE_NAME})]/layui/[(${label})]/form'
+      });
+}
+
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<head>
+<meta charset="UTF-8">
+</head>
+
+ <div class="layui-tab layui-tab-brief"
+		th:lay-filter="|m_${label}tabList|" th:id="|m_${label}tabList|" ></div>
+<script th:id="|${label}detail|" type="text/html">
+  <ul class="layui-tab-title" th:lay-filter="|${label}Tab|" th:id="|${label}TabHead|">
+  </ul>
+  <div class="layui-tab-content" th:id="|${label}TabContent|" style="width:100%;height:99%;">
+   
+  </div>
+</script>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+[(${layUse})]
+
+var $ = layui.jquery;
+var endList={};
+var tabIds={};
+var getTpl = $("#[(${label})]detail").html();
+$("#m_[(${label})]tabList").html(getTpl);
+
+function addTab(tabId,title,content){
+	element.tabDelete('m_[(${label})]tabList', tabId);
+	//新增一个Tab项
+	element.tabAdd('m_[(${label})]tabList', {
+	        title: title 
+	        ,content: '<iframe data-frameid="'+tabId+'" scrolling="auto" frameborder="0" src="'+content+'" style="width:98%;height:99%;"></iframe>' 
+	        ,id: tabId 
+	})
+	element.tabChange('m_[(${label})]tabList', tabId) 
+}
+
+function objectRelation(po){
+	 var genurl = "[(${MODULE_NAME})]/module/[(${label})]/tabList";
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",
+	        data: JSON.stringify(po),
+	        success: function (d) {
+			  if(d.data){
+				  var tabs = d.data.tabList;
+				  if(tabs.length>0){
+					  for(var tab in tabs){
+						  addTab(tabs[tab].tabId,tabs[tab].tabTitle,tabs[tab].tabContent);
+						  tabIds[tab]=tabs[tab].tabId;
+					  }
+				  }
+				  FrameWH()
+				  endList = d.data.relationEnd;
+			  }
+	      	},
+	 		error:function (d) {
+		    }
+	    });
+}
+var po= {};
+objectRelation(po);
+});
+</script>

@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title >选择关联对象定义</title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<div class="demoTable">
+		<form class="layui-form" action="">
+			<div class="layui-form-item">
+				<label class="layui-form-label">关键字：</label>
+				<div class="layui-input-inline">
+					<input name="KeyWord" class="layui-input" id="KeyWord"
+						placeholder="请输入关键字查询" autocomplete="off">
+				</div>
+			</div>
+			<input id="selectPo" hidden=true>
+			<input id="selectPoName" hidden=true>
+			<input id="selectObj" hidden=true>
+			
+		</form>
+		<button class="layui-btn" lay-submit lay-filter="searchDO"
+					data-type="reload">
+					搜索<i class="layui-icon">&#xe615;</i>
+		</button>
+	</div>
+	<table id="tablePo"  th:lay-filter="tablePo"></table>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+
+	<script th:inline="javascript" type="text/javascript">
+
+var layr,form,table,crudTable;
+layui.use(['form', 'laydate','table'], function(){
+	  form = layui.form
+	  ,table = layui.table
+	  ,layer = layui.layer;
+	  
+	  crudTable = table.render({
+		    elem: '#tablePo'
+		    ,method: 'POST' //方式
+		    ,url:'[(${MODULE_NAME})]/cruder/MetaData/search'
+		    ,dataType: 'json'
+		    ,contentType:'application/json;charset=UTF-8'
+		    ,toolbar: true
+		    ,title: '用户数据表'
+		    ,id: 'table[(${label})]'
+		    ,cols: [ [
+		    	{type:'checkbox', fixed: 'left',fixed: true}
+				,{field:'label', width:200, title:'Label' ,sort: true}
+				,{field:'name',title:'名称'}
+				,{field:'columns',title:'属性列'}
+				,{field:'header',title:'表头'}
+		    ] ]
+		    ,page: true
+		    ,parseData: parseTableData
+		  });
+	  
+	//表单取值
+	  //监听提交
+	  form.on('submit(searchDO)', function(data){
+		  var KeyWord = $('#KeyWord').val();
+		    //执行重载
+	        crudTable.reload({
+	          page: {
+	            curr: 1 //重新从第 1 页开始
+	          }
+	          ,where: {
+					KeyWord: KeyWord
+	          }
+	        });
+	    return true;
+	  });
+  //监听表格复选框选择
+  table.on('row(tablePo)', function(obj){
+    //console.log(obj)
+    $("#selectPoName").val(obj.data.name);
+    $("#selectPo").val(obj.data.label);
+  });
+  
+  //监听表格复选框选择
+  table.on('checkbox(tablePo)', function(obj){
+    //console.log(obj)
+    var checkStatus = table.checkStatus('tablePo'); 
+    
+    var checks = checkStatus.data;
+    var selectV = new String("[(${selectValue})]").trim();
+    console.log("selectV:"+selectV.length+":"+selectV);
+    if(checks.length>1){
+    	var ids="";
+        var names="";
+        var selectValues = "";
+       
+    	for(var i in checks){
+        	if(parseInt(i)>0){
+        		names=names+","+checks[i].name;
+        		ids=ids+","+checks[i].id;
+        		if(selectV.length>0){
+        			selectValues=selectValues+","+checks[i]['[(${selectValue})]'];
+        		}
+        		
+        	}else{
+        		names=checks[i].name;
+        		ids=checks[i].id;
+        		if(selectV.length>0){
+        			selectValues=checks[i]['[(${selectValue})]'];
+        		}
+        		
+        	}
+        }
+    	$("#selectPoName").val(names);
+        $("#selectPo").val(ids);
+        if(selectV.length>0){
+        	$("#selectValue").val(selectValues);
+        }
+    }else{
+    	$("#selectPoName").val(obj.data.name);
+        $("#selectPo").val(obj.data.label);
+        if(selectV.length>0){
+        	$("#selectValue").val(obj.data['[(${selectValue})]']);
+        }
+    }
+    
+    form.val('edit[(${label})]', obj.data);
+  });
+});
+
+function refresh(){
+	crudTable.reload( { //表格的id
+	    page: {
+	        curr: 1 //重新从第 1 页开始
+	    }
+	  });
+}
+</script>
+</body>
+</html>

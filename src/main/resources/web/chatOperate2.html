@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{voice::voiceHeader(${name})}">
+</head>
+<body>
+<div th:insert="~{voice::voiceHTML}"></div>
+<div th:insert="~{voice::voiceJS}"></div>
+<div class="container">
+	<div class="row">
+		<div class="col-lg-4">
+			<ul class="list-group">
+					<li class="list-group-item active" value="xx" >
+					操作说明
+					</li>
+					<li class="list-group-item " onclick="authType('del')">
+					删除权限
+					</li>
+					<li class="list-group-item " onclick="authType('add')">
+					增加权限
+					</li>
+					<li class="list-group-item " onclick="authType('remove')">
+					解除权限
+					</li>
+					<li class="list-group-item "  onclick="authType('forbidden')">
+					禁止权限
+					</li>
+					<li class="list-group-item "  onclick="authType('open')">
+					打开资源
+					</li>
+					<li class="list-group-item "  onclick="authType('manage')">
+					管理元数据
+					</li>
+					<li class="list-group-item "  onclick="authType('query')">
+					查询
+					</li>
+					<li class="list-group-item "  onclick="authType('queryPath')">
+					A和B有什么关系？
+					</li>
+					<li class="list-group-item "  onclick="authType('hasIs')">
+					A有什么？是什么
+					</li>
+			</ul>
+		</div>
+		 <div class="col-lg-8">
+			<div class="form-group">
+			    <h5 id="chatBoxName">控制台</h5>
+			    
+			    <div style="width:600px;overflow:auto;height:500px;overflow-y:auto">
+					<div id="message_content" style="overflow:hidden;width:600px;"></div>
+					<div><a id="msg_end" name="1" href="#1">&nbsp</a></div>
+				</div>
+			</div>	
+		</div>	
+	</div>
+	<div class="row">
+		<div class="col-lg-3">
+			<div class="form-group">
+			    <input id="in_room_id" type="hidden" value="square" class="form-control">
+			</div>
+		</div>
+		<div class="col-lg-9">
+			<div class="form-group">
+			    <label for="in_room_msg" id="tips">输入操作指令 &nbsp;</label>
+			    <textarea id="in_room_msg"  style="rows: 5;" class="form-control" onscroll="this.rows++;"></textarea></br>
+			    <button id="user_send_all" onclick="sendInfo()" class="btn btn-info">执行</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+Date.prototype.pattern= function(fmt) {         
+    var o = {
+   "M+" :  this.getMonth()+1,  // 月份       
+   "d+" :  this.getDate(),  // 日         
+   "h+" :  this.getHours()%12 == 0 ? 12 :  this.getHours()%12,  // 小时         
+   "H+" :  this.getHours(),  // 小时         
+   "m+" :  this.getMinutes(),  // 分         
+   "s+" :  this.getSeconds(),  // 秒         
+   "q+" : Math.floor(( this.getMonth()+3)/3), //季度         
+   "S" :  this.getMilliseconds()  // 毫秒         
+   };         
+    var week = {         
+   "0" : "/u65e5",         
+   "1" : "/u4e00",         
+   "2" : "/u4e8c",         
+   "3" : "/u4e09",         
+   "4" : "/u56db",         
+   "5" : "/u4e94",         
+   "6" : "/u516d"        
+   };         
+    if(/(y+)/.test(fmt)){         
+       fmt=fmt.replace(RegExp.$1, ( this.getFullYear()+"").substr(4 - RegExp.$1.length));         
+   }         
+    if(/(E+)/.test(fmt)){         
+       fmt=fmt.replace(RegExp.$1, ((RegExp.$1.length>1) ? (RegExp.$1.length>2 ? "/u661f/u671f" : "/u5468") : "")+week[ this.getDay()+""]);         
+   }         
+    for( var k  in o){         
+        if( new RegExp("("+ k +")").test(fmt)){         
+           fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));         
+       }         
+   }         
+    return fmt;         
+}       
+function initWS(index,hi){
+	var logWS = new WebSocket('ws://'+hi+":"+port+'/userSelect');
+	servers[index]=hi;
+	logWS.onmessage = function(event) {
+		// 接收服务端的实时日志并添加到HTML页面中
+		var divo = $("#message_content");
+		var text = divo.text;
+		 
+		if(text.length>5000){
+			divo.text(text.substring(5000));
+		}
+		divo.append(event.data);
+	    var scrollHeight = divo.prop("scrollHeight");
+	    var clientHeight = divo.height();
+		var hight=$(document).height()-clientHeight;
+	    divo.scrollTop(hight,450);
+	}
+	return logWS;
+}
+
+
+var sockets={};
+var webSocketUrl = 'wss://'+window.location.host+'/context/';//websocketi连接地址
+var myName='[(${myName})]';
+var myId='[(${myId})]';
+    //创建websocket连接
+
+function createContextConnect(userId) {
+        if (!sockets[userId]||sockets[userId].readyState != sockets[userId].OPEN) {//避免重复连接
+            console.log(userId);
+            var contextWs = new WebSocket(webSocketUrl + userId);
+            contextWs.onopen = function () {
+                contextWs.send(myName+"context"+userId);
+            };
+            contextWs.onmessage = function (e) {
+                //服务端发送的消息
+                $("#message_content").append(e.data + '\n');
+            };
+            contextWs.onclose = function () {
+            	console.log(myName + "");
+            }
+            sockets[userId]=contextWs;
+        }
+}
+    
+    function mySelect(index){
+    	sockets[myId].send("userSelected:"+index);
+    }
+
+
+
+function insertText(content){
+	var now = new Date();
+	var div = $("#message_content");
+	div.scrollTop = div.scrollHeight;
+	var xx = now.pattern("yyyy-MM-dd hh:mm:ss");
+	$("#message_content").append(xx +":"+content+ '<br />');
+	let element = document.getElementById("msg_end");
+    if (element) {
+      element.scrollIntoView();
+    }
+}
+ 
+
+    //消息
+    function sendInfo() {
+        let msg = $('#in_room_msg').val();
+        var roomId = $("#in_room_id").val();
+    	var genurl = "[(${MODULE_NAME})]/auth/talk";
+    	if(!sockets[myId]){
+    		createContextConnect(myId);
+    	}
+    	var formData={};
+    	formData['msg']=msg;
+    	$.ajax({
+   		     type: "post",
+   		     url: genurl,
+   		     dataType : "json",
+   		     contentType : "application/json;charset=UTF-8",      //
+   		     data: JSON.stringify(formData),
+   		     success: function (d) {
+   		    	$("#message_content").append("\n");
+   		    	 var data = d.data;
+   		    	 if(data.data){
+   		    		 var list = data.data;
+   		    		 if(list.length>1){
+   		    			 for(var i in list){
+   	   		    			if(list[i]['url']!=null){
+   	   	   	   		    		$(".desktop-menu").hide()
+   	   	   	   	   		        openLayer(list[i])
+   	   	   	   		    	 }else if(list[i]['msg']!=null&&list[i]['msg'].indexOf('href=')>0){
+ 	   	   	   		    		$(".desktop-menu").hide()
+   	   	   	   	   		        insertText(list[i].msg)
+   	   	   	   		    	 }else{
+   	   	   	   		    		$("#message_content").append(list[i]+"<br/>");
+   	   	   	   		    	 }
+   	   		    		 }
+   		    		 }
+   		    		
+   		    		 if(list.length==1){
+   		    			var ret = list;
+     		    			if(ret[0]['url']!=null){
+     	   	   		    		$(".desktop-menu").hide()
+     	   	   	   		        openLayer(ret[0])
+     	   	   		    	 }else if(ret[0]['msg']!=null&&ret[0]['msg'].indexOf('href=')>0){
+ 	   	   	   		    		$(".desktop-menu").hide()
+   	   	   	   	   		        insertText(ret[0].msg)
+   	   	   	   		    	 }else{
+     	   	   		    		$("#message_content").append(ret[0].msg+"<br/>");
+     	   	   		    	 }
+   		    		 }
+   		    		 if(list.length==0){
+   		    				$("#message_content").append("<br/>"+msg+"<br/>");
+    		    	  }
+   		    	 }
+   		    	 else{
+   		    		 if(data.value){
+   		    			$("#message_content").append("<br/>");
+   		    			$("#message_content").append("<br/>"+data.value+"<br/>");
+   		    		 }else{
+   		    			$("#message_content").append("<br/>"+msg+"<br/>");
+   		    		 }
+   		    	 }
+   		     }
+   		});
+    }
+
+     
+    
+    function openNode(name,url){
+    	var h = '600px';
+	    var w = '800px';
+	layer.open({
+	      type: 2,
+	      anim: 0,
+	      shade: 0,
+	      title: name,
+	      maxmin: true,
+	      area: [w, h],
+	      yes:function(index,layero)
+	      {
+	      	var body = layer.getChildFrame('body', index);
+			close()
+	          //index为当前层索引
+	        layer.close(index)
+	      },
+	      cancel:function(){//右上角关闭毁回调
+	     	 //var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+	  		//parent.layer.close(index); //再执行关闭
+	      },
+	      zIndex: layer.zIndex //重点1
+	      ,success: function(layero, index){
+	      },
+	      content: url
+	  });
+    }
+    function openLayer(data){
+    	 var h = '600px';
+    	    var w = '800px';
+    	layer.open({
+  	      type: 2,
+  	      anim: 0,
+  	      shade: 0,
+  	      title: data.name,
+  	      maxmin: true,
+  	      area: [w, h],
+  	      yes:function(index,layero)
+  	      {
+  	      	var body = layer.getChildFrame('body', index);
+  			close()
+  	          //index为当前层索引
+  	        layer.close(index)
+  	      },
+  	      cancel:function(){//右上角关闭毁回调
+  	     	 //var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+  	  		//parent.layer.close(index); //再执行关闭
+  	      },
+  	      zIndex: layer.zIndex //重点1
+  	      ,success: function(layero, index){
+  	      },
+  	      content: data.url
+  	  });
+    } 
+    function authType(data){ 
+    	if('add'==data){    		
+    		$('#tips').text('说明：给{谁：角色或者用户}添加{元数据：对象}的{xx权限：访问权限、编辑权限、读取权限}');
+    		$('#in_room_msg').val('给{谁}添加{什么}的{xx权限}');
+    	}
+    	if('del'==data){
+    		$('#tips').text('说明：将{谁：角色或者用户}的{元数据：对象}的{xx权限：访问权限、编辑权限、读取权限}删除');
+    		$('#in_room_msg').val('将{谁}的{什么}的{xx权限}删除');
+    	}
+    	if('remove'==data){
+    		$('#tips').text('说明：删除{谁：角色或者用户}的{元数据：对象}的{xx权限：访问权限、编辑权限、读取权限}');
+    		$('#in_room_msg').val('删除{谁}的{什么}的{xx权限}');
+    	}
+    	if('forbidden'==data){
+    		$('#tips').text('说明：禁止{谁：角色或者用户}的{元数据：对象}的{xx权限：访问权限、编辑权限、读取权限、删除权限}');
+    		$('#in_room_msg').val('禁止{谁}的{什么}的{xx权限}');
+    	}
+    	if('open'==data){
+    		$('#tips').text('说明：打开{元数据：对象}');
+    		$('#in_room_msg').val('打开{什么}');
+    	}
+    	if('manage'==data){
+    		$('#tips').text('说明：管理{元数据：对象}');
+    		$('#in_room_msg').val('管理{什么}');
+    	}
+    	if('query'==data){
+    		$('#tips').text('说明：{元数据：对象}的{关系或者属性}（是？、是什么？、有哪些？、有多少、有什么？）');
+    		$('#in_room_msg').val('{谁}的{什么}是{什么}、有{哪些}');
+    	}
+    	
+    	if('queryPath'==data){
+    		$('#tips').text('说明：{元数据：对象}和{元数据：对象}有什么关系？可达路径）');
+    		$('#in_room_msg').val('{A}和{B}有什么关系？');
+    	}
+    	if('hasIs'==data){
+    		$('#tips').text('说明：{元数据：对象}{的什么}是{什么}有有什么关系？可达路径）');
+    		$('#in_room_msg').val('{A}的{属性、关系}有哪些、是什么？');
+    	}
+	}
+</script>
+<style>
+li:hover{background-color:yellow;}
+</style>
+</body>
+</html>

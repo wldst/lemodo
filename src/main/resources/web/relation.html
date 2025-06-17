@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>relation</title>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<link rel="stylesheet" th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}"/>
+	<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+ <h1>微服务日志监控和下载</h1>
+	 <div class="row m-sm no-padding">
+	    <table id="logMonitor"
+	     class="table table-striped table-bordered table-hover dataTables-example">
+	     <thead>
+		     <tr>
+		       <th style="width: 10%">关系发起方节点</th>
+		       <th style="width: 10%">被关系方节点</th>
+		       <th style="width: 10%">关系名称</th>
+		       <th style="width: 10%">Label</th>
+		       <th style="width: 10%">操作</th>
+		       <th>日志文件</th>
+		     </tr>
+	     </thead>
+	        <tbody id="tbody1">
+	        	<tr>
+	        	<td>
+					<select id="startNodes" onchange="selectStartNode(this);">
+					</select>
+				</td>
+	        	<td>
+				   <select id="endNodes" onClick="selectEndNode();">
+				   </select>
+	        	</td>
+	        	<td>
+				   <select id="relationLabel" onClick="selectRelation();">
+				   </select>
+	        	</td>
+	        	<td>
+		        	<label>请输入关系中文名称:</label>
+		        	<input type="text" id="relationName" value="/" />
+	        	</td>
+	        	<td>
+		        	<label>请输入关系Label:</label>
+		        	<input type="text" id="rLabel"  value="/" />
+	        	</td>
+	        	<td><input type="button" class="u-btn save-btn" onclick="updateRelation();" value="关联" />
+	        	</td>
+	        	</tr>
+	       </tbody>
+        </table>
+   </div>
+</body>
+ <script th:src="@{/static/layui/layui.js}"></script>
+ <script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+<script>
+var layer;
+layui.use('layer', function(){
+  layer = layui.layer;
+});  
+
+function selectStartNode(){
+	listLog($("#startNodes").val());
+}
+function selectEndNode(){
+	listLog($("#endNodes").val());
+}
+
+function listLog(appName){
+	var slUrl = "/monitor/showLogs";
+	var formData={};
+	if(appName!=null&&appName!=undefined&&appName!=''){
+	 formData["appName"]=appName;
+	}
+	var lp=$("#logPath").val()
+	if(lp!=null&&lp!=undefined){
+	 formData["logPath"]=lp;
+	}
+	$.post(slUrl,formData,function(res){
+	  if(res!=undefined &&res!=''){
+		  showDivList("logList",res)
+	  }
+	});
+}
+function tailFile(){
+	var logFile="";
+	var formData={};
+	if($("#appList").val()==null&&$("#appList").val()==""){
+		alert("please select app");
+		return;
+	}
+	if($("#logPath").val()==null&&$("#logPath").val()==""){
+		alert("please select logPath");
+		return;
+	}
+	if($("#installHome").val()!=""){
+		formData["appHome"]=$("#installHome").val()
+	}
+	if($("#appList").val()!=null&&$("#appList").val()!=""){
+		formData["app"]=$("#appList").val()
+	}
+	if($("#logList").val()!=null&&$("#logList").val()!=undefined){
+		formData["logFile"]=$("#logList").val()
+	}
+	var monitorUrl='logMonitor';
+	$.ajax({
+         url: monitorUrl,
+         type: 'POST',
+         data: formData,
+         dataType : "html",
+         success: function (result) {
+             layer.open({
+                 type: 1,
+                 anim: 0,
+                 shade: 0,
+                 offset: [ //为了演示，随机坐标
+                	    Math.random()*($(window).height()-300)
+                	    ,Math.random()*($(window).width()-300)
+                	  ],
+                 title: $("#logList").val(),
+                 area: ['80%', '80%'],
+                 btn:['close','closeAll'],
+                 yes:function(index,layero)
+                 {
+					 close()
+                     //index为当前层索引
+                     layer.close(index)
+                 },
+                 btn2: function(){
+                	 close()
+                     layer.closeAll();
+                 },
+                 cancel:function(){//右上角关闭毁回调
+                	 close()
+                	 var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+             		parent.layer.close(index); //再执行关闭
+                 },
+                 zIndex: layer.zIndex //重点1
+                 ,success: function(layero){
+                   layer.setTop(layero); //重点2
+                 },
+                 content: result
+             });
+         }
+     });
+}
+
+function showDivList(divId,dataArray){
+	var tables =  dataArray.split(',');
+    var html = ''; 
+    for(var index in tables){
+    	var tablei = tables[index];
+   		html+="<option value='"+tablei+"' >"+tablei+"</option>";
+    }
+    $("#"+divId).html(html);
+    return html;
+}
+
+$(document).ready(function() {	
+	updateHome()
+});
+
+</script>
+</body>
+</html>

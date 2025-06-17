@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title>Biz Object  mxGraph</title>
+<meta charset="UTF-8">
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+	<!-- Sets the basepath for the library if not in same directory -->
+	<script type="text/javascript">
+		mxBasePath = '[[@{/static/plugin/mxGraph/src}]]';
+	</script>
+
+	<!-- Loads and initializes the library -->
+	<script type="text/javascript" th:src="@{/static/plugin/mxGraph/src/js/mxClient.js}"></script>
+<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:src="@{/static/layui/lay/modules/form.js}"></script>
+	<!-- Example code -->
+	<script type="text/javascript">
+		// Program starts here. Creates a sample graph in the
+		// DOM node with the specified ID. This function is invoked
+		// from the onLoad event handler of the document (see below).
+		function main(container)
+		{
+			// Checks if the browser is supported
+			if (!mxClient.isBrowserSupported())
+			{
+				// Displays an error message if the browser is not supported.
+				mxUtils.error('Browser is not supported!', 200, false);
+			}
+			else
+			{
+				listDomain();
+			}
+			
+			function listDomain(){
+				
+				var graph = initGraph();
+				queryDomain(graph);
+				
+				/**
+				 * Updates the properties panel
+				 */
+				function selectionChanged(graph)
+				{
+					var div = document.getElementById('properties');
+
+					// Forces focusout in IE
+					graph.container.focus();
+
+					// Clears the DIV the non-DOM way
+					div.innerHTML = '';
+
+					// Gets the selection cell
+					var cell = graph.getSelectionCell();
+
+					if (cell == null)
+					{
+						mxUtils.writeln(div, 'Nothing selected.');
+					}
+					else
+					{
+						// Writes the title
+						var center = document.createElement('center');
+						mxUtils.writeln(center, cell.value.nodeName + ' (' + cell.id + ')');
+						div.appendChild(center);
+						mxUtils.br(div);
+
+						// Creates the form from the attributes of the user object
+						var form = new mxForm();
+		
+						var attrs = cell.value.attributes;
+						
+						for (var i = 0; i < attrs.length; i++)
+						{
+							createTextField(graph, form, cell, attrs[i]);
+						}
+		
+						div.appendChild(form.getTable());
+						mxUtils.br(div);
+						var atti = attrs["label"];
+						var attName = attrs["name"];
+						if(attName==""||attName==null||attName==undefined){
+							attName=atti;
+						}
+						// Adds an option to view the XML of the graph
+						div.appendChild(mxUtils.button('对象管理', function objectManage(){
+							  layer.open({
+						          type: 2,
+						          anim: 0,
+						          shade: 0,
+						          maxmin: true,
+						          title: attName.nodeValue,
+						          area: ['70%', '80%'],
+						          btn:['关闭'],
+						          full: function(a, b) {
+						            	$(a).find('.layui-layer-content').css('height','100%');
+						            	$(a).find('iframe').css('height','100%');
+						            },
+						            restore: function(a, b) {
+						            	$(a).find('iframe').css('height','90%');
+						            	$(a).find('.layui-layer-content').css('height','90%');
+						            },
+						          yes:function(index,layero)
+						          {
+									//index为当前层索引
+						              layer.close(index)
+						          },
+						          cancel:function(){//右上角关闭毁回调
+						         	var index = parent.layer.getFrameIndex(atti.nodeValue); //先得到当前iframe层的索引
+						      		parent.layer.close(index); //再执行关闭
+						          },
+						          zIndex: layer.zIndex //重点1
+						          ,success: function(layero){
+						            layer.setTop(layero); //重点2
+						          },
+						          content: "[(${MODULE_NAME})]/manage/"+atti.nodeValue
+						      });
+						  }));
+						
+						div.appendChild(mxUtils.button('Domain定义', function domainManage(){
+							  layer.open({
+						          type: 2,
+						          anim: 0,
+						          shade: 0,
+						          maxmin: true,
+						          full: function(a, b) {
+						            	$(a).find('.layui-layer-content').css('height','100%');
+						            	$(a).find('iframe').css('height','100%');
+						            },
+						            restore: function(a, b) {
+						            	$(a).find('iframe').css('height','90%');
+						            	$(a).find('.layui-layer-content').css('height','90%');
+						            },
+						          title: attName.nodeValue,
+						          area: ['70%', '80%'],
+						          btn:['关闭'],
+						          yes:function(index,layero)
+						          {
+									//index为当前层索引
+						              layer.close(index)
+						          },
+						          cancel:function(){//右上角关闭毁回调
+						         	var index = parent.layer.getFrameIndex(atti.nodeValue); //先得到当前iframe层的索引
+						      		parent.layer.close(index); //再执行关闭
+						          },
+						          zIndex: layer.zIndex //重点1
+						          ,success: function(layero){
+						            layer.setTop(layero); //重点2
+						          },
+						          content: "/graph/define/"+atti.nodeValue
+						      });
+						  }));
+						
+						// Adds an option to view the XML of the graph
+						div.appendChild(mxUtils.button('接口展示', function interfaceData(){
+							  layer.open({
+						          type: 2,
+						          anim: 0,
+						          shade: 0,
+						          title: attName.nodeValue,
+						          maxmin: true,
+						          area: ['70%', '80%'],
+						          btn:['关闭'],
+						          full: function(a, b) {
+						            	$(a).find('.layui-layer-content').css('height','100%');
+						            	$(a).find('iframe').css('height','100%');
+						            },
+						            restore: function(a, b) {
+						            	$(a).find('iframe').css('height','90%');
+						            	$(a).find('.layui-layer-content').css('height','90%');
+						            },
+						          yes:function(index,layero)
+						          {
+										 close()
+						              //index为当前层索引
+						              layer.close(index)
+						          },
+						          cancel:function(){//右上角关闭毁回调
+						         	 close()
+						         	 var index = parent.layer.getFrameIndex(cell.name); //先得到当前iframe层的索引
+						      		parent.layer.close(index); //再执行关闭
+						          },
+						          zIndex: layer.zIndex //重点1
+						          ,success: function(layero){
+						            layer.setTop(layero); //重点2
+						          },
+						          content: "[(${MODULE_NAME})]/interface/"+atti.nodeValue
+						      });
+						  }));
+
+					}
+					
+					  
+				}
+
+				/**
+				 * Creates the textfield for the given property.
+				 */
+				function createTextField(graph, form, cell, attribute)
+				{
+					var input = form.addText(attribute.nodeName + ':', attribute.nodeValue);
+
+					var applyHandler = function()
+					{
+						var newValue = input.value || '';
+						var oldValue = cell.getAttribute(attribute.nodeName, '');
+
+						if (newValue != oldValue)
+						{
+							graph.getModel().beginUpdate();
+	                        
+	                        try
+	                        {
+	                        	var edit = new mxCellAttributeChange(
+	 		                           cell, attribute.nodeName,
+	 		                           newValue);
+	                           	graph.getModel().execute(edit);
+	                           	graph.updateCellSize(cell);
+	                        }
+	                        finally
+	                        {
+	                            graph.getModel().endUpdate();
+	                        }
+						}
+					}; 
+
+					mxEvent.addListener(input, 'keypress', function (evt)
+					{
+						// Needs to take shift into account for textareas
+						if (evt.keyCode == /*enter*/13 &&
+							!mxEvent.isShiftDown(evt))
+						{
+							input.blur();
+						}
+					});
+
+					if (mxClient.IS_IE)
+					{
+						mxEvent.addListener(input, 'focusout', applyHandler);
+					}
+					else
+					{
+						// Note: Known problem is the blurring of fields in
+						// Firefox by changing the selection, in which case
+						// no event is fired in FF and the change is lost.
+						// As a workaround you should use a local variable
+						// that stores the focused field and invoke blur
+						// explicitely where we do the graph.focus above.
+						mxEvent.addListener(input, 'blur', applyHandler);
+					}
+				}
+				
+
+				// Implements a properties panel that uses
+				// mxCellAttributeChange to change properties
+				graph.getSelectionModel().addListener(mxEvent.CHANGE, function(sender, evt)
+				{
+					selectionChanged(graph);
+				});
+
+				selectionChanged(graph);
+				 
+			}
+			
+			function initGraph(){
+				// Creates the div for the toolbar
+				var tbContainer = document.createElement('div');
+				tbContainer.style.position = 'absolute';
+				tbContainer.style.overflow = 'hidden';
+				tbContainer.style.padding = '2px';
+				tbContainer.style.left = '0px';
+				tbContainer.style.top = '0px';
+				tbContainer.style.width = '24px';
+				tbContainer.style.bottom = '0px';
+				
+				document.body.appendChild(tbContainer);
+				// Creates the graph inside the given container
+				var graph = new mxGraph(container);
+
+				// Optional disabling of sizing
+				graph.setCellsResizable(false);
+				graph.setConnectable(true);
+				// Configures the graph contains to resize and
+				// add a border at the bottom, right
+				graph.setResizeContainer(true);
+				graph.minimumContainerSize = new mxRectangle(0, 0, 700, 680);
+				graph.setBorder(60);
+				
+				// Stops editing on enter key, handles escape
+				new mxKeyHandler(graph);
+
+				// Overrides method to disallow edge label editing
+				graph.isCellEditable = function(cell)
+				{
+					return !this.getModel().isEdge(cell);
+				};
+				// Overrides method to provide a cell label in the display
+				graph.convertValueToString = function(cell)
+				{
+					if (mxUtils.isNode(cell.value))
+					{
+						if (cell.value.nodeName.toLowerCase() == 'po')
+						{
+							var firstName = cell.getAttribute('name', '');
+							return firstName;
+						}
+						else if (cell.value.nodeName.toLowerCase() == 'knows')
+						{
+							return cell.value.nodeName + ' (Since '
+									+  cell.getAttribute('since', '') + ')';
+						}
+
+					}
+
+					return '';
+				};
+
+				// Overrides method to store a cell label in the model
+				var cellLabelChanged = graph.cellLabelChanged;
+				graph.cellLabelChanged = function(cell, newValue, autoSize)
+				{
+					if (mxUtils.isNode(cell.value) &&
+						cell.value.nodeName.toLowerCase() == 'person')
+					{
+						var pos = newValue.indexOf(' ');
+
+						var firstName = (pos > 0) ? newValue.substring(0,
+								pos) : newValue;
+						var lastName = (pos > 0) ? newValue.substring(
+								pos + 1, newValue.length) : '';
+
+						// Clones the value for correct undo/redo
+						var elt = cell.value.cloneNode(true);
+
+						elt.setAttribute('firstName', firstName);
+						elt.setAttribute('lastName', lastName);
+
+						newValue = elt;
+						autoSize = true;
+					}
+					
+					cellLabelChanged.apply(this, arguments);
+				};
+
+				// Overrides method to create the editing value
+				var getEditingValue = graph.getEditingValue;
+				graph.getEditingValue = function(cell)
+				{
+					if (mxUtils.isNode(cell.value) &&
+						cell.value.nodeName.toLowerCase() == 'person')
+					{
+						var firstName = cell.getAttribute('firstName', '');
+						var lastName = cell.getAttribute('lastName', '');
+
+						return firstName + ' ' + lastName;
+					}
+				};
+
+				// Adds a special tooltip for edges
+				graph.setTooltips(true);
+				
+				var getTooltipForCell = graph.getTooltipForCell;
+				graph.getTooltipForCell = function(cell)
+				{
+					// Adds some relation details for edges
+					if (graph.getModel().isEdge(cell))
+					{
+						var src = this.getLabel(this.getModel().getTerminal(cell, true));
+						var trg = this.getLabel(this.getModel().getTerminal(cell, false));
+
+						return src + ' ' + cell.value.nodeName + ' ' +  trg;
+					}
+
+					return getTooltipForCell.apply(this, arguments);
+				};
+				
+				// Enables rubberband selection
+				new mxRubberband(graph);
+
+				// Adds an option to view the XML of the graph
+				document.body.appendChild(mxUtils.button('View XML', function()
+				{
+					var encoder = new mxCodec();
+					var node = encoder.encode(graph.getModel());
+					mxUtils.popup(mxUtils.getPrettyXml(node), true);
+				}));
+				
+				// Changes the style for match the markup
+				// Creates the default style for vertices
+				var style = graph.getStylesheet().getDefaultVertexStyle();
+				style[mxConstants.STYLE_STROKECOLOR] = 'gray';
+				style[mxConstants.STYLE_ROUNDED] = true;
+				style[mxConstants.STYLE_SHADOW] = true;
+				style[mxConstants.STYLE_FILLCOLOR] = '#DFDFDF';
+				style[mxConstants.STYLE_GRADIENTCOLOR] = 'white';
+				style[mxConstants.STYLE_FONTCOLOR] = 'black';
+				style[mxConstants.STYLE_FONTSIZE] = '12';
+				style[mxConstants.STYLE_SPACING] = 4;
+		
+				// Creates the default style for edges
+				style = graph.getStylesheet().getDefaultEdgeStyle();
+				style[mxConstants.STYLE_STROKECOLOR] = '#0C0C0C';
+				style[mxConstants.STYLE_LABEL_BACKGROUNDCOLOR] = 'white';
+				style[mxConstants.STYLE_EDGE] = mxEdgeStyle.ElbowConnector;
+				style[mxConstants.STYLE_ROUNDED] = true;
+				style[mxConstants.STYLE_FONTCOLOR] = 'black';
+				style[mxConstants.STYLE_FONTSIZE] = '10';
+				return graph;
+			}
+			
+			function queryDomain(graph){
+				var domains ={};
+				var genurl = "[(${MODULE_NAME})]/metadata/query";
+					 
+				var formData={};//po.data;
+					
+				// Gets the default parent for inserting new cells. This
+				// is normally the first child of the root (ie. layer 0).
+				var parent = graph.getDefaultParent();
+				// Note that these XML nodes will be enclosing the
+				// mxCell nodes for the model cells in the output
+				var doc = mxUtils.createXmlDocument();
+				
+				$.ajax({
+				    type: "post",
+				    url: genurl,
+			        dataType : "json",
+			        contentType : "application/json;charset=UTF-8",
+			        data: JSON.stringify(formData),
+			        success: function (ret) {
+			        	var dataArray = ret.data
+						for(var index in dataArray){
+							var data = dataArray[index];
+							var di = doc.createElement('po');
+							for(var key in data){
+								var dd = data[key];
+								di.setAttribute(key, dd);
+							}
+							domains[index]=di;
+						}
+			        	// Adds cells to the model in a single step
+						graph.getModel().beginUpdate();
+						try
+						{
+							var x1=0,y1=0,x2=0,y2=0;
+							for(var di in  domains){
+								x1=x1+40;
+								var v1 = graph.insertVertex(parent, null, domains[di], x1, x1, 80, 30);
+								
+							}
+							//var e1 = graph.insertEdge(parent, null, relation, v1, v2);
+						}
+						finally
+						{
+							// Updates the display
+							graph.getModel().endUpdate();
+						}
+				    },
+				 	error:function (d) {
+					  layer.alert(d.msg, {icon: 5})
+					}
+				    });	
+			  }
+
+			
+		};
+		
+		/* function delDomain(po){
+			 var genurl = "[(${MODULE_NAME})]/metadata/del";
+			 
+			 var formData=po.data;
+			 
+			 $.ajax({
+			    type: "post",
+			    url: genurl,
+		        dataType : "json",
+		        contentType : "application/json;charset=UTF-8",
+		        data: JSON.stringify(formData),
+		        success: function (d) {
+		        	for(var index in d){
+		        		
+		        	}
+		        	var person1 = doc.createElement('Person');
+					person1.setAttribute('firstName', 'Daffy');
+					person1.setAttribute('lastName', 'Duck');
+
+					var person2 = doc.createElement('Person');
+					person2.setAttribute('firstName', 'Bugs');
+					person2.setAttribute('lastName', 'Bunny');
+			      refresh()
+			    },
+			 	error:function (d) {
+				  layer.alert(d.msg, {icon: 5})
+				  refresh()
+				}
+			    });
+		}
+		function saveDomain(){
+			 var genurl = "[(${MODULE_NAME})]/metadata/save";
+			 var formData={};
+			 formData["tableName"]=$("#tableName").val();
+			 formData["name"]=$("#name").val();
+			 formData["label"]=$("#label").val();
+			 formData["primaryKey"]=$("#primaryKey").val();
+			 formData["columns"]=$("#columns").val();
+			 formData["primaryKey"]=$("#primaryKey").val();
+			 formData["header"]=$("#header").val();
+			 $.ajax({
+			      type: "post",
+			      url: genurl,
+			      dataType : "json",
+			      contentType : "application/json;charset=UTF-8",
+			      data: JSON.stringify(formData),
+			      success: function (d) {
+			           layer.alert(d.msg, {icon: 6})
+			           refresh()
+			      },
+			 	  error:function (d) {
+				        layer.alert(d.msg, {icon: 5})
+				        refresh()
+				  }
+			    });
+		} */
+		
+	</script>
+</head>
+
+<!-- Page passes the container for the graph to the program -->
+<body onload="main(document.getElementById('graphContainer'))">
+	<table style="position:relative;">
+	<tr>
+		<td>
+			<div id="graphContainer"
+				style="border: solid 1px black;overflow:hidden;width:80%;height:80%;cursor:default;">
+			</div>
+		</td>
+		<td valign="top">
+			<div id="properties"
+				style="border: solid 1px black; padding: 10px;">
+			</div>
+		</td>
+		<!-- <td valign="top">
+			<div id="operate"
+				style="border: solid 1px black; padding: 10px;">
+			</div>
+		</td> -->
+	</tr>
+	</table>
+</body>
+</html>

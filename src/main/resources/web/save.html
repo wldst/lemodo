@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title ><label th:text="${name}"></label>信息管理</title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<h3><label th:text="${name}"></label>信息管理</h3>
+	<form class="layui-form" lay-filter="example">
+		<div th:each="ci:${colHtmls}" class="layui-form-item">
+		[[${#ci}]]
+		</div>
+	</form>
+	<input type="button" class="layui-btn"  onclick="saveDomain();"
+		value="保存" />
+	<h3>领域对象列表</h3>
+	<form id="fromQuery">
+		<label>对象名称:</label> <input type="text" name="name" /> <label>对象Label:</label>
+		<input type="text" name="label" value="" /> <br /> <label>数据库表:</label>
+		<input type="text" name="tableName" />
+	</form>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script type="text/javascript">
+	layui.config({
+		dir: '/static/layui/',
+        base: '/static/layui/lay/modules/'
+    }).use(['form', 'laydate','layedit'], function(){
+		  var form = layui.form,
+		  layedit=laui.layedit,
+		  layer = layui.layer;
+		  
+		  //自定义验证规则
+		  form.verify({
+		    title: function(value){
+		      if(value.length < 5){
+		        return '标题至少得5个字符啊';
+		      }
+		    }
+		    ,pass: [
+		      /^[\S]{6,12}$/
+		      ,'密码必须6到12位，且不能出现空格'
+		    ]
+		    ,content: function(value){
+		      layedit.sync(editIndex);
+		    }
+		  });
+		  
+		  //监听指定开关
+		  form.on('switch(switchTest)', function(data){
+		    layer.msg('开关checked：'+ (this.checked ? 'true' : 'false'), {
+		      offset: '6px'
+		    });
+		    layer.tips('温馨提示：请注意开关状态的文字可以随意定义，而不仅仅是ON|OFF', data.othis)
+		  });
+		 
+		});
+	</script>
+	
+<script>
+function saveDomain(){
+	var genurl = "[(${MODULE_NAME})]/cruder/[[${label}]]/save";
+	var formData={};
+	formData["tableName"]=$("#tableName").val();
+	formData["name"]=$("#name").val();
+	formData["label"]=$("#label").val();
+	formData["primaryKey"]=$("#primaryKey").val();
+	formData["columns"]=$("#columns").val();
+	formData["primaryKey"]=$("#primaryKey").val();
+	formData["header"]=$("#header").val();
+	$.ajax({
+	     type: "post",
+	     url: genurl,
+	       dataType : "json",
+	       contentType : "application/json;charset=UTF-8",      //
+	       data: JSON.stringify(formData),
+	     success: function (d) {
+	       console.log(d);
+	       if(!d.status){
+			   layer.alert(d.msg, {icon: 5})
+		 } 
+	     }
+	});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+<div class="layui-btn-container">
+  <button type="button" class="layui-btn" lay-demo="getData">获取已关联数据</button>
+  <button type="button" class="layui-btn" lay-demo="reload">刷新</button>
+  <button type="button" class="layui-btn" lay-demo="saveData">保存</button>
+</div>
+
+<div class="layui-form">
+  <div class="layui-form-item">
+    <label class="layui-form-label" th:text="|选择${endMdName}|"></label>
+    <div class="layui-input-block">
+      <div id="text1"></div>
+    </div>
+  </div>
+</div>
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+var startId='[(${startId})]';
+var relName='[(${relName})]';
+var relType='[(${relLabel})]';
+
+ layui.use(['transfer', 'util', 'form', 'table'], function(){
+	    var $ = layui.$
+	    ,transfer = layui.transfer
+	    ,form = layui.form
+	    
+	    ,table = layui.table
+	    ,util = layui.util;
+	    form.on('submit(.layui-form)', function(data){
+	    	formSubmit();
+	     return false;
+	    });
+	    var ins1 = transfer.render({
+	      elem: '#text1'
+	      ,title: ['[(${endMdName})]', '已选[(${endMdName})]']
+	      ,data: [(${endNodes})]
+	      ,id: 'demoId'
+	      ,value: [(${existEndIds})]
+	      ,showSearch: true // 若区分大小写，设置 'cs'
+	    });
+	    
+	    //按钮事件
+	    util.event('lay-demo', {
+	      getData: function(othis){
+	        alert(JSON.stringify(ins1.getData()))
+	      }
+	      ,reload: function(){
+	        transfer.reload('demoId', {
+	          value: ["6"]
+	          //,data: [{"value": "1", "title": "李白"}]
+	        });
+	      },
+	      saveData: function(){
+	    		   	 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/addTansferRel";
+	    		   	 var formData={};
+	    		   	 formData['start']= startId;
+	    		   	 formData['relName']= relName;
+	    		   	 formData['rel']= relType;
+	    		   	 formData['ends']=  ins1.getData();
+	    		   	 
+	    		    $.ajax({
+	    		       type: "post",
+	    		       url: genurl,
+	    		   	dataType : "json",
+	    		   	contentType : "application/json;charset=UTF-8",      
+	    		   	data: JSON.stringify(formData),
+	    		   	success: function (d) {
+	    		   		if(!d.status){
+	    		   			   layer.alert(d.msg, {icon: 5})
+	    		   		   }else{
+	    		   			   layer.alert(d.msg, {icon: 6})
+	    		   			   var relALabel=$("#relStartLabel").val();
+	    		   		     	  var relAId=$("#relStartId").val();
+	    		   		     	  if(relALabel&&relAId&&d.data){
+	    		   		     		saveParentRel(d.data.value)
+	    		   		     	  }
+	    		   		     	  $("#id").val(d.data.value);
+	    		   		   }
+	    		             
+	    		        	},
+	    		   	error:function (d) {
+	    		           layer.alert(d.msg, {icon: 5})
+	    		       }
+	    		       });
+	    		     
+	      }
+	    });
+	  });
+</script>
+
+</body>
+</html>

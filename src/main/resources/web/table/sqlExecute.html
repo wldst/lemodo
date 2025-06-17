@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title text="SQL执行窗口"></title>
+<link rel="stylesheet"
+	th:href="@{/static/plugin/bootstrap/css/bootstrap.min.css}" />
+<link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" />
+</head>
+<body>
+	<!-- lay-allowclose="false" -->
+	<input hidden=true id="id" name="id">
+	<div class="demoTable">
+			<div class="layui-form-item  layui-form-text">
+				<label class="layui-form-label">sql</label>
+				<div class="layui-input-block">
+					<textarea id="sql" name="sql" class="layui-textarea"
+						lay-verify="content" onscroll="this.rows++;"
+						 placeholder="请输入内容" th:utext="${SQL}"> </textarea>
+				</div>
+			</div>
+			<div class="layui-row">
+				<div class="layui-col-xs3">
+					<div class="grid-demo grid-demo-bg1">
+						<div class="grid-demo">
+							<button class="layui-btn" id="executeSQL" lay-filter="executeSQL">
+								执行<i class="layui-icon">&#xe615;</i>
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="layui-col-xs3"></div>
+			</div>
+	</div>
+	<div class="layui-tab layui-tab-brief"
+		th:lay-filter="|${label}tabList|" th:id="|${label}tabList|"></div>
+
+<script th:id="|${label}detail|" type="text/html">
+  <ul class="layui-tab-title" th:lay-filter="|${label}Tab|"  th:id="|${label}TabHead|">
+  </ul>
+  <div class="layui-tab-content" th:id="|${label}TabContent|">
+  </div>
+</script>
+		
+	<script th:src="@{/static/plugin/jQuery/jquery-2.2.3.min.js}"></script>
+	<script th:src="@{/static/plugin/bootstrap/js/bootstrap.min.js}"></script>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+	<script id="toolbarDemo" type="text/html">
+[(${toolbarOpt})]
+</script>
+
+	<script id="barDemo" type="text/html">
+[(${opt})]
+		
+</script>
+	<script th:inline="javascript" type="text/javascript">
+var currentNode;
+var label = 'table[(${sqlId})]';
+[(${layUse})]
+var getTpl = $("#[(${label})]detail").html();
+$("#[(${label})]tabList").html(getTpl);
+  var endList={};
+  var tabIds={};
+  var rowi=null;
+//表单取值
+  layui.$('#executeSQL').on('click', formSubmit);
+  
+  function formSubmit(){
+	  var formData={};
+	  formData['id']='[(${sqlId})]';
+	formData['SQL']=$('#sql').val(); 
+	 
+	 var genurl = "[(${MODULE_NAME})]/cruder/[(${label})]/save";
+	 
+	 $.ajax({
+	    type: "post",
+	    url: genurl,
+		dataType : "json",
+		contentType : "application/json;charset=UTF-8",      
+		data: JSON.stringify(formData),
+		success: function (d) {
+			if(!d.status){
+				   layer.alert(d.msg, {icon: 5})
+			   }else{
+			var tabSelectedId="tab-[(${label})]-[(${sqlId})]";
+			var dataUrl="[(${MODULE_NAME})]/dbmanage/queryBySqlId/[(${sqlId})]";
+			var content = '<iframe data-frameid="[(${sqlId})]" frameborder="0" name="content" scrolling="yes"  src="' + dataUrl + '"></iframe>';
+	       addTab(tabSelectedId,"查询结果",content);
+			   }
+      	},
+ 		error:function (d) {
+	        layer.alert(d.msg, {icon: 5})
+	    }
+	    });
+   }
+  
+  function addTab(tabId,title,content){
+		element.tabDelete('[(${label})]tabList', tabId);
+		//新增一个Tab项
+		element.tabAdd('[(${label})]tabList', {
+		        title: title 
+		        ,content: content 
+		        ,id: tabId 
+		})
+		// 
+		element.tabChange('[(${label})]tabList', tabId);
+	}
+  element.on('tab([(${label})]tabList)',function(data){
+		let h = $(window).height()*0.6;
+	    let w = $(window).width()*0.98;
+	    let style='width:'+w+'px;height:'+h+'px;';
+		$(".layui-tab-item.layui-show").find("iframe").attr("style",style);
+	})
+  [(${layField})]
+
+[(${toolFun})]
+  
+});
+</script>
+</body>
+</html>

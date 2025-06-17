@@ -1,0 +1,297 @@
+
+<head>
+<meta charset="UTF-8">
+<title th:utext="|#{po.name}管理|">Domain管理</title>
+
+</head>
+	<h3 th:utext="|#{po.name}信息|">领域对象信息</h3>
+	<form class="layui-form" lay-filter="example">
+		<div class="layui-form-item">
+			<label class="layui-form-label">Label：</label>
+			<div class="layui-input-inline">
+				<input name="label" class="layui-input" id="label"
+				placeholder="请输入 业务对象的英文名,此字段是业务对象的唯一标识符"	autocomplete="off" required>
+			</div>
+			<label class="layui-form-label">名称：</label>
+			<div class="layui-input-inline">
+				<input name="name" class="layui-input" id="name"
+					placeholder="请输入 业务对象的名称" autocomplete="off" lay-verify="name" required>
+			</div>
+			<label class="layui-form-label">主键：</label>
+			<div class="layui-input-inline">
+				<input name="primaryKey" class="layui-input" id="primaryKey"
+					autocomplete="off" required>
+			</div>
+			<label class="layui-form-label">数据库表：</label>
+			<div class="layui-input-inline">
+				<input name="tableName" class="layui-input" id="tableName"
+					autocomplete="off">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">属性列：</label>
+			<div class="layui-input-block">
+				<input name="columns" class="layui-input" id="columns"
+					placeholder="请输入 columns,多列用英文逗号隔开,主键列必须有。" autocomplete="off">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">表头列：</label>
+			<div class="layui-input-block">
+				<input name="header" class="layui-input" id="header"
+					placeholder="请输入表头列,多列用英文逗号隔开,与属性列个数和顺序保持一致。" autocomplete="off">
+			</div>
+
+		</div>
+		<!-- <div class="layui-form-item">
+		    <div class="layui-input-block">
+		      <button class="layui-btn" lay-submit lay-filter="example">保存</button>
+		      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+		    </div>
+		  </div> -->
+	</form>
+	<input type="button" class="layui-btn" onclick="saveDomain();"
+		value="保存" />
+	<h3 th:utext="|#{po.name}数据|">领域对象列表</h3>
+	<!-- <input type="button" class="u-btn save-btn" onclick="queryDomain();"
+		value="查询#{po.name}" /> -->
+	<div class="row m-sm no-padding">
+		<div class="demoTable">
+				<div class="layui-form-item">
+					<label class="layui-form-label">名称：</label>
+					<div class="layui-input-inline">
+						<input name="name" class="layui-input" id="nameReload"
+							th:placeholder="|请输入 #{po.name}名称|" autocomplete="off" lay-verify="name">
+					</div>
+					<label class="layui-form-label">Label：</label>
+					<div class="layui-input-inline">
+						<input name="label" class="layui-input" id="labelReload"
+							th:placeholder="|请输入 #{po.name}Label|" autocomplete="off">
+					</div>
+				</div>
+				<button class="layui-btn" lay-filter="searchDO" data-type="reload">搜索<i class="layui-icon">&#xe615;</i></button>
+		</div>
+		<table class="layui-table" id="dmTable" lay-filter="dmTable">
+		</table>
+
+	</div>
+	
+	<script th:src="@{/static/layui/layui.js}"></script>
+	<script th:inline="javascript" type="text/javascript">
+		var MODULE_NAME = '[(${MODULE_NAME})]';
+	</script>
+	<script th:src="@{/static/util.js}"></script>
+<script id="barDemo" type="text/html">
+  <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">管理</a>
+  <!--<a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">编辑</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>-->
+</script>
+<script type="text/javascript">
+var form,layer,laypage,table;
+/* layui.config({
+	  dir: '/static/layui/' //layui.js 所在路径（注意，如果是script单独引入layui.js，无需设定该参数。），一般情况下可以无视
+	  ,version: false //一般用于更新模块缓存，默认不开启。设为true即让浏览器不缓存。也可以设为一个固定的值，如：201610
+	  ,debug: false //用于开启调试模式，默认false，如果设为true，则JS模块的节点会保留在页面
+	  ,base: '/static/layui/lay/modeules/' //设定扩展的Layui模块的所在目录，一般用于外部模块扩展
+	}); */
+layui.config({
+	  dir: '/static/layui/' //layui.js 所在路径（注意，如果是script单独引入layui.js，无需设定该参数。），一般情况下可以无视
+		  ,version: false //一般用于更新模块缓存，默认不开启。设为true即让浏览器不缓存。也可以设为一个固定的值，如：201610
+		  ,debug: false //用于开启调试模式，默认false，如果设为true，则JS模块的节点会保留在页面
+		  ,base: '/static/layui/lay/modeules/' //设定扩展的Layui模块的所在目录，一般用于外部模块扩展
+		})
+	.use(['form','layer','table','laypage', 'layedit', 'laydate'], function(){
+		  form = layui.form
+		  ,laypage = layui.laypage
+		  ,layer = layui.layer
+		  ,table = layui.table;
+		  
+		  //监听提交
+		  form.on('submit(demoForm)', function(data){
+			  refresh()
+		    return true;
+		  });
+		  
+		  form.on('submit(example)', function(data){
+			  saveDomain(data.field);
+			    return true;
+		  });
+		  
+		  		  
+		  crudTable = table.render({
+			    elem: '#dmTable'
+			    ,method: 'POST' //方式
+			    ,url:'[(${MODULE_NAME})]/metadata/query'
+			    ,dataType: 'json'
+			    ,contentType:'application/json;charset=UTF-8'
+			    ,toolbar: true
+			    ,title: '用户数据表'
+			    ,id: 'table[(${label})]'
+			    ,cols: [ [
+			    	{type:'checkbox', fixed: 'left',fixed: true}
+					,{field:'label', width:200, title:'Label' ,sort: true}
+					,{field:'name',title:'名称'}
+					,{field:'primaryKey',title:'主键'}
+					,{field:'columns',title:'属性列'}
+					,{field:'header',title:'表头'}
+					,{field:'tableName',title:'数据库表名', sort: true}
+					,{fixed: 'right', align:'center',title:'操作', toolbar: '#barDemo',unresize: false, width: 260}
+			    ] ]
+			    ,page: true
+			    ,done: fixRightTool
+			    ,parseData: parseTableData
+			  });
+		  
+  //监听表格复选框选择
+  table.on('checkbox(dmTable)', function(obj){
+	  form.val('example', obj.data);
+  });
+ /*  table.on('row(dmTable)', function(obj){
+	    //obj 同上
+		  form.val('example', obj.data);
+  }); */
+//监听行双击事件
+  /*  table.on('rowDouble(dmTable)', function(obj){
+    //obj 同上
+    form.val('example', obj.data);
+	 // objectManage(obj.data)
+  }); */ 
+  //监听单元格编辑
+  /* table.on('edit(label)', function(obj){
+    var value = obj.value //得到修改后的值
+    ,data = obj.data //得到所在行所有键值
+    ,field = obj.field; //得到字段
+    saveDomain(data.field);
+    layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
+  }); */
+  //监听工具条
+  table.on('tool(dmTable)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'del'){
+      layer.confirm('真的删除行么', function(index){
+        obj.del();
+        delDomain(obj)
+        layer.close(index);
+      });
+    }else if(obj.event === 'edit'){
+    	 form.val('example', data);
+    }else if(obj.event === 'detail'){
+    	 objectManage(obj.data);
+    }
+  });
+  
+  function objectManage(data){
+	  layer.open({
+          type: 2,
+          anim: 0,
+          shade: 0,
+          maxmin: true,
+          title: data.name,
+          area: ['70%', '80%'],
+          btn:['关闭'],
+          full: function(a, b) {
+            	$(a).find('.layui-layer-content').css('height','100%');
+            	$(a).find('iframe').css('height','100%');
+            },
+            restore: function(a, b) {
+            	$(a).find('iframe').css('height','90%');
+            	$(a).find('.layui-layer-content').css('height','90%');
+            },
+          yes:function(index,layero)
+          {
+				 close()
+              //index为当前层索引
+              layer.close(index)
+          },
+          cancel:function(){//右上角关闭毁回调
+         	 close()
+         	 var index = parent.layer.getFrameIndex(data.name); //先得到当前iframe层的索引
+      		parent.layer.close(index); //再执行关闭
+          },
+          zIndex: layer.zIndex //重点1
+          ,success: function(layero){
+            layer.setTop(layero); //重点2
+          },
+          content: "[(${MODULE_NAME})]/manage/"+data.label
+      });
+  }
+  var $ = layui.$, active = {
+		    reload:  function(){
+				  var nameReload = $('#nameReload').val();
+				  var labelReload = $('#labelReload').val();
+				  crudTable.reload({
+					  page: {
+				            curr: 1 //重新从第 1 页开始
+				          }
+				          ,where: {
+				              name: nameReload
+				              ,label:labelReload
+				          }
+	              });
+			  }	
+		  };
+		  
+		  $('.demoTable .layui-btn').on('click', function(){
+		    var type = $(this).data('type');
+		    active[type] ? active[type].call(this) : '';
+		  });
+});
+function delDomain(po){
+	 var genurl = "[(${MODULE_NAME})]/metadata/del";
+	 
+	 var formData=po.data;
+	 
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	        dataType : "json",
+	        contentType : "application/json;charset=UTF-8",
+	        data: JSON.stringify(formData),
+	      success: function (d) {
+	    	  refresh()
+	        console.log(d);
+	      }
+	    });
+}
+function saveDomain(){
+	 var genurl = "[(${MODULE_NAME})]/metadata/save";
+	 var formData={};
+	 formData["tableName"]=$("#tableName").val();
+	 formData["name"]=$("#name").val();
+	 formData["label"]=$("#label").val();
+	 formData["primaryKey"]=$("#primaryKey").val();
+	 formData["columns"]=$("#columns").val();
+	 formData["primaryKey"]=$("#primaryKey").val();
+	 formData["header"]=$("#header").val();
+	 $.ajax({
+	      type: "post",
+	      url: genurl,
+	      dataType : "json",
+	      contentType : "application/json;charset=UTF-8",
+	      data: JSON.stringify(formData),
+	      success: function (d) {
+	    	  
+	    	  console.log(d);
+	    	  if(!d.status){
+	  			   layer.alert(d.msg, {icon: 5})
+	  		   }else{
+	  			   layer.alert(d.msg, {icon: 6})
+	  		   }
+	    	  refresh()
+	      }
+	    });
+}
+function refresh(){
+	  var nameReload = $('#nameReload').val();
+	  var labelReload = $('#labelReload').val();
+	  crudTable.reload({
+		  page: {
+	            curr: 1 //重新从第 1 页开始
+	          }
+	          ,where: {
+	              name: nameReload
+	              ,label: labelReload
+	          }
+    });
+}
+</script>
