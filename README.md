@@ -1,5 +1,5 @@
 # lemodo
-Java easy crud SpringBoot Project,online change crud effect just in time.
+Java easy crud SpringBoot Project,online change crud effect just in time.CRUD operate base Neo4j。no POJO,no Controller，Service，Dao,no Mapper,no Entity，cut them out. even no java Code。modify online，view online effective result. People who with no program experience. can implements any CRUD operate of Node. you can create relationship between startNode and endNode. you can create view of node,property,relationship. with no code.
 
 这是一个基于图数据Neo4j的增删改查实时生效的管理平台。是一个SpringBoot工程。可以集成到任何微服务工程中去。单独一个SpringBoot 启动jar包。即可实现：
 极速增删改查，
