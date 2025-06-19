@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.wldst</groupId>
 	<artifactId>lemodo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1.1-SNAPSHOT</version>
 	<name>lemodo</name>
 	<description>less is more ,duo is chinese more, java lessCode ,Data Oriented Program</description>
 	<properties>
