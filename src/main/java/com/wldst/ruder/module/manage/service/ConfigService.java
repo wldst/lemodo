@@ -15,28 +15,34 @@ import org.springframework.ui.Model;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 @Service
 public class ConfigService extends MapTool {
-    final static Logger logger= LoggerFactory.getLogger(ConfigService.class);
+    final static Logger logger = LoggerFactory.getLogger(ConfigService.class);
     @Autowired
     private CrudNeo4jService cruderService;
     @Autowired
     private HtmlShowService showService;
 
     public Map<String, Object> getConfigMap(String label) throws DefineException {
-        String validLabel=  label.trim();
-        logger.info("+++++++++++++++==============="+validLabel);
-        List<Map<String, Object>> dataBy=cruderService.getDataBy(validLabel,ConfigDomain.CONFIGURATION);
-        Map<String, Object> po =null;
-        if(dataBy!=null&!dataBy.isEmpty()){
-            po =dataBy.get(0);
-        }
-        List<Map<String, Object>> config=showService.getItemList(id(po));
-        Map<String,Object> configMap=new HashMap<>();
-        for(Map<String, Object> ci:config){
-            configMap.put(code(ci),value(ci));
-        }
-        configMap.putAll(po);
-        return configMap;
+	String validLabel = label.trim();
+	logger.info("+++++++++++++++===============" + validLabel);
+	List<Map<String, Object>> dataBy = cruderService.getDataBy(validLabel, ConfigDomain.CONFIGURATION);
+	Map<String, Object> po = null;
+	Map<String, Object> configMap = new HashMap<>();
+	if (dataBy != null && !dataBy.isEmpty()&&dataBy.size()>0) {
+	    po = dataBy.get(0);
+	    if (po != null&&!po.isEmpty()) {
+		List<Map<String, Object>> config = showService.getItemList(id(po));
+		if(!config.isEmpty()) {
+		    for (Map<String, Object> ci : config) {
+			    configMap.put(code(ci), value(ci));
+			}
+		}
+		configMap.putAll(po);
+	    }
+	}
+
+	return configMap;
     }
 }

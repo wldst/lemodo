@@ -67,15 +67,12 @@ public class GoodsService extends GoodsDomain {
         this.wsClient=wsClient;
         this.bss=bss;
     }
-
-
-    public void init() {
-        LoggerTool.debug(logger,"The Runner start to initialize ...");
-        driver.getInstance();
-        Boolean initedBoolean = false;
-        Map<String, Object> systemMap = new HashMap<>();
+    
+    public Boolean isInited() {
+	Map<String, Object> systemMap = new HashMap<>();
         systemMap.put(NAME, SYSTEM_LABEL);
-        Node queryNode = driver.queryNode(systemMap, SYSTEM_LABEL);
+        Boolean initedBoolean = false;
+        Node queryNode = driver.queryNode(systemMap, SYSTEM_LABEL);         
         if (queryNode != null) {
             Map<String, Object> nodeProperties = driver.getNodeProperties(queryNode);
             String status = string(nodeProperties, STATE);
@@ -86,6 +83,33 @@ public class GoodsService extends GoodsDomain {
             if (status != null && (SystemStates.INITED.equals(status) || initInt)) {
                 initedBoolean = true;
             }
+        }
+        return initedBoolean;
+    }
+
+
+    public void init() {
+        LoggerTool.debug(logger,"The Runner start to initialize ...");
+        driver.getInstance();
+        Long systemId = null;
+        Map<String, Object> systemMap = new HashMap<>();
+        systemMap.put(NAME, SYSTEM_LABEL);
+        Boolean initedBoolean = false;
+        Node queryNode = driver.queryNode(systemMap, SYSTEM_LABEL);
+       
+        if (queryNode != null) {
+            systemId =queryNode.getId();
+            Map<String, Object> nodeProperties = driver.getNodeProperties(queryNode);
+            String status = string(nodeProperties, STATE);
+            boolean initInt = false;
+            if (ValidateUtil.isNum(status)) {
+                initInt = SystemStates.INITED.getValue() == Integer.valueOf(status);
+            }
+            if (status != null && (SystemStates.INITED.equals(status) || initInt)) {
+                initedBoolean = true;
+            }
+        }else {
+            
         }
 
         if (initedBoolean) {
@@ -144,10 +168,11 @@ public class GoodsService extends GoodsDomain {
             openBroswer();
         }
         systemMap.put(STATE, SystemStates.INITED.getValue());
-        if (queryNode == null) {
-            driver.createNode(systemMap, Label.label(SYSTEM_LABEL));
+        if (systemId == null) {
+            neo4jService.save(systemMap, SYSTEM_LABEL);
         } else {
-            driver.updateNode(systemMap, queryNode);
+            neo4jService.saveById(systemId, systemMap);
+//            driver.updateNode(systemMap, queryNode);
         }
         try{
             bss.taskRefresh();
