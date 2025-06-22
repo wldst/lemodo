@@ -28,9 +28,25 @@ Service:参数Map,List<Map<String,Object>>,String cypher,url等
 支持用Cypher查询。
 有丰富的应用，支持分页查询，模糊查询，前端界面：增删改查列表。
 
+# 使用
+这是一个SpringBoot项目，启动类：LemodoApplication
+jvm添加参数：--add-opens
+						java.desktop/java.awt.font=ALL-UNNAMED --add-opens
+						java.base/java.text=ALL-UNNAMED --add-opens
+						java.base/java.lang.reflect=ALL-UNNAMED --add-opens
+						java.base/java.util=ALL-UNNAMED --add-opens
+						java.base/sun.nio.ch=ALL-UNNAMED --add-opens
+						java.base/java.lang=ALL-UNNAMED
+启动后会根据neo4j.db.path的属性值，在指定目录创建嵌入式数据库。
+首次启动会有6分钟左右的数据初始化，具体情况参考file/data/中的初始化数据的数量大小来定。
+初始化完成后会在默认浏览器中打开：https://127.0.0.1:9443/root/login
+默认账号和密码：admin/admin2023
+
 本工程定位：后端数据管理，提供数据服务。以及相关接口。是持久化的微服务。
 # 捐赠：
 您的捐赠是我们开源最大的动力
 ETH/USDT(以太坊/USDT)：0x26a96339A0b0f3304070C95dEDb1E0967C9875f6
+
+
 
 

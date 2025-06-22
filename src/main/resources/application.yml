@@ -21,7 +21,7 @@ server:
     key: lemodo
     publish.path: /lemodo
 http:
-  port: 9500
+  port: 9600
 eureka:  
   client:  
     registerWithEureka: true  
