@@ -4597,6 +4597,7 @@ public class HtmlShowService extends LayUIDomain{
                 }
                 addBtn(opt, toolFun, activLogic, btni);
             }
+            
             if(tableHeadBtnList.size()>0){
                 btnList.removeAll(tableHeadBtnList);
                 for(Map<String, Object> thBtni : tableHeadBtnList){
@@ -4638,7 +4639,15 @@ public class HtmlShowService extends LayUIDomain{
 
     public void dropDownInfo(Model model, List<Map<String, Object>> dropDownBtns){
         StringBuilder sb=new StringBuilder();
-        for(Map<String, Object> di : dropDownBtns){
+        Map<String, Map<String, Object>> dd = new HashMap<>();
+        for(Map<String, Object> di : dropDownBtns) {
+            String functionName=string(di, ID);
+            if(dd.get(functionName)==null) {
+        	 dd.put(functionName,di);
+            }
+        }
+        for(String key: dd.keySet()){
+            Map<String, Object> di =dd.get(key);
             String functionName=string(di, ID);
             sb.append("\nif(data.id=='"+functionName+"'){\n");
             sb.append(functionName+"(currentNode);");
