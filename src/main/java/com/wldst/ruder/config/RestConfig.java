@@ -14,12 +14,22 @@ public class RestConfig {
     //5 * 60 * 1000
     @Value("${rest.readTimeout:300000}")
     private int readTimeout;
-//    @Bean
-//    public RestTemplate restTemplate() {
-//        SimpleClientHttpRequestFactory simpleClientHttpRequestFactory = new SimpleClientHttpRequestFactory();
-//        simpleClientHttpRequestFactory.setConnectTimeout(connectTimeout);
-//        simpleClientHttpRequestFactory.setReadTimeout(readTimeout);
-//        RestTemplate restTemplate = new RestTemplate(simpleClientHttpRequestFactory);
-//        return restTemplate;
-//    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        SimpleClientHttpRequestFactory simpleClientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+        simpleClientHttpRequestFactory.setConnectTimeout(connectTimeout);
+        simpleClientHttpRequestFactory.setReadTimeout(readTimeout);
+        RestTemplate restTemplate = new RestTemplate(simpleClientHttpRequestFactory);
+        return restTemplate;
+    }
+
+
+    public void setConnectTimeout(int connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
+    public void setReadTimeout(int readTimeout) {
+        this.readTimeout = readTimeout;
+    }
 }

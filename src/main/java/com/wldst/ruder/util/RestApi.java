@@ -43,23 +43,10 @@ public class RestApi extends SystemDomain {
     public void setServerUrl(String serverUrl) {
         this.serverUrl = serverUrl;
     }
-//    @Autowired
-    private RestTemplate restTemplate=restTemplate();
-  //60 * 1000
-    @Value("${rest.connectTimeout:60000}")
-    private int connectTimeout;
-    //5 * 60 * 1000
-    @Value("${rest.readTimeout:300000}")
-    private int readTimeout;
-    @Bean
-    public RestTemplate restTemplate() {
-        SimpleClientHttpRequestFactory simpleClientHttpRequestFactory = new SimpleClientHttpRequestFactory();
-        simpleClientHttpRequestFactory.setConnectTimeout(connectTimeout);
-        simpleClientHttpRequestFactory.setReadTimeout(readTimeout);
-        RestTemplate restTemplate = new RestTemplate(simpleClientHttpRequestFactory);
-        return restTemplate;
-    }
+    @Autowired
+    private RestTemplate restTemplate;
 
+    
     public <T> T postForObject(String url, Map<String, Object> body, Class<T> class1) {
 	HttpHeaders headers = new HttpHeaders(); // http请求头
 	headers.setContentType(MediaType.APPLICATION_JSON); // 请求头设置属性
