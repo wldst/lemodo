@@ -629,7 +629,7 @@ public class CrudNeo4jService extends Neo4jService{
      * @return
      */
     public Map<String, Object> getAttMapBy(String key, String value, String label){
-        String queryx="MATCH(n:"+label+") where n."+key+"='"+value+"' return n";
+        String queryx="MATCH(n:"+label+") where n."+key+"='"+value+"' OR n."+key+"="+value+" return n";
         Map<String, Object> findNode=null;
         try{
             List<Map<String, Object>> query=queryCache(queryx);
