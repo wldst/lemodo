@@ -35,6 +35,10 @@ Service:参数Map,List<Map<String,Object>>,String cypher,url等
 有丰富的应用，支持分页查询，模糊查询，前端界面：增删改查列表。
 
 # 使用
+在本地建一个目录：例如：D:/Test，cd D:/Test
+git clone https://github.com/wldst/lemodo.git
+使用Eclipse，idea都可以打开此项目。相关端口配置，和SpringBoot相关项目一样。
+
 这是一个SpringBoot项目，启动类：LemodoApplication
 jvm添加参数：--add-opens
 						java.desktop/java.awt.font=ALL-UNNAMED --add-opens
@@ -52,6 +56,9 @@ jvm添加参数：--add-opens
 # 捐赠：
 您的捐赠是我们开源最大的动力
 ETH/USDT(以太坊/USDT)：0x26a96339A0b0f3304070C95dEDb1E0967C9875f6
+觉得好用了，赏口饭吃。我的微信收款码。
+![3ed2121a9a2468b5eea771e00fe6b0a](https://github.com/user-attachments/assets/d34315b4-58bf-43ee-add4-845dc9bc7095)
+
 
 
 
